@@ -54,7 +54,12 @@
       "Read(//Users/mega/Projects/IPTV/**)",
       "Bash(pkill -f ares-server)",
       "Bash(pkill -f vite)",
-      "Bash(mv StreamVault-IPTV-master MegaStream-IPTV)"
+      "Bash(mv StreamVault-IPTV-master MegaStream-IPTV)",
+      "Bash(gh repo *)",
+      "Bash(ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts 2>/dev/null && echo \"host key added\"; git remote -v)",
+      "Bash(git push *)",
+      "Bash(git rev-list *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
