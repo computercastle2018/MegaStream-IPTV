@@ -19,24 +19,8 @@ Built for Android TV first, MegaStream focuses on the things generic IPTV apps u
 
 ## Preview
 <p align="center">
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/LiveTV.png"><img src="docs/images/LiveTV.png" alt="Live TV" width="88%" /></a>
-</p>
 
-<p align="center">
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/Movies.png"><img src="docs/images/Movies.png" alt="Movies" width="44%" /></a>
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/MovieInfo.png"><img src="docs/images/MovieInfo.png" alt="Movie Details" width="44%" /></a>
-</p>
 
-<p align="center">
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/Home.png"><img src="docs/images/Home.png" alt="Home" width="19%" /></a>
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/LiveTV.png"><img src="docs/images/LiveTV.png" alt="Live TV" width="19%" /></a>
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/ChannelView.png"><img src="docs/images/ChannelView.png" alt="Channel Preview" width="19%" /></a>
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/Guide.png"><img src="docs/images/Guide.png" alt="Guide" width="19%" /></a>
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/Settings.png"><img src="docs/images/Settings.png" alt="Settings" width="19%" /></a>
-</p>
-
-<p align="center">
-	<a href="https://github.com/computercastle2018/MegaStream-IPTV/raw/master/docs/images/SeriesEpisodes.png"><img src="docs/images/SeriesEpisodes.png" alt="Series Episodes" width="32%" /></a>
 </p>
 
 ## Highlights
