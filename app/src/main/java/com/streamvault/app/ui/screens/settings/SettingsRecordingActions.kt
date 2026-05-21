@@ -1,10 +1,10 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import android.app.Application
-import com.streamvault.app.R
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.model.RecordingStorageConfig
-import com.streamvault.domain.model.Result
+import com.MegaStream.app.R
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.model.RecordingStorageConfig
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update

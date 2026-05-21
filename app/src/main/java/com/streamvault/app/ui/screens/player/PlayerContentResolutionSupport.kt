@@ -1,16 +1,16 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.data.remote.xtream.XtreamStreamUrlResolver
-import com.streamvault.data.security.CredentialDecryptionException
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.SeriesRepository
+import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
+import com.MegaStream.data.security.CredentialDecryptionException
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.SeriesRepository
 
 internal data class SeriesEpisodeResolution(
     val resolvedEpisode: Episode?,

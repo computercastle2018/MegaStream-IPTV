@@ -1,10 +1,10 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
-import com.streamvault.domain.manager.BackupImportPlan
-import com.streamvault.domain.manager.BackupImportResult
-import com.streamvault.domain.manager.BackupManager
-import com.streamvault.domain.manager.BackupPreview
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.manager.BackupImportPlan
+import com.MegaStream.domain.manager.BackupImportResult
+import com.MegaStream.domain.manager.BackupManager
+import com.MegaStream.domain.manager.BackupPreview
+import com.MegaStream.domain.model.Result
 import javax.inject.Inject
 
 data class InspectBackupCommand(

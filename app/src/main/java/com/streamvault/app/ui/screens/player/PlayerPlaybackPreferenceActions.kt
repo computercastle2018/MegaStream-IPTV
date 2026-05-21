@@ -1,12 +1,12 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.LiveChannelObservedQuality
-import com.streamvault.domain.model.VideoFormat
-import com.streamvault.player.AUDIO_VIDEO_OFFSET_MAX_MS
-import com.streamvault.player.AUDIO_VIDEO_OFFSET_MIN_MS
-import com.streamvault.player.PlaybackState
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.LiveChannelObservedQuality
+import com.MegaStream.domain.model.VideoFormat
+import com.MegaStream.player.AUDIO_VIDEO_OFFSET_MAX_MS
+import com.MegaStream.player.AUDIO_VIDEO_OFFSET_MIN_MS
+import com.MegaStream.player.PlaybackState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive

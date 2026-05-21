@@ -1,4 +1,4 @@
-package com.streamvault.app.tvinput
+package com.MegaStream.app.tvinput
 
 import android.app.Activity
 import android.content.ComponentName
@@ -36,17 +36,17 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.R
-import com.streamvault.app.MainActivity
-import com.streamvault.app.navigation.ExternalDestination
-import com.streamvault.app.ui.theme.ErrorColor
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.StreamVaultTheme
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.repository.ProviderRepository
+import com.MegaStream.app.R
+import com.MegaStream.app.MainActivity
+import com.MegaStream.app.navigation.ExternalDestination
+import com.MegaStream.app.ui.theme.ErrorColor
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.MegaStreamTheme
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.repository.ProviderRepository
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -64,10 +64,10 @@ class TvInputSetupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val inputId = intent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID)
-            ?: ComponentName(this, StreamVaultTvInputService::class.java).flattenToShortString()
+            ?: ComponentName(this, MegaStreamTvInputService::class.java).flattenToShortString()
         viewModel.startSetup(inputId)
         setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 TvInputSetupRoute(
                     onOpenProviderSetup = {
                         startActivity(

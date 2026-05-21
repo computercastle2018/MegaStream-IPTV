@@ -1,4 +1,4 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import android.content.Context
 import android.database.sqlite.SQLiteException
@@ -53,13 +53,13 @@ class BackgroundEpgSyncWorker(
                 BackgroundEpgSyncWorkerEntryPoint::class.java
             )
             when (val result = entryPoint.syncManager().syncEpg(providerId, force = force)) {
-                is com.streamvault.domain.model.Result.Success -> {
+                is com.MegaStream.domain.model.Result.Success -> {
                     // A successful EPG sync may still have transient partial failures
                     // (e.g. network hiccup on one provider section). Check the published
                     // sync state and retry if it signals a retryable EPG failure so
                     // WorkManager backoff can heal it without manual intervention.
                     val syncState = entryPoint.syncManager().currentSyncState(providerId)
-                    if (syncState is com.streamvault.domain.model.SyncState.Partial &&
+                    if (syncState is com.MegaStream.domain.model.SyncState.Partial &&
                             syncState.hasRetryableEpgFailure) {
                         Log.i(TAG, "Scheduling retry for provider $providerId: EPG completed with retryable failure")
                         Result.retry()
@@ -67,7 +67,7 @@ class BackgroundEpgSyncWorker(
                         Result.success()
                     }
                 }
-                is com.streamvault.domain.model.Result.Error -> {
+                is com.MegaStream.domain.model.Result.Error -> {
                     if (result.message.contains("not found", ignoreCase = true)) {
                         Result.success()
                     } else if (shouldRetry(result.exception)) {
@@ -76,7 +76,7 @@ class BackgroundEpgSyncWorker(
                         Result.failure()
                     }
                 }
-                com.streamvault.domain.model.Result.Loading -> Result.retry()
+                com.MegaStream.domain.model.Result.Loading -> Result.retry()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Background EPG work failed for provider $providerId", e)

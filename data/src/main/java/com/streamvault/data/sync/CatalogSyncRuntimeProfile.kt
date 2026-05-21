@@ -1,4 +1,4 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import android.app.ActivityManager
 import android.app.UiModeManager

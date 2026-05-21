@@ -408,11 +408,13 @@
     <string name="settings_enabled">已启用</string>
     <string name="settings_disabled">已禁用</string>
     <string name="settings_developed_by">开发者</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">megaStation</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">在 Ko-fi 上支持</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/computercastle2018</string>
+    <string name="settings_repository">Repository</string>
+    <string name="settings_repository_url">https://github.com/computercastle2018/MegaStream-IPTV</string>
+    <string name="settings_donate">Website</string>
+    <string name="settings_donate_url">https://megastation.ee/megastream</string>
     <string name="settings_updates_title">更新</string>
     <string name="settings_updates_subtitle">无需离开应用即可在 GitHub Releases 查看更新的 MegaStream 版本。</string>
     <string name="settings_update_auto_check">自动检查更新</string>
@@ -702,7 +704,7 @@
     <string name="a11y_catch_up_available">可回看</string>
     <string name="a11y_now_playing">正在播放 %1$s</string>
     <string name="a11y_channel_with_number">频道 %1$d，%2$s</string>
-    <string name="setup_title_streamvault">MegaStream</string>
+    <string name="setup_title_MegaStream">MegaStream</string>
     <string name="setup_provider_title">添加提供商</string>
     <string name="setup_edit_provider">编辑提供商</string>
     <string name="setup_update_desc">更新您的 IPTV 提供商详情</string>

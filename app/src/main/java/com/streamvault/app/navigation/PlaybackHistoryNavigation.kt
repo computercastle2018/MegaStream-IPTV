@@ -1,6 +1,6 @@
-package com.streamvault.app.navigation
+package com.MegaStream.app.navigation
 
-import com.streamvault.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.PlaybackHistory
 
 internal fun PlaybackHistory.toPlayerNavigationRequest(): PlayerNavigationRequest =
     PlayerNavigationRequest(

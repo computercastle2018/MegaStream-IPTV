@@ -1,4 +1,4 @@
-package com.streamvault.app
+package com.MegaStream.app
 
 import android.app.Application
 import coil3.ImageLoader
@@ -7,12 +7,12 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
-import com.streamvault.app.diagnostics.CrashReportStore
-import com.streamvault.app.diagnostics.RuntimeDiagnosticsManager
-import com.streamvault.app.update.GitHubReleaseChecker
-import com.streamvault.app.ui.accessibility.isReducedMotionEnabled
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.Result
+import com.MegaStream.app.diagnostics.CrashReportStore
+import com.MegaStream.app.diagnostics.RuntimeDiagnosticsManager
+import com.MegaStream.app.update.GitHubReleaseChecker
+import com.MegaStream.app.ui.accessibility.isReducedMotionEnabled
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.Result
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,14 +26,14 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.streamvault.data.manager.recording.RecordingReconcileWorker
-import com.streamvault.data.sync.ProviderSyncWorker
-import com.streamvault.data.sync.XtreamIndexWorker
-import com.streamvault.player.timeshift.TimeshiftDiskManager
+import com.MegaStream.data.manager.recording.RecordingReconcileWorker
+import com.MegaStream.data.sync.ProviderSyncWorker
+import com.MegaStream.data.sync.XtreamIndexWorker
+import com.MegaStream.player.timeshift.TimeshiftDiskManager
 import javax.inject.Inject
 
 @HiltAndroidApp
-class StreamVaultApp : Application(), SingletonImageLoader.Factory {
+class MegaStreamApp : Application(), SingletonImageLoader.Factory {
     private val runtimeDiagnosticsManager by lazy { RuntimeDiagnosticsManager(this) }
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -64,7 +64,7 @@ class StreamVaultApp : Application(), SingletonImageLoader.Factory {
             .setRequiresDeviceIdle(true)
             .build()
 
-        val gcWorkRequest = PeriodicWorkRequestBuilder<com.streamvault.data.sync.SyncWorker>(24, java.util.concurrent.TimeUnit.HOURS)
+        val gcWorkRequest = PeriodicWorkRequestBuilder<com.MegaStream.data.sync.SyncWorker>(24, java.util.concurrent.TimeUnit.HOURS)
             .setConstraints(gcConstraints)
             .build()
             

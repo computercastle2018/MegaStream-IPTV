@@ -1,4 +1,4 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 data class CatalogSizeLimits(
     val maxChannelsPerProvider: Int = 100_000,

@@ -1,15 +1,15 @@
-package com.streamvault.data.remote.xtream
+package com.MegaStream.data.remote.xtream
 
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.remote.stalker.StalkerProvider
-import com.streamvault.data.remote.stalker.StalkerApiService
-import com.streamvault.data.remote.stalker.StalkerStreamKind
-import com.streamvault.data.remote.stalker.StalkerUrlFactory
-import com.streamvault.data.security.CredentialCrypto
-import com.streamvault.data.util.UrlSecurityPolicy
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.remote.stalker.StalkerProvider
+import com.MegaStream.data.remote.stalker.StalkerApiService
+import com.MegaStream.data.remote.stalker.StalkerStreamKind
+import com.MegaStream.data.remote.stalker.StalkerUrlFactory
+import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.data.util.UrlSecurityPolicy
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.ProviderType
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -132,7 +132,7 @@ class XtreamStreamUrlResolver @Inject constructor(
                     val resolvedResult = getOrCreateStalkerProvider(resolvedProvider)
                         .resolvePlaybackInfo(token.kind, token.cmd, token.seriesNumber)
                 ) {
-                    is com.streamvault.domain.model.Result.Success -> resolvedResult.data
+                    is com.MegaStream.domain.model.Result.Success -> resolvedResult.data
                     else -> return null
                 }
                 ResolvedStreamUrl(
@@ -170,7 +170,7 @@ class XtreamStreamUrlResolver @Inject constructor(
             return null
         }
         val playbackInfo = when (val resolvedResult = getOrCreateStalkerProvider(provider).resolvePlaybackInfo(kind, repairedUrl)) {
-            is com.streamvault.domain.model.Result.Success -> resolvedResult.data
+            is com.MegaStream.domain.model.Result.Success -> resolvedResult.data
             else -> return null
         }
         return ResolvedStreamUrl(

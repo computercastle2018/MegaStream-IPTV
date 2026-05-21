@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.design
+package com.MegaStream.app.ui.design
 
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.LinearOutSlowInEasing

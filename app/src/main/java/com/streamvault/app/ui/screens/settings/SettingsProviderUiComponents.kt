@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,17 +20,17 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.theme.ErrorColor
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.Secondary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderStatus
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.theme.ErrorColor
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.Secondary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderStatus
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester

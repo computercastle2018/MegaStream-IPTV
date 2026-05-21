@@ -1,25 +1,25 @@
-package com.streamvault.app.di
+package com.MegaStream.app.di
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.util.Log
-import com.streamvault.app.BuildConfig
+import com.MegaStream.app.BuildConfig
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.streamvault.data.remote.NetworkTimeoutConfig
-import com.streamvault.data.remote.http.DefaultUserAgentInterceptor
-import com.streamvault.data.remote.http.buildAppRequestProfile
-import com.streamvault.data.remote.http.buildAppUserAgent
-import com.streamvault.data.remote.stalker.OkHttpStalkerApiService
-import com.streamvault.data.remote.stalker.StalkerApiService
-import com.streamvault.data.remote.xtream.XtreamApiService
-import com.streamvault.data.remote.xtream.OkHttpXtreamApiService
-import com.streamvault.data.remote.xtream.XtreamUrlFactory
-import com.streamvault.data.parser.XmltvParser
-import com.streamvault.player.AudioCompatibilityMemoryStore
-import com.streamvault.player.Media3PlayerEngine
-import com.streamvault.player.PlayerEngine
-import com.streamvault.player.PlaybackSupportSnapshotStore
+import com.MegaStream.data.remote.NetworkTimeoutConfig
+import com.MegaStream.data.remote.http.DefaultUserAgentInterceptor
+import com.MegaStream.data.remote.http.buildAppRequestProfile
+import com.MegaStream.data.remote.http.buildAppUserAgent
+import com.MegaStream.data.remote.stalker.OkHttpStalkerApiService
+import com.MegaStream.data.remote.stalker.StalkerApiService
+import com.MegaStream.data.remote.xtream.XtreamApiService
+import com.MegaStream.data.remote.xtream.OkHttpXtreamApiService
+import com.MegaStream.data.remote.xtream.XtreamUrlFactory
+import com.MegaStream.data.parser.XmltvParser
+import com.MegaStream.player.AudioCompatibilityMemoryStore
+import com.MegaStream.player.Media3PlayerEngine
+import com.MegaStream.player.PlayerEngine
+import com.MegaStream.player.PlaybackSupportSnapshotStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -59,7 +59,7 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .cache(
                 Cache(
-                    directory = File(context.cacheDir, "streamvault_http_cache"),
+                    directory = File(context.cacheDir, "MegaStream_http_cache"),
                     maxSize = 256L * 1024 * 1024
                 )
             )
@@ -115,7 +115,7 @@ object NetworkModule {
     fun provideMainPlayerEngine(
         @ApplicationContext context: Context,
         okHttpClient: OkHttpClient,
-        playbackCompatibilityRepository: com.streamvault.domain.repository.PlaybackCompatibilityRepository,
+        playbackCompatibilityRepository: com.MegaStream.domain.repository.PlaybackCompatibilityRepository,
         audioCompatibilityMemoryStore: AudioCompatibilityMemoryStore,
         playbackSupportSnapshotStore: PlaybackSupportSnapshotStore
     ): PlayerEngine = Media3PlayerEngine(
@@ -135,7 +135,7 @@ object NetworkModule {
     fun provideAuxiliaryPlayerEngine(
         @ApplicationContext context: Context,
         okHttpClient: OkHttpClient,
-        playbackCompatibilityRepository: com.streamvault.domain.repository.PlaybackCompatibilityRepository,
+        playbackCompatibilityRepository: com.MegaStream.domain.repository.PlaybackCompatibilityRepository,
         audioCompatibilityMemoryStore: AudioCompatibilityMemoryStore,
         playbackSupportSnapshotStore: PlaybackSupportSnapshotStore
     ): PlayerEngine = Media3PlayerEngine(

@@ -1,4 +1,4 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import android.content.Context
 import android.database.sqlite.SQLiteException
@@ -15,9 +15,9 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.ProviderType
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -69,7 +69,7 @@ class XtreamIndexWorker(
                         force = force,
                         maxCategoriesPerSection = CATEGORY_SLICE_SIZE
                     )) {
-                        is com.streamvault.domain.model.Result.Error -> {
+                        is com.MegaStream.domain.model.Result.Error -> {
                             Log.w(TAG, "Xtream index worker failed for provider ${provider.id}: ${result.message}")
                             if (shouldRetry(result.exception)) {
                                 sawRetryableFailure = true

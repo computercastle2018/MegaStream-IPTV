@@ -1,4 +1,4 @@
-package com.streamvault.data.local.dao
+package com.MegaStream.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -6,9 +6,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.streamvault.data.local.entity.CombinedM3uProfileEntity
-import com.streamvault.data.local.entity.CombinedM3uProfileMemberEntity
-import com.streamvault.data.local.entity.CombinedM3uProfileMemberWithProvider
+import com.MegaStream.data.local.entity.CombinedM3uProfileEntity
+import com.MegaStream.data.local.entity.CombinedM3uProfileMemberEntity
+import com.MegaStream.data.local.entity.CombinedM3uProfileMemberWithProvider
 import kotlinx.coroutines.flow.Flow
 
 @Dao

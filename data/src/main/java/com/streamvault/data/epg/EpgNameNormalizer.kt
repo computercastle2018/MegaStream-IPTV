@@ -1,4 +1,4 @@
-package com.streamvault.data.epg
+package com.MegaStream.data.epg
 
 import java.text.Normalizer
 import java.util.Locale

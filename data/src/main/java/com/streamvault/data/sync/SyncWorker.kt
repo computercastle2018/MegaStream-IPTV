@@ -1,12 +1,12 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import android.content.Context
 import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.streamvault.data.preferences.DatabaseMaintenanceSnapshot
-import com.streamvault.data.preferences.PreferencesRepository
+import com.MegaStream.data.preferences.DatabaseMaintenanceSnapshot
+import com.MegaStream.data.preferences.PreferencesRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

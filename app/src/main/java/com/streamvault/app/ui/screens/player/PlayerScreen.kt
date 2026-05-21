@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import android.app.Activity
 import android.view.KeyEvent
@@ -43,21 +43,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.tv.material3.*
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.theme.*
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.VideoFormat
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.repository.EpgRepository
-import com.streamvault.player.PlaybackState
-import com.streamvault.player.PLAYER_TRACK_AUTO_ID
-import com.streamvault.player.PlayerEngine
-import com.streamvault.player.PlayerError
-import com.streamvault.player.PlayerRenderSurfaceType
-import com.streamvault.player.PlayerSurfaceResizeMode
-import com.streamvault.player.PlayerTrack
-import com.streamvault.player.TrackType
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.theme.*
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.VideoFormat
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.repository.EpgRepository
+import com.MegaStream.player.PlaybackState
+import com.MegaStream.player.PLAYER_TRACK_AUTO_ID
+import com.MegaStream.player.PlayerEngine
+import com.MegaStream.player.PlayerError
+import com.MegaStream.player.PlayerRenderSurfaceType
+import com.MegaStream.player.PlayerSurfaceResizeMode
+import com.MegaStream.player.PlayerTrack
+import com.MegaStream.player.TrackType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -71,38 +71,38 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import com.streamvault.app.ui.components.dialogs.ProgramHistoryDialog
+import com.MegaStream.app.ui.components.dialogs.ProgramHistoryDialog
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
-import com.streamvault.app.R
-import com.streamvault.app.MainActivity
-import com.streamvault.app.cast.CastConnectionState
-import com.streamvault.app.ui.components.PlayerRenderView
-import com.streamvault.app.ui.design.requestFocusSafely
-import com.streamvault.app.ui.notifications.rememberNotificationPermissionGate
-import com.streamvault.app.ui.screens.player.overlay.ChannelInfoOverlay
-import com.streamvault.app.ui.screens.player.overlay.ChannelVariantSelectionDialog
-import com.streamvault.app.ui.screens.player.overlay.CategoryListOverlay
-import com.streamvault.app.ui.screens.player.overlay.ChannelListOverlay
-import com.streamvault.app.ui.screens.player.overlay.DiagnosticsOverlay
-import com.streamvault.app.ui.screens.player.overlay.EpgOverlay
-import com.streamvault.app.ui.screens.player.overlay.PlayerErrorOverlay
-import com.streamvault.app.ui.screens.player.overlay.PlayerNoticeBanner
-import com.streamvault.app.ui.screens.player.overlay.PlayerEpisodeSelectionDialog
-import com.streamvault.app.ui.screens.player.overlay.PlayerResumePrompt
-import com.streamvault.app.ui.screens.player.overlay.PlayerTrackSelectionDialog
-import com.streamvault.app.ui.screens.player.overlay.PlayerAspectRatioToast
-import com.streamvault.app.ui.screens.player.overlay.PlayerControlsOverlay
-import com.streamvault.app.ui.screens.player.overlay.PlayerNumericInputOverlay
-import com.streamvault.app.ui.screens.player.overlay.PlayerResolutionBadge
-import com.streamvault.app.ui.screens.player.overlay.PlayerAudioVideoOffsetDialog
-import com.streamvault.app.ui.screens.player.overlay.PlayerSpeedSelectionDialog
-import com.streamvault.app.ui.screens.player.overlay.PlayerSleepTimerDialog
-import com.streamvault.app.ui.screens.player.overlay.PlayerSleepTimerWarningOverlay
-import com.streamvault.app.ui.screens.player.overlay.NextEpisodeCountdownOverlay
-import com.streamvault.app.ui.screens.multiview.MultiViewViewModel
-import com.streamvault.app.ui.screens.multiview.MultiViewPlannerDialog
-import com.streamvault.app.navigation.Routes
+import com.MegaStream.app.R
+import com.MegaStream.app.MainActivity
+import com.MegaStream.app.cast.CastConnectionState
+import com.MegaStream.app.ui.components.PlayerRenderView
+import com.MegaStream.app.ui.design.requestFocusSafely
+import com.MegaStream.app.ui.notifications.rememberNotificationPermissionGate
+import com.MegaStream.app.ui.screens.player.overlay.ChannelInfoOverlay
+import com.MegaStream.app.ui.screens.player.overlay.ChannelVariantSelectionDialog
+import com.MegaStream.app.ui.screens.player.overlay.CategoryListOverlay
+import com.MegaStream.app.ui.screens.player.overlay.ChannelListOverlay
+import com.MegaStream.app.ui.screens.player.overlay.DiagnosticsOverlay
+import com.MegaStream.app.ui.screens.player.overlay.EpgOverlay
+import com.MegaStream.app.ui.screens.player.overlay.PlayerErrorOverlay
+import com.MegaStream.app.ui.screens.player.overlay.PlayerNoticeBanner
+import com.MegaStream.app.ui.screens.player.overlay.PlayerEpisodeSelectionDialog
+import com.MegaStream.app.ui.screens.player.overlay.PlayerResumePrompt
+import com.MegaStream.app.ui.screens.player.overlay.PlayerTrackSelectionDialog
+import com.MegaStream.app.ui.screens.player.overlay.PlayerAspectRatioToast
+import com.MegaStream.app.ui.screens.player.overlay.PlayerControlsOverlay
+import com.MegaStream.app.ui.screens.player.overlay.PlayerNumericInputOverlay
+import com.MegaStream.app.ui.screens.player.overlay.PlayerResolutionBadge
+import com.MegaStream.app.ui.screens.player.overlay.PlayerAudioVideoOffsetDialog
+import com.MegaStream.app.ui.screens.player.overlay.PlayerSpeedSelectionDialog
+import com.MegaStream.app.ui.screens.player.overlay.PlayerSleepTimerDialog
+import com.MegaStream.app.ui.screens.player.overlay.PlayerSleepTimerWarningOverlay
+import com.MegaStream.app.ui.screens.player.overlay.NextEpisodeCountdownOverlay
+import com.MegaStream.app.ui.screens.multiview.MultiViewViewModel
+import com.MegaStream.app.ui.screens.multiview.MultiViewPlannerDialog
+import com.MegaStream.app.navigation.Routes
 
 
 
@@ -931,7 +931,7 @@ fun PlayerScreen(
             )
         }
 
-        if (currentChannelRecording?.status == com.streamvault.domain.model.RecordingStatus.RECORDING) {
+        if (currentChannelRecording?.status == com.MegaStream.domain.model.RecordingStatus.RECORDING) {
             val recordingPulse = rememberInfiniteTransition(label = "recordingPulse")
             val recordingAlpha by recordingPulse.animateFloat(
                 initialValue = 1f,
@@ -1398,7 +1398,7 @@ private fun PlayerControlsOverlayHost(
     subtitleTrackCount: Int,
     audioTrackCount: Int,
     videoQualityCount: Int,
-    currentRecordingStatus: com.streamvault.domain.model.RecordingStatus?,
+    currentRecordingStatus: com.MegaStream.domain.model.RecordingStatus?,
     isMuted: Boolean,
     playbackSpeed: Float,
     mediaTitle: String?,

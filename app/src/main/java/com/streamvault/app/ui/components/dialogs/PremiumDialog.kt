@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components.dialogs
+package com.MegaStream.app.ui.components.dialogs
 
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.foundation.BorderStroke
@@ -40,10 +40,10 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.design.FocusSpec
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.design.FocusSpec
 
 internal val LocalDialogCanInteract = compositionLocalOf { true }
 

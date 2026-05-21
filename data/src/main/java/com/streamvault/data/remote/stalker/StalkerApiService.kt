@@ -1,6 +1,6 @@
-package com.streamvault.data.remote.stalker
+package com.MegaStream.data.remote.stalker
 
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Result
 
 data class StalkerDeviceProfile(
     val portalUrl: String,

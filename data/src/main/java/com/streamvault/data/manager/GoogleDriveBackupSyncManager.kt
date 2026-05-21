@@ -1,4 +1,4 @@
-package com.streamvault.data.manager
+package com.MegaStream.data.manager
 
 import android.content.Context
 import android.util.Log
@@ -13,16 +13,16 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.Task
-import com.streamvault.domain.manager.BackupManager
-import com.streamvault.domain.manager.DriveAccount
-import com.streamvault.domain.manager.DriveAuthState
-import com.streamvault.domain.manager.DriveBackupArtifact
-import com.streamvault.domain.manager.DriveBackupSyncManager
-import com.streamvault.domain.manager.DriveSignInRequest
-import com.streamvault.domain.manager.DriveSyncError
-import com.streamvault.domain.manager.DriveSyncStatus
-import com.streamvault.domain.manager.ProviderCredentials
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.manager.BackupManager
+import com.MegaStream.domain.manager.DriveAccount
+import com.MegaStream.domain.manager.DriveAuthState
+import com.MegaStream.domain.manager.DriveBackupArtifact
+import com.MegaStream.domain.manager.DriveBackupSyncManager
+import com.MegaStream.domain.manager.DriveSignInRequest
+import com.MegaStream.domain.manager.DriveSyncError
+import com.MegaStream.domain.manager.DriveSyncStatus
+import com.MegaStream.domain.manager.ProviderCredentials
+import com.MegaStream.domain.model.Result
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -379,7 +379,7 @@ class GoogleDriveBackupSyncManager @Inject constructor(
 
     private fun uploadAppDataFile(authToken: String, payload: File, fileName: String): Boolean {
         val existingId = findRemoteFileId(authToken, fileName)
-        val boundary = "streamvault-${System.nanoTime()}"
+        val boundary = "MegaStream-${System.nanoTime()}"
         val (httpMethod, endpoint) = if (existingId != null) {
             "PATCH" to "https://www.googleapis.com/upload/drive/v3/files/$existingId?uploadType=multipart"
         } else {
@@ -429,9 +429,9 @@ class GoogleDriveBackupSyncManager @Inject constructor(
 
     private companion object {
         const val SCOPE_APP_DATA = "https://www.googleapis.com/auth/drive.appdata"
-        const val BACKUP_FILE_NAME = "streamvault_backup.json"
+        const val BACKUP_FILE_NAME = "MegaStream_backup.json"
         const val TEMP_BACKUP_FILE_NAME = "drive_sync_backup.json"
-        const val CREDENTIALS_FILE_NAME = "streamvault_credentials.json"
+        const val CREDENTIALS_FILE_NAME = "MegaStream_credentials.json"
         const val TEMP_CREDENTIALS_FILE_NAME = "drive_sync_credentials.json"
     }
 }

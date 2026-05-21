@@ -1,16 +1,16 @@
-package com.streamvault.data.local.dao
+package com.MegaStream.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.streamvault.data.local.entity.RecordingRunEntity
-import com.streamvault.data.local.entity.RecordingRunWithSchedule
-import com.streamvault.data.local.entity.RecordingScheduleEntity
-import com.streamvault.data.local.entity.RecordingStorageEntity
-import com.streamvault.data.local.entity.ProgramReminderEntity
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.data.local.entity.RecordingRunEntity
+import com.MegaStream.data.local.entity.RecordingRunWithSchedule
+import com.MegaStream.data.local.entity.RecordingScheduleEntity
+import com.MegaStream.data.local.entity.RecordingStorageEntity
+import com.MegaStream.data.local.entity.ProgramReminderEntity
+import com.MegaStream.domain.model.RecordingStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao

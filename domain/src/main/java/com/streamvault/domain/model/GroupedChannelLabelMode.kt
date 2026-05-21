@@ -1,4 +1,4 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
 enum class GroupedChannelLabelMode(val storageValue: String) {
     CANONICAL("canonical"),

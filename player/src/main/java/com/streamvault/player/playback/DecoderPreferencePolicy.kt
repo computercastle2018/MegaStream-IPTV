@@ -1,6 +1,6 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
-import com.streamvault.domain.model.DecoderMode
+import com.MegaStream.domain.model.DecoderMode
 
 interface DecoderPreferencePolicy {
     fun preferredMode(requestedMode: DecoderMode, mediaId: String): DecoderMode

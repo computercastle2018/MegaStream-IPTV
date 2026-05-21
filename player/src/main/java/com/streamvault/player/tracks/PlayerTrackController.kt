@@ -1,4 +1,4 @@
-package com.streamvault.player.tracks
+package com.MegaStream.player.tracks
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -8,9 +8,9 @@ import androidx.media3.common.Format
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
-import com.streamvault.player.PLAYER_TRACK_AUTO_ID
-import com.streamvault.player.PlayerTrack
-import com.streamvault.player.TrackType
+import com.MegaStream.player.PLAYER_TRACK_AUTO_ID
+import com.MegaStream.player.PlayerTrack
+import com.MegaStream.player.TrackType
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

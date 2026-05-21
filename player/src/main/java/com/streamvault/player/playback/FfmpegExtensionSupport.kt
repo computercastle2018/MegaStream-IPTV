@@ -1,8 +1,8 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import androidx.annotation.VisibleForTesting
 import androidx.media3.common.util.UnstableApi
-import com.streamvault.domain.model.DecoderMode
+import com.MegaStream.domain.model.DecoderMode
 
 internal data class FfmpegExtensionAvailability(
     val available: Boolean,

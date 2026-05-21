@@ -1,8 +1,8 @@
-package com.streamvault.app.localization
+package com.MegaStream.app.localization
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.streamvault.data.preferences.PreferencesRepository
+import com.MegaStream.data.preferences.PreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

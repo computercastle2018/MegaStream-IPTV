@@ -1,4 +1,4 @@
-package com.streamvault.data.local
+package com.MegaStream.data.local
 
 import androidx.room.withTransaction
 import javax.inject.Inject
@@ -10,7 +10,7 @@ interface DatabaseTransactionRunner {
 
 @Singleton
 class RoomDatabaseTransactionRunner @Inject constructor(
-    private val database: StreamVaultDatabase
+    private val database: MegaStreamDatabase
 ) : DatabaseTransactionRunner {
     override suspend fun <T> inTransaction(block: suspend () -> T): T {
         return database.withTransaction {

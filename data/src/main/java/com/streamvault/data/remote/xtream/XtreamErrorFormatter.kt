@@ -1,6 +1,6 @@
-package com.streamvault.data.remote.xtream
+package com.MegaStream.data.remote.xtream
 
-import com.streamvault.data.security.CredentialDecryptionException
+import com.MegaStream.data.security.CredentialDecryptionException
 import java.security.cert.CertificateException
 import javax.net.ssl.SSLPeerUnverifiedException
 

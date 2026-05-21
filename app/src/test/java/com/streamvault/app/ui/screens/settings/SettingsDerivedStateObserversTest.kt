@@ -1,15 +1,15 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import android.app.Application
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.app.R
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.SyncMetadata
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.repository.SeriesRepository
-import com.streamvault.domain.repository.SyncMetadataRepository
+import com.MegaStream.app.R
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.SyncMetadata
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.repository.SeriesRepository
+import com.MegaStream.domain.repository.SyncMetadataRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest

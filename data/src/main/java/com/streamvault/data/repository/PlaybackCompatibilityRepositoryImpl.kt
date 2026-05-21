@@ -1,10 +1,10 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
-import com.streamvault.data.local.dao.PlaybackCompatibilityDao
-import com.streamvault.data.local.entity.PlaybackCompatibilityRecordEntity
-import com.streamvault.domain.model.PlaybackCompatibilityKey
-import com.streamvault.domain.model.PlaybackCompatibilityRecord
-import com.streamvault.domain.repository.PlaybackCompatibilityRepository
+import com.MegaStream.data.local.dao.PlaybackCompatibilityDao
+import com.MegaStream.data.local.entity.PlaybackCompatibilityRecordEntity
+import com.MegaStream.domain.model.PlaybackCompatibilityKey
+import com.MegaStream.domain.model.PlaybackCompatibilityRecord
+import com.MegaStream.domain.repository.PlaybackCompatibilityRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 

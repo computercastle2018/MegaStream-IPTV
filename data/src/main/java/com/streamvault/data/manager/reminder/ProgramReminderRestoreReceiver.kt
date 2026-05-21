@@ -1,9 +1,9 @@
-package com.streamvault.data.manager.reminder
+package com.MegaStream.data.manager.reminder
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.streamvault.data.manager.ProgramReminderManagerImpl
+import com.MegaStream.data.manager.ProgramReminderManagerImpl
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

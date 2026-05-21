@@ -1,4 +1,4 @@
-package com.streamvault.domain.sync
+package com.MegaStream.domain.sync
 
 /**
  * Snapshot immuable de la progression d'un cycle de synchronisation catalogue.

@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -34,21 +34,21 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.dialogs.PremiumDialog
-import com.streamvault.app.ui.components.dialogs.PremiumDialogFooterButton
-import com.streamvault.app.ui.design.FocusSpec
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.theme.ErrorColor
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.CombinedM3uProfile
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.dialogs.PremiumDialog
+import com.MegaStream.app.ui.components.dialogs.PremiumDialogFooterButton
+import com.MegaStream.app.ui.design.FocusSpec
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.theme.ErrorColor
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.CombinedM3uProfile
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
 
 @Composable
 internal fun CombinedM3uProfilesCard(

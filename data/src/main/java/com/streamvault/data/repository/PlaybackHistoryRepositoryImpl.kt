@@ -1,18 +1,18 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.EpisodeDao
-import com.streamvault.data.local.dao.MovieDao
-import com.streamvault.data.local.dao.PlaybackHistoryDao
-import com.streamvault.data.mapper.toDomain
-import com.streamvault.data.mapper.toEntity
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.PlaybackWatchedStatus
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.util.DEFAULT_PLAYBACK_COMPLETION_THRESHOLD
-import com.streamvault.domain.util.isPlaybackComplete
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.EpisodeDao
+import com.MegaStream.data.local.dao.MovieDao
+import com.MegaStream.data.local.dao.PlaybackHistoryDao
+import com.MegaStream.data.mapper.toDomain
+import com.MegaStream.data.mapper.toEntity
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.PlaybackWatchedStatus
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.util.DEFAULT_PLAYBACK_COMPLETION_THRESHOLD
+import com.MegaStream.domain.util.isPlaybackComplete
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,8 +28,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.remote.xtream.XtreamUrlFactory
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.remote.xtream.XtreamUrlFactory
 
 @Singleton
 class PlaybackHistoryRepositoryImpl @Inject constructor(

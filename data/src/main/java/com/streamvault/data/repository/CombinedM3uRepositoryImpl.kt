@@ -1,25 +1,25 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
-import com.streamvault.data.local.dao.CombinedM3uProfileDao
-import com.streamvault.data.local.dao.CombinedM3uProfileMemberDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.entity.CombinedM3uProfileEntity
-import com.streamvault.data.local.entity.CombinedM3uProfileMemberEntity
-import com.streamvault.data.mapper.toDomain
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.ActiveLiveSourceOption
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.CombinedCategory
-import com.streamvault.domain.model.CombinedCategoryBinding
-import com.streamvault.domain.model.CombinedM3uProfile
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
+import com.MegaStream.data.local.dao.CombinedM3uProfileDao
+import com.MegaStream.data.local.dao.CombinedM3uProfileMemberDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.entity.CombinedM3uProfileEntity
+import com.MegaStream.data.local.entity.CombinedM3uProfileMemberEntity
+import com.MegaStream.data.mapper.toDomain
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.ActiveLiveSourceOption
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.CombinedCategory
+import com.MegaStream.domain.model.CombinedCategoryBinding
+import com.MegaStream.domain.model.CombinedM3uProfile
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -267,13 +267,13 @@ class CombinedM3uRepositoryImpl @Inject constructor(
                     arrays.toList()
                         .map { it as Triple<*, *, *> }
                         .flatMap { triple ->
-                            val member = triple.first as com.streamvault.domain.model.CombinedM3uProfileMember
+                            val member = triple.first as com.MegaStream.domain.model.CombinedM3uProfileMember
                             val categories = triple.second as List<Category>
                             val hiddenCategoryIds = triple.third as Set<Long>
                             categories
                                 .filter {
                                     !it.isVirtual &&
-                                        it.id != com.streamvault.domain.repository.ChannelRepository.ALL_CHANNELS_ID &&
+                                        it.id != com.MegaStream.domain.repository.ChannelRepository.ALL_CHANNELS_ID &&
                                         it.id !in hiddenCategoryIds
                                 }
                                 .map { category ->

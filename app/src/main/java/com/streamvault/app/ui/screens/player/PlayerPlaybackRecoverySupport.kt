@@ -1,6 +1,6 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.player.PlayerError
+import com.MegaStream.player.PlayerError
 
 internal fun classifyPlaybackError(error: PlayerError): PlayerRecoveryType = when (error) {
     is PlayerError.NetworkError -> {

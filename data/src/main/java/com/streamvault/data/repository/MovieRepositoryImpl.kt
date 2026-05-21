@@ -1,49 +1,49 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import android.database.sqlite.SQLiteException
 import android.util.Log
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.CategoryDao
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.dao.MovieCategoryHydrationDao
-import com.streamvault.data.local.dao.MovieDao
-import com.streamvault.data.local.dao.PlaybackHistoryDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.XtreamContentIndexDao
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.local.entity.CategoryEntity
-import com.streamvault.data.local.entity.MovieBrowseEntity
-import com.streamvault.data.local.entity.MovieCategoryHydrationEntity
-import com.streamvault.data.mapper.toEntity
-import com.streamvault.data.mapper.toDomain
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.remote.http.toGenericRequestProfile
-import com.streamvault.data.remote.stalker.StalkerApiService
-import com.streamvault.data.remote.stalker.StalkerProvider
-import com.streamvault.data.remote.xtream.XtreamApiService
-import com.streamvault.data.remote.xtream.XtreamStreamUrlResolver
-import com.streamvault.data.remote.xtream.XtreamProvider
-import com.streamvault.data.security.CredentialCrypto
-import com.streamvault.data.sync.ContentCachePolicy
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.data.util.rankSearchResults
-import com.streamvault.data.util.toFtsPrefixQuery
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.LibraryFilterType
-import com.streamvault.domain.model.LibraryBrowseQuery
-import com.streamvault.domain.model.LibrarySortBy
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.PagedResult
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.Result.Success
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.repository.SyncMetadataRepository
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.CategoryDao
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.dao.MovieCategoryHydrationDao
+import com.MegaStream.data.local.dao.MovieDao
+import com.MegaStream.data.local.dao.PlaybackHistoryDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.XtreamContentIndexDao
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.local.entity.CategoryEntity
+import com.MegaStream.data.local.entity.MovieBrowseEntity
+import com.MegaStream.data.local.entity.MovieCategoryHydrationEntity
+import com.MegaStream.data.mapper.toEntity
+import com.MegaStream.data.mapper.toDomain
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.remote.http.toGenericRequestProfile
+import com.MegaStream.data.remote.stalker.StalkerApiService
+import com.MegaStream.data.remote.stalker.StalkerProvider
+import com.MegaStream.data.remote.xtream.XtreamApiService
+import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
+import com.MegaStream.data.remote.xtream.XtreamProvider
+import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.data.sync.ContentCachePolicy
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.data.util.rankSearchResults
+import com.MegaStream.data.util.toFtsPrefixQuery
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.LibraryFilterType
+import com.MegaStream.domain.model.LibraryBrowseQuery
+import com.MegaStream.domain.model.LibrarySortBy
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.PagedResult
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.Result.Success
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.repository.SyncMetadataRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -1364,7 +1364,7 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun com.streamvault.data.local.entity.MovieEntity.hasFreshXtreamDetails(now: Long = System.currentTimeMillis()): Boolean {
+    private fun com.MegaStream.data.local.entity.MovieEntity.hasFreshXtreamDetails(now: Long = System.currentTimeMillis()): Boolean {
         if (cacheState == CACHE_STATE_SUMMARY_ONLY) return false
         if (detailHydratedAt <= 0L) return false
         if (remoteStaleAt > 0L) return false

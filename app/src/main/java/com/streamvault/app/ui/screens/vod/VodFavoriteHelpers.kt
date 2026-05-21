@@ -1,9 +1,9 @@
-package com.streamvault.app.ui.screens.vod
+package com.MegaStream.app.ui.screens.vod
 
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.VirtualGroup
-import com.streamvault.domain.repository.FavoriteRepository
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.VirtualGroup
+import com.MegaStream.domain.repository.FavoriteRepository
 
 data class VodDialogSelection<T>(
     val selectedItem: T,

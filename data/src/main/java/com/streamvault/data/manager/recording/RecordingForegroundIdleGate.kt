@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 internal class RecordingForegroundIdleGate {
     var activeRecordingCount: Int = 0

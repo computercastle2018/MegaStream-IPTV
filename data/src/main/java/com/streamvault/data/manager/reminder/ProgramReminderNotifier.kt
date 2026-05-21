@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.reminder
+package com.MegaStream.data.manager.reminder
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,7 +7,7 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.streamvault.data.local.entity.ProgramReminderEntity
+import com.MegaStream.data.local.entity.ProgramReminderEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton

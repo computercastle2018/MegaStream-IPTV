@@ -1,4 +1,4 @@
-package com.streamvault.app.tvinput
+package com.MegaStream.app.tvinput
 
 import android.content.ContentUris
 import android.content.Context
@@ -20,10 +20,10 @@ import androidx.media3.exoplayer.rtsp.RtspMediaSource
 import androidx.media3.exoplayer.smoothstreaming.SsMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
-import com.streamvault.domain.repository.ChannelRepository
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.domain.repository.ChannelRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ import okhttp3.OkHttpClient
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class StreamVaultTvInputService : TvInputService() {
+class MegaStreamTvInputService : TvInputService() {
 
     @Inject
     lateinit var channelRepository: ChannelRepository
@@ -43,9 +43,9 @@ class StreamVaultTvInputService : TvInputService() {
     @Inject
     lateinit var okHttpClient: OkHttpClient
 
-    override fun onCreateSession(inputId: String): Session = StreamVaultSession(this)
+    override fun onCreateSession(inputId: String): Session = MegaStreamSession(this)
 
-    private inner class StreamVaultSession(context: Context) : Session(context) {
+    private inner class MegaStreamSession(context: Context) : Session(context) {
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         private val player: ExoPlayer = ExoPlayer.Builder(context).build().apply {
             addListener(object : Player.Listener {
@@ -177,8 +177,8 @@ class StreamVaultTvInputService : TvInputService() {
     )
 
     private companion object {
-        const val TAG = "StreamVaultTvInput"
-        const val DEFAULT_USER_AGENT = "StreamVaultTvInput"
+        const val TAG = "MegaStreamTvInput"
+        const val DEFAULT_USER_AGENT = "MegaStreamTvInput"
         const val CHANNEL_COLUMN_INTERNAL_PROVIDER_DATA = "internal_provider_data"
         const val ENTRY_SEPARATOR = ":"
     }

@@ -1,4 +1,4 @@
-package com.streamvault.data.local
+package com.MegaStream.data.local
 
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
@@ -12,14 +12,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class StreamVaultDatabaseMigrationTest {
+class MegaStreamDatabaseMigrationTest {
 
-    private val testDbName = "streamvault-migration-test"
+    private val testDbName = "MegaStream-migration-test"
 
     @get:Rule
     val migrationTestHelper: MigrationTestHelper = MigrationTestHelper(
         InstrumentationRegistry.getInstrumentation(),
-        StreamVaultDatabase::class.java,
+        MegaStreamDatabase::class.java,
         emptyList(),
         FrameworkSQLiteOpenHelperFactory()
     )
@@ -57,7 +57,7 @@ class StreamVaultDatabaseMigrationTest {
             testDbName,
             10,
             true,
-            StreamVaultDatabase.MIGRATION_9_10
+            MegaStreamDatabase.MIGRATION_9_10
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM channels_fts WHERE channels_fts MATCH 'news*'"))
@@ -85,61 +85,61 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate1To42_fullChainValidatesLatestSchema() {
-        migrationTestHelper.createDatabase("streamvault-full-chain-test", 1).close()
+        migrationTestHelper.createDatabase("MegaStream-full-chain-test", 1).close()
 
         migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-full-chain-test",
+            "MegaStream-full-chain-test",
             42,
             true,
-            StreamVaultDatabase.MIGRATION_1_2,
-            StreamVaultDatabase.MIGRATION_2_3,
-            StreamVaultDatabase.MIGRATION_3_4,
-            StreamVaultDatabase.MIGRATION_4_5,
-            StreamVaultDatabase.MIGRATION_5_6,
-            StreamVaultDatabase.MIGRATION_6_7,
-            StreamVaultDatabase.MIGRATION_7_8,
-            StreamVaultDatabase.MIGRATION_8_9,
-            StreamVaultDatabase.MIGRATION_9_10,
-            StreamVaultDatabase.MIGRATION_10_11,
-            StreamVaultDatabase.MIGRATION_11_12,
-            StreamVaultDatabase.MIGRATION_12_13,
-            StreamVaultDatabase.MIGRATION_13_14,
-            StreamVaultDatabase.MIGRATION_14_15,
-            StreamVaultDatabase.MIGRATION_15_16,
-            StreamVaultDatabase.MIGRATION_16_17,
-            StreamVaultDatabase.MIGRATION_17_18,
-            StreamVaultDatabase.MIGRATION_18_19,
-            StreamVaultDatabase.MIGRATION_19_20,
-            StreamVaultDatabase.MIGRATION_20_21,
-            StreamVaultDatabase.MIGRATION_21_22,
-            StreamVaultDatabase.MIGRATION_22_23,
-            StreamVaultDatabase.MIGRATION_23_24,
-            StreamVaultDatabase.MIGRATION_24_25,
-            StreamVaultDatabase.MIGRATION_25_26,
-            StreamVaultDatabase.MIGRATION_26_27,
-            StreamVaultDatabase.MIGRATION_27_28,
-            StreamVaultDatabase.MIGRATION_28_29,
-            StreamVaultDatabase.MIGRATION_29_30,
-            StreamVaultDatabase.MIGRATION_30_31,
-            StreamVaultDatabase.MIGRATION_31_32,
-            StreamVaultDatabase.MIGRATION_32_33,
-            StreamVaultDatabase.MIGRATION_33_34,
-            StreamVaultDatabase.MIGRATION_34_35,
-            StreamVaultDatabase.MIGRATION_35_36,
-            StreamVaultDatabase.MIGRATION_36_37,
-            StreamVaultDatabase.MIGRATION_37_38,
-            StreamVaultDatabase.MIGRATION_38_39,
-            StreamVaultDatabase.MIGRATION_39_40,
-            StreamVaultDatabase.MIGRATION_40_41,
-            StreamVaultDatabase.MIGRATION_41_42,
-            StreamVaultDatabase.MIGRATION_42_43,
-            StreamVaultDatabase.MIGRATION_43_44
+            MegaStreamDatabase.MIGRATION_1_2,
+            MegaStreamDatabase.MIGRATION_2_3,
+            MegaStreamDatabase.MIGRATION_3_4,
+            MegaStreamDatabase.MIGRATION_4_5,
+            MegaStreamDatabase.MIGRATION_5_6,
+            MegaStreamDatabase.MIGRATION_6_7,
+            MegaStreamDatabase.MIGRATION_7_8,
+            MegaStreamDatabase.MIGRATION_8_9,
+            MegaStreamDatabase.MIGRATION_9_10,
+            MegaStreamDatabase.MIGRATION_10_11,
+            MegaStreamDatabase.MIGRATION_11_12,
+            MegaStreamDatabase.MIGRATION_12_13,
+            MegaStreamDatabase.MIGRATION_13_14,
+            MegaStreamDatabase.MIGRATION_14_15,
+            MegaStreamDatabase.MIGRATION_15_16,
+            MegaStreamDatabase.MIGRATION_16_17,
+            MegaStreamDatabase.MIGRATION_17_18,
+            MegaStreamDatabase.MIGRATION_18_19,
+            MegaStreamDatabase.MIGRATION_19_20,
+            MegaStreamDatabase.MIGRATION_20_21,
+            MegaStreamDatabase.MIGRATION_21_22,
+            MegaStreamDatabase.MIGRATION_22_23,
+            MegaStreamDatabase.MIGRATION_23_24,
+            MegaStreamDatabase.MIGRATION_24_25,
+            MegaStreamDatabase.MIGRATION_25_26,
+            MegaStreamDatabase.MIGRATION_26_27,
+            MegaStreamDatabase.MIGRATION_27_28,
+            MegaStreamDatabase.MIGRATION_28_29,
+            MegaStreamDatabase.MIGRATION_29_30,
+            MegaStreamDatabase.MIGRATION_30_31,
+            MegaStreamDatabase.MIGRATION_31_32,
+            MegaStreamDatabase.MIGRATION_32_33,
+            MegaStreamDatabase.MIGRATION_33_34,
+            MegaStreamDatabase.MIGRATION_34_35,
+            MegaStreamDatabase.MIGRATION_35_36,
+            MegaStreamDatabase.MIGRATION_36_37,
+            MegaStreamDatabase.MIGRATION_37_38,
+            MegaStreamDatabase.MIGRATION_38_39,
+            MegaStreamDatabase.MIGRATION_39_40,
+            MegaStreamDatabase.MIGRATION_40_41,
+            MegaStreamDatabase.MIGRATION_41_42,
+            MegaStreamDatabase.MIGRATION_42_43,
+            MegaStreamDatabase.MIGRATION_43_44
         ).close()
     }
 
     @Test
     fun migrate44To51_publicMasterUpgradeValidatesLatestSchema() {
-        migrationTestHelper.createDatabase("streamvault-public-master-44-51-test", 44).apply {
+        migrationTestHelper.createDatabase("MegaStream-public-master-44-51-test", 44).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -154,17 +154,17 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-public-master-44-51-test",
+            "MegaStream-public-master-44-51-test",
             52,
             true,
-            StreamVaultDatabase.MIGRATION_44_45,
-            StreamVaultDatabase.MIGRATION_45_46,
-            StreamVaultDatabase.MIGRATION_46_47,
-            StreamVaultDatabase.MIGRATION_47_48,
-            StreamVaultDatabase.MIGRATION_48_49,
-            StreamVaultDatabase.MIGRATION_49_50,
-            StreamVaultDatabase.MIGRATION_50_51,
-            StreamVaultDatabase.MIGRATION_51_52
+            MegaStreamDatabase.MIGRATION_44_45,
+            MegaStreamDatabase.MIGRATION_45_46,
+            MegaStreamDatabase.MIGRATION_46_47,
+            MegaStreamDatabase.MIGRATION_47_48,
+            MegaStreamDatabase.MIGRATION_48_49,
+            MegaStreamDatabase.MIGRATION_49_50,
+            MegaStreamDatabase.MIGRATION_50_51,
+            MegaStreamDatabase.MIGRATION_51_52
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM providers WHERE id = 1 AND name = 'Public Master Provider'"))
@@ -180,7 +180,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate48To49_addsProviderHttpProfileColumns() {
-        migrationTestHelper.createDatabase("streamvault-48-49-test", 48).apply {
+        migrationTestHelper.createDatabase("MegaStream-48-49-test", 48).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -200,10 +200,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-48-49-test",
+            "MegaStream-48-49-test",
             49,
             true,
-            StreamVaultDatabase.MIGRATION_48_49
+            MegaStreamDatabase.MIGRATION_48_49
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('providers') WHERE name = 'http_user_agent'"))
@@ -215,13 +215,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate49To50_createsXtreamLiveOnboardingStateTable() {
-        migrationTestHelper.createDatabase("streamvault-49-50-test", 49).close()
+        migrationTestHelper.createDatabase("MegaStream-49-50-test", 49).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-49-50-test",
+            "MegaStream-49-50-test",
             50,
             true,
-            StreamVaultDatabase.MIGRATION_49_50
+            MegaStreamDatabase.MIGRATION_49_50
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'xtream_live_onboarding_state'"))
@@ -233,13 +233,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate50To51_addsXtreamLiveOnboardingProfileDiagnostics() {
-        migrationTestHelper.createDatabase("streamvault-50-51-test", 50).close()
+        migrationTestHelper.createDatabase("MegaStream-50-51-test", 50).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-50-51-test",
+            "MegaStream-50-51-test",
             51,
             true,
-            StreamVaultDatabase.MIGRATION_50_51
+            MegaStreamDatabase.MIGRATION_50_51
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('xtream_live_onboarding_state') WHERE name = 'sync_profile_tier'"))
@@ -254,13 +254,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate51To52_addsXtreamLiveSyncMode() {
-        migrationTestHelper.createDatabase("streamvault-51-52-test", 51).close()
+        migrationTestHelper.createDatabase("MegaStream-51-52-test", 51).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-51-52-test",
+            "MegaStream-51-52-test",
             52,
             true,
-            StreamVaultDatabase.MIGRATION_51_52
+            MegaStreamDatabase.MIGRATION_51_52
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('providers') WHERE name = 'xtream_live_sync_mode'"))
@@ -270,13 +270,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate40To41_addsAudioVideoOffsetColumn() {
-        migrationTestHelper.createDatabase("streamvault-40-41-test", 40).close()
+        migrationTestHelper.createDatabase("MegaStream-40-41-test", 40).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-40-41-test",
+            "MegaStream-40-41-test",
             41,
             true,
-            StreamVaultDatabase.MIGRATION_40_41
+            MegaStreamDatabase.MIGRATION_40_41
         )
 
         assertEquals(
@@ -292,13 +292,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate41To42_createsPlaybackCompatibilityRecordsTable() {
-        migrationTestHelper.createDatabase("streamvault-41-42-test", 41).close()
+        migrationTestHelper.createDatabase("MegaStream-41-42-test", 41).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-41-42-test",
+            "MegaStream-41-42-test",
             42,
             true,
-            StreamVaultDatabase.MIGRATION_41_42
+            MegaStreamDatabase.MIGRATION_41_42
         )
 
         assertEquals(
@@ -321,13 +321,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate42To43_addsProviderSeriesIdColumn() {
-        migrationTestHelper.createDatabase("streamvault-42-43-test", 42).close()
+        migrationTestHelper.createDatabase("MegaStream-42-43-test", 42).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-42-43-test",
+            "MegaStream-42-43-test",
             43,
             true,
-            StreamVaultDatabase.MIGRATION_42_43
+            MegaStreamDatabase.MIGRATION_42_43
         )
 
         assertEquals(
@@ -343,13 +343,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate43To44_addsPagedVodHydrationColumns() {
-        migrationTestHelper.createDatabase("streamvault-43-44-test", 43).close()
+        migrationTestHelper.createDatabase("MegaStream-43-44-test", 43).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-43-44-test",
+            "MegaStream-43-44-test",
             44,
             true,
-            StreamVaultDatabase.MIGRATION_43_44
+            MegaStreamDatabase.MIGRATION_43_44
         )
 
         listOf("movie_category_hydration", "series_category_hydration").forEach { table ->
@@ -370,7 +370,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate38To39_addsStalkerProviderColumnsAndUniqueIndex() {
-        migrationTestHelper.createDatabase("streamvault-38-39-test", 38).apply {
+        migrationTestHelper.createDatabase("MegaStream-38-39-test", 38).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -385,10 +385,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-38-39-test",
+            "MegaStream-38-39-test",
             39,
             true,
-            StreamVaultDatabase.MIGRATION_38_39
+            MegaStreamDatabase.MIGRATION_38_39
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('providers') WHERE name = 'stalker_mac_address'"))
@@ -409,7 +409,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate32To33_backfillsMovieWatchCountAndAddsGlobalFavoritesIndex() {
-        migrationTestHelper.createDatabase("streamvault-32-33-test", 32).apply {
+        migrationTestHelper.createDatabase("MegaStream-32-33-test", 32).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -447,10 +447,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-32-33-test",
+            "MegaStream-32-33-test",
             33,
             true,
-            StreamVaultDatabase.MIGRATION_32_33
+            MegaStreamDatabase.MIGRATION_32_33
         )
 
         assertEquals(6, countRows(migratedDb, "SELECT watch_count FROM movies WHERE id = 10"))
@@ -467,7 +467,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate33To34_addsSuccessTimestampsAndProgramsEndTimeIndex() {
-        migrationTestHelper.createDatabase("streamvault-33-34-test", 33).apply {
+        migrationTestHelper.createDatabase("MegaStream-33-34-test", 33).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -503,10 +503,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-33-34-test",
+            "MegaStream-33-34-test",
             34,
             true,
-            StreamVaultDatabase.MIGRATION_33_34
+            MegaStreamDatabase.MIGRATION_33_34
         )
 
         assertEquals(11, countRows(migratedDb, "SELECT last_live_success FROM sync_metadata WHERE provider_id = 1"))
@@ -525,7 +525,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate44To45_dedupesGlobalFavoritesAndAddsNullSafeUniqueKey() {
-        migrationTestHelper.createDatabase("streamvault-44-45-test", 44).apply {
+        migrationTestHelper.createDatabase("MegaStream-44-45-test", 44).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -552,10 +552,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-44-45-test",
+            "MegaStream-44-45-test",
             45,
             true,
-            StreamVaultDatabase.MIGRATION_44_45
+            MegaStreamDatabase.MIGRATION_44_45
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM favorites WHERE provider_id = 1 AND content_id = 10 AND content_type = 'MOVIE' AND group_id IS NULL"))
@@ -575,7 +575,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate45To46_rebuildsSeriesStageWithProviderSeriesKey() {
-        migrationTestHelper.createDatabase("streamvault-45-46-test", 45).apply {
+        migrationTestHelper.createDatabase("MegaStream-45-46-test", 45).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -600,10 +600,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-45-46-test",
+            "MegaStream-45-46-test",
             46,
             true,
-            StreamVaultDatabase.MIGRATION_45_46
+            MegaStreamDatabase.MIGRATION_45_46
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('series_import_stage') WHERE name = 'provider_series_id'"))
@@ -615,13 +615,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate46To47_createsBrowseQueryIndexes() {
-        migrationTestHelper.createDatabase("streamvault-46-47-test", 46).close()
+        migrationTestHelper.createDatabase("MegaStream-46-47-test", 46).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-46-47-test",
+            "MegaStream-46-47-test",
             47,
             true,
-            StreamVaultDatabase.MIGRATION_46_47
+            MegaStreamDatabase.MIGRATION_46_47
         )
 
         assertEquals(
@@ -700,7 +700,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate47To48_createsXtreamIndexBackfillsRowsAndMarksSummaryState() {
-        migrationTestHelper.createDatabase("streamvault-47-48-test", 47).apply {
+        migrationTestHelper.createDatabase("MegaStream-47-48-test", 47).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -827,10 +827,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-47-48-test",
+            "MegaStream-47-48-test",
             48,
             true,
-            StreamVaultDatabase.MIGRATION_47_48
+            MegaStreamDatabase.MIGRATION_47_48
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'xtream_content_index'"))
@@ -859,13 +859,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate34To35_createsSearchHistoryTable() {
-        migrationTestHelper.createDatabase("streamvault-34-35-test", 34).close()
+        migrationTestHelper.createDatabase("MegaStream-34-35-test", 34).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-34-35-test",
+            "MegaStream-34-35-test",
             35,
             true,
-            StreamVaultDatabase.MIGRATION_34_35
+            MegaStreamDatabase.MIGRATION_34_35
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('search_history') WHERE name = 'query'"))
@@ -883,7 +883,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate31To32_scopesFavoritesAndSplitsMixedProviderGroups() {
-        migrationTestHelper.createDatabase("streamvault-31-32-test", 31).apply {
+        migrationTestHelper.createDatabase("MegaStream-31-32-test", 31).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -926,10 +926,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-31-32-test",
+            "MegaStream-31-32-test",
             32,
             true,
-            StreamVaultDatabase.MIGRATION_31_32
+            MegaStreamDatabase.MIGRATION_31_32
         )
 
         assertEquals(2, countRows(migratedDb, "SELECT COUNT(*) FROM virtual_groups WHERE name = 'Mixed Group'"))
@@ -957,7 +957,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate31To32_assignsLegacyGroupsWhenNoProviderIsActive() {
-        migrationTestHelper.createDatabase("streamvault-31-32-no-active-test", 31).apply {
+        migrationTestHelper.createDatabase("MegaStream-31-32-no-active-test", 31).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -980,10 +980,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-31-32-no-active-test",
+            "MegaStream-31-32-no-active-test",
             32,
             true,
-            StreamVaultDatabase.MIGRATION_31_32
+            MegaStreamDatabase.MIGRATION_31_32
         )
 
         assertEquals(0, countRows(migratedDb, "SELECT COUNT(*) FROM virtual_groups WHERE provider_id = 0 OR provider_id IS NULL"))
@@ -994,13 +994,13 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate35To36_addsProgramRemindersAndEpgMatchMetadata() {
-        migrationTestHelper.createDatabase("streamvault-35-36-test", 35).close()
+        migrationTestHelper.createDatabase("MegaStream-35-36-test", 35).close()
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-35-36-test",
+            "MegaStream-35-36-test",
             36,
             true,
-            StreamVaultDatabase.MIGRATION_35_36
+            MegaStreamDatabase.MIGRATION_35_36
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('channel_epg_mappings') WHERE name = 'matched_at'"))
@@ -1020,7 +1020,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate36To37_createsTmdbIdentityTable() {
-        migrationTestHelper.createDatabase("streamvault-36-37-test", 36).apply {
+        migrationTestHelper.createDatabase("MegaStream-36-37-test", 36).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -1050,10 +1050,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-36-37-test",
+            "MegaStream-36-37-test",
             37,
             true,
-            StreamVaultDatabase.MIGRATION_36_37
+            MegaStreamDatabase.MIGRATION_36_37
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'tmdb_identity'"))
@@ -1065,7 +1065,7 @@ class StreamVaultDatabaseMigrationTest {
 
     @Test
     fun migrate14To15_addsAuditCompletionColumns() {
-        migrationTestHelper.createDatabase("streamvault-14-15-test", 14).apply {
+        migrationTestHelper.createDatabase("MegaStream-14-15-test", 14).apply {
             execSQL(
                 """
                 INSERT INTO providers (
@@ -1086,10 +1086,10 @@ class StreamVaultDatabaseMigrationTest {
         }
 
         val migratedDb = migrationTestHelper.runMigrationsAndValidate(
-            "streamvault-14-15-test",
+            "MegaStream-14-15-test",
             15,
             true,
-            StreamVaultDatabase.MIGRATION_14_15
+            MegaStreamDatabase.MIGRATION_14_15
         )
 
         assertEquals(1, countRows(migratedDb, "SELECT COUNT(*) FROM pragma_table_info('providers') WHERE name = 'api_version'"))

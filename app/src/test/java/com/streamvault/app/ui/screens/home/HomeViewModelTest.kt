@@ -1,31 +1,31 @@
-package com.streamvault.app.ui.screens.home
+package com.MegaStream.app.ui.screens.home
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
-import com.streamvault.app.player.LivePreviewHandoffManager
-import com.streamvault.app.plugins.StreamVaultPluginManager
-import com.streamvault.app.tvinput.TvInputChannelSyncManager
-import com.streamvault.app.ui.screens.multiview.MultiViewManager
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.domain.manager.ParentalControlManager
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.CategorySortMode
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.SyncState
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.repository.*
-import com.streamvault.domain.usecase.GetCustomCategories
-import com.streamvault.domain.usecase.UnlockParentalCategory
-import com.streamvault.player.PlayerEngine
+import com.MegaStream.app.player.LivePreviewHandoffManager
+import com.MegaStream.app.plugins.MegaStreamPluginManager
+import com.MegaStream.app.tvinput.TvInputChannelSyncManager
+import com.MegaStream.app.ui.screens.multiview.MultiViewManager
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.domain.manager.ParentalControlManager
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.CategorySortMode
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.SyncState
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.repository.*
+import com.MegaStream.domain.usecase.GetCustomCategories
+import com.MegaStream.domain.usecase.UnlockParentalCategory
+import com.MegaStream.player.PlayerEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -57,7 +57,7 @@ class HomeViewModelTest {
     private val tvInputChannelSyncManager: TvInputChannelSyncManager = mock()
     private val multiViewManager = MultiViewManager()
     private val livePreviewHandoffManager: LivePreviewHandoffManager = mock()
-    private val pluginManager: StreamVaultPluginManager = mock()
+    private val pluginManager: MegaStreamPluginManager = mock()
     private val playerEngine: PlayerEngine = mock()
     private val playerEngineProvider: InjectProvider<PlayerEngine> = mock()
     private val application: Application = mock()
@@ -187,7 +187,7 @@ class HomeViewModelTest {
         
         // Mock the repositories needed for loading channels
         whenever(channelRepository.getChannelsByCategoryPage(any(), any(), any())).thenReturn(flowOf(emptyList()))
-        val provider = Provider(id = 1L, name = "Provider", type = com.streamvault.domain.model.ProviderType.M3U, serverUrl = "http://test")
+        val provider = Provider(id = 1L, name = "Provider", type = com.MegaStream.domain.model.ProviderType.M3U, serverUrl = "http://test")
         whenever(providerRepository.getActiveProvider()).thenReturn(flowOf(provider))
         viewModel = createViewModel()
         advanceUntilIdle()

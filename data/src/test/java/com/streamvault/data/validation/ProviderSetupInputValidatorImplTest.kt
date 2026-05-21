@@ -1,7 +1,7 @@
-package com.streamvault.data.validation
+package com.MegaStream.data.validation
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Result
 import org.junit.Test
 
 class ProviderSetupInputValidatorImplTest {

@@ -1,19 +1,19 @@
-package com.streamvault.app.ui.test
+package com.MegaStream.app.ui.test
 
-import com.streamvault.app.ui.screens.player.NumericChannelInputState
-import com.streamvault.app.ui.screens.player.PlayerNoticeAction
-import com.streamvault.app.ui.screens.player.PlayerNoticeState
-import com.streamvault.app.ui.screens.player.PlayerRecoveryType
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.RecordingStatus
-import com.streamvault.domain.model.Series
-import com.streamvault.player.PlayerTrack
-import com.streamvault.player.TrackType
+import com.MegaStream.app.ui.screens.player.NumericChannelInputState
+import com.MegaStream.app.ui.screens.player.PlayerNoticeAction
+import com.MegaStream.app.ui.screens.player.PlayerNoticeState
+import com.MegaStream.app.ui.screens.player.PlayerRecoveryType
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.RecordingStatus
+import com.MegaStream.domain.model.Series
+import com.MegaStream.player.PlayerTrack
+import com.MegaStream.player.TrackType
 
 internal object TestFixtures {
     val currentProgram = Program(

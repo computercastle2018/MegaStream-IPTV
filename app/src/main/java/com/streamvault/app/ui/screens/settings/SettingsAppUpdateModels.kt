@@ -1,10 +1,10 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.app.BuildConfig
-import com.streamvault.app.update.AppUpdateDownloadState
-import com.streamvault.app.update.AppUpdateDownloadStatus
-import com.streamvault.app.update.AppUpdateChannel
-import com.streamvault.app.update.GitHubReleaseInfo
+import com.MegaStream.app.BuildConfig
+import com.MegaStream.app.update.AppUpdateDownloadState
+import com.MegaStream.app.update.AppUpdateDownloadStatus
+import com.MegaStream.app.update.AppUpdateChannel
+import com.MegaStream.app.update.GitHubReleaseInfo
 import java.time.Instant
 import kotlin.math.max
 

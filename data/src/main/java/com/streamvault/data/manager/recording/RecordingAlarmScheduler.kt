@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.AlarmManagerCompat
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Result
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -109,6 +109,6 @@ class RecordingAlarmScheduler @Inject constructor(
     }
 
     companion object {
-        const val EXACT_ALARM_PERMISSION_MESSAGE = "Exact alarm access is required for reliable DVR scheduling. Enable exact alarms for StreamVault in system settings and try again."
+        const val EXACT_ALARM_PERMISSION_MESSAGE = "Exact alarm access is required for reliable DVR scheduling. Enable exact alarms for MegaStream in system settings and try again."
     }
 }

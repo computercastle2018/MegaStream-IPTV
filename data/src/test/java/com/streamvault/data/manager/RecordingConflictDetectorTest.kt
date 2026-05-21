@@ -1,12 +1,12 @@
-package com.streamvault.data.manager
+package com.MegaStream.data.manager
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.entity.RecordingRunEntity
-import com.streamvault.domain.model.RecordingFailureCategory
-import com.streamvault.domain.model.RecordingRecurrence
-import com.streamvault.domain.model.RecordingSourceType
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.data.local.entity.RecordingRunEntity
+import com.MegaStream.domain.model.RecordingFailureCategory
+import com.MegaStream.domain.model.RecordingRecurrence
+import com.MegaStream.domain.model.RecordingSourceType
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingStatus
 import org.junit.Test
 
 class RecordingConflictDetectorTest {

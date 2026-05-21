@@ -1,10 +1,10 @@
-package com.streamvault.data.local.dao
+package com.MegaStream.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.streamvault.data.local.entity.XtreamLiveOnboardingStateEntity
+import com.MegaStream.data.local.entity.XtreamLiveOnboardingStateEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

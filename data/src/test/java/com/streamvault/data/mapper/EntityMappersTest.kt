@@ -1,19 +1,19 @@
-package com.streamvault.data.mapper
+package com.MegaStream.data.mapper
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.entity.ChannelEntity
-import com.streamvault.data.local.entity.PlaybackHistoryEntity
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.remote.xtream.XtreamStreamKind
-import com.streamvault.data.remote.xtream.XtreamUrlFactory
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ChannelQualityOption
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.PlaybackWatchedStatus
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.local.entity.ChannelEntity
+import com.MegaStream.data.local.entity.PlaybackHistoryEntity
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.remote.xtream.XtreamStreamKind
+import com.MegaStream.data.remote.xtream.XtreamUrlFactory
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ChannelQualityOption
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.PlaybackWatchedStatus
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.ProviderType
 import org.junit.Test
 
 /**

@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import android.content.ContentResolver
 import android.content.Context
@@ -6,13 +6,13 @@ import android.net.Uri
 import android.os.Environment
 import android.os.StatFs
 import androidx.documentfile.provider.DocumentFile
-import com.streamvault.data.local.entity.RecordingRunEntity
-import com.streamvault.data.local.entity.RecordingRunWithSchedule
-import com.streamvault.data.local.entity.RecordingStorageEntity
-import com.streamvault.domain.model.RecordingFailureCategory
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingStorageConfig
-import com.streamvault.domain.model.RecordingStorageState
+import com.MegaStream.data.local.entity.RecordingRunEntity
+import com.MegaStream.data.local.entity.RecordingRunWithSchedule
+import com.MegaStream.data.local.entity.RecordingStorageEntity
+import com.MegaStream.domain.model.RecordingFailureCategory
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingStorageConfig
+import com.MegaStream.domain.model.RecordingStorageState
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat

@@ -1,4 +1,4 @@
-// Minimal Xtream Codes client. Mirrors the endpoints used by the StreamVault
+// Minimal Xtream Codes client. Mirrors the endpoints used by the MegaStream
 // Android XtreamApiService / XtreamUrlFactory, for Live, VOD (movies) and Series:
 //   player_api.php?username=&password=                          -> auth
 //   ...&action=get_live_categories | get_live_streams           -> live

@@ -1,4 +1,4 @@
-package com.streamvault.domain.util
+package com.MegaStream.domain.util
 
 const val DEFAULT_PLAYBACK_COMPLETION_THRESHOLD = 0.95f
 

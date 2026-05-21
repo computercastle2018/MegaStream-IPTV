@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.model
+package com.MegaStream.app.ui.model
 
 enum class LiveTvChannelMode {
     COMFORTABLE,

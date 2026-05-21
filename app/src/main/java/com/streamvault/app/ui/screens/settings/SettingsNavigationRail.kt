@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,8 +14,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.streamvault.app.R
-import com.streamvault.app.ui.theme.Primary
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.theme.Primary
 
 private data class SettingsNavEntry(
     val label: String,

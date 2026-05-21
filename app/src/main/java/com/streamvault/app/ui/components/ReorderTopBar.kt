@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components
+package com.MegaStream.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.animation.AnimatedVisibility
@@ -15,17 +15,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.*
-import com.streamvault.app.R
-import com.streamvault.app.ui.design.FocusSpec
-import com.streamvault.app.ui.theme.FocusBorder
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.app.ui.theme.TextPrimary
-import com.streamvault.app.ui.theme.TextSecondary
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvIconButton
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.design.FocusSpec
+import com.MegaStream.app.ui.theme.FocusBorder
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.ui.theme.TextPrimary
+import com.MegaStream.app.ui.theme.TextSecondary
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvIconButton
 
 @Composable
 fun ReorderTopBar(

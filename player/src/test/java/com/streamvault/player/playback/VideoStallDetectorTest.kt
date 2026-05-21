@@ -1,7 +1,7 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.player.PlaybackState
+import com.MegaStream.player.PlaybackState
 import org.junit.Test
 
 class VideoStallDetectorTest {

@@ -1,13 +1,13 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.ActiveLiveSourceOption
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.CombinedCategory
-import com.streamvault.domain.model.CombinedM3uProfile
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.ActiveLiveSourceOption
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.CombinedCategory
+import com.MegaStream.domain.model.CombinedM3uProfile
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 
 interface CombinedM3uRepository {

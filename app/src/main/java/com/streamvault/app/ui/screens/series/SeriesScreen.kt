@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.series
+package com.MegaStream.app.ui.screens.series
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
@@ -36,60 +36,60 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import com.streamvault.app.ui.components.SearchInput
+import com.MegaStream.app.ui.components.SearchInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.navigation.Routes
-import com.streamvault.app.ui.components.CategoryRow
-import com.streamvault.app.ui.components.ContinueWatchingRow
-import com.streamvault.app.ui.components.SavedCategoryContextCard
-import com.streamvault.app.ui.components.SavedCategoryShortcut
-import com.streamvault.app.ui.components.SavedCategoryShortcutsRow
-import com.streamvault.app.ui.components.SelectionChip
-import com.streamvault.app.ui.components.SelectionChipRow
-import com.streamvault.app.ui.components.SeriesCard
-import com.streamvault.app.ui.theme.*
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.LibraryFilterType
-import com.streamvault.domain.model.LibrarySortBy
-import com.streamvault.domain.model.Series
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.navigation.Routes
+import com.MegaStream.app.ui.components.CategoryRow
+import com.MegaStream.app.ui.components.ContinueWatchingRow
+import com.MegaStream.app.ui.components.SavedCategoryContextCard
+import com.MegaStream.app.ui.components.SavedCategoryShortcut
+import com.MegaStream.app.ui.components.SavedCategoryShortcutsRow
+import com.MegaStream.app.ui.components.SelectionChip
+import com.MegaStream.app.ui.components.SelectionChipRow
+import com.MegaStream.app.ui.components.SeriesCard
+import com.MegaStream.app.ui.theme.*
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.LibraryFilterType
+import com.MegaStream.domain.model.LibrarySortBy
+import com.MegaStream.domain.model.Series
 import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
-import com.streamvault.app.R
+import com.MegaStream.app.R
 import androidx.compose.foundation.border
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import com.streamvault.app.ui.components.ReorderTopBar
-import com.streamvault.app.ui.components.dialogs.DeleteGroupDialog
-import com.streamvault.app.ui.components.dialogs.RenameGroupDialog
-import com.streamvault.app.ui.components.shell.BrowseHeroPanel
-import com.streamvault.app.ui.components.shell.BrowseSearchLaunchCard
-import com.streamvault.app.ui.components.shell.LoadMoreCard
-import com.streamvault.app.ui.components.shell.InfiniteScrollEffect
-import com.streamvault.app.ui.components.shell.AppNavigationChrome
-import com.streamvault.app.ui.components.shell.AppMessageState
-import com.streamvault.app.ui.components.shell.AppScreenScaffold
-import com.streamvault.app.ui.components.shell.VodActionChip
-import com.streamvault.app.ui.components.shell.VodActionChipRow
-import com.streamvault.app.ui.components.shell.VodCategoryOption
-import com.streamvault.app.ui.components.shell.VodCategoryPickerDialog
-import com.streamvault.app.ui.components.shell.VodBrowseOptionsDialog
-import com.streamvault.app.ui.components.shell.VodClassicCategoryOption
-import com.streamvault.app.ui.components.shell.VodClassicContentHeader
-import com.streamvault.app.ui.components.shell.VodClassicSplitLayout
-import com.streamvault.app.ui.components.shell.VodHeroStrip
-import com.streamvault.app.ui.components.shell.VodSectionHeader
-import com.streamvault.app.ui.design.FocusRestoreHost
-import com.streamvault.app.ui.design.requestFocusSafely
-import com.streamvault.app.ui.model.VodViewMode
-import com.streamvault.app.ui.screens.vod.HandleVodUserMessage
-import com.streamvault.app.ui.screens.vod.ProtectedVodPinDialog
-import com.streamvault.app.ui.screens.vod.VodBrowseDefaults
-import com.streamvault.app.ui.screens.vod.vodActiveFilterSortDetail
+import com.MegaStream.app.ui.components.ReorderTopBar
+import com.MegaStream.app.ui.components.dialogs.DeleteGroupDialog
+import com.MegaStream.app.ui.components.dialogs.RenameGroupDialog
+import com.MegaStream.app.ui.components.shell.BrowseHeroPanel
+import com.MegaStream.app.ui.components.shell.BrowseSearchLaunchCard
+import com.MegaStream.app.ui.components.shell.LoadMoreCard
+import com.MegaStream.app.ui.components.shell.InfiniteScrollEffect
+import com.MegaStream.app.ui.components.shell.AppNavigationChrome
+import com.MegaStream.app.ui.components.shell.AppMessageState
+import com.MegaStream.app.ui.components.shell.AppScreenScaffold
+import com.MegaStream.app.ui.components.shell.VodActionChip
+import com.MegaStream.app.ui.components.shell.VodActionChipRow
+import com.MegaStream.app.ui.components.shell.VodCategoryOption
+import com.MegaStream.app.ui.components.shell.VodCategoryPickerDialog
+import com.MegaStream.app.ui.components.shell.VodBrowseOptionsDialog
+import com.MegaStream.app.ui.components.shell.VodClassicCategoryOption
+import com.MegaStream.app.ui.components.shell.VodClassicContentHeader
+import com.MegaStream.app.ui.components.shell.VodClassicSplitLayout
+import com.MegaStream.app.ui.components.shell.VodHeroStrip
+import com.MegaStream.app.ui.components.shell.VodSectionHeader
+import com.MegaStream.app.ui.design.FocusRestoreHost
+import com.MegaStream.app.ui.design.requestFocusSafely
+import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.app.ui.screens.vod.HandleVodUserMessage
+import com.MegaStream.app.ui.screens.vod.ProtectedVodPinDialog
+import com.MegaStream.app.ui.screens.vod.VodBrowseDefaults
+import com.MegaStream.app.ui.screens.vod.vodActiveFilterSortDetail
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -268,7 +268,7 @@ fun SeriesScreen(
 
     if (uiState.showDialog && uiState.selectedSeriesForDialog != null) {
         val series = uiState.selectedSeriesForDialog!!
-        com.streamvault.app.ui.components.dialogs.AddToGroupDialog(
+        com.MegaStream.app.ui.components.dialogs.AddToGroupDialog(
             contentTitle = series.name,
             groups = uiState.categories.filter { it.isVirtual && it.id != VodBrowseDefaults.FAVORITES_SENTINEL_ID },
             isFavorite = series.isFavorite,
@@ -293,7 +293,7 @@ fun SeriesScreen(
 
     if (uiState.selectedCategoryForOptions != null) {
         val category = uiState.selectedCategoryForOptions!!
-        com.streamvault.app.ui.components.dialogs.CategoryOptionsDialog(
+        com.MegaStream.app.ui.components.dialogs.CategoryOptionsDialog(
             category = category,
             onDismissRequest = { viewModel.dismissCategoryOptions() },
             onHide = if (!category.isVirtual) {
@@ -373,7 +373,7 @@ private fun SeriesVodContent(
                 Category(
                     id = VodBrowseDefaults.FAVORITES_SENTINEL_ID,
                     name = uiState.favoriteCategoryName,
-                    type = com.streamvault.domain.model.ContentType.SERIES,
+                    type = com.MegaStream.domain.model.ContentType.SERIES,
                     isVirtual = true
                 )
             )
@@ -924,7 +924,7 @@ private fun SeriesVodClassicContent(
                 Category(
                     id = VodBrowseDefaults.FAVORITES_SENTINEL_ID,
                     name = uiState.favoriteCategoryName,
-                    type = com.streamvault.domain.model.ContentType.SERIES,
+                    type = com.MegaStream.domain.model.ContentType.SERIES,
                     isVirtual = true
                 )
             )

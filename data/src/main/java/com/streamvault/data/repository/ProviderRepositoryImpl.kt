@@ -1,29 +1,29 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.*
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.manager.recording.RecordingAlarmScheduler
-import com.streamvault.data.manager.reminder.ProgramReminderAlarmScheduler
-import com.streamvault.data.mapper.*
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.remote.http.buildGenericProviderRequestProfile
-import com.streamvault.data.remote.stalker.StalkerApiService
-import com.streamvault.data.remote.stalker.StalkerProvider
-import com.streamvault.data.remote.xtream.XtreamApiService
-import com.streamvault.data.remote.xtream.XtreamProvider
-import com.streamvault.data.security.CredentialCrypto
-import com.streamvault.data.security.CredentialDecryptionException
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.data.sync.hasUsableLiveCatalogForActivation
-import com.streamvault.data.util.ProviderInputSanitizer
-import com.streamvault.data.util.UrlSecurityPolicy
-import com.streamvault.domain.manager.ProviderCredentials
-import com.streamvault.domain.model.*
-import com.streamvault.domain.provider.IptvProvider
-import com.streamvault.domain.repository.LiveStreamProgramRequest
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.repository.SyncMetadataRepository
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.*
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.manager.recording.RecordingAlarmScheduler
+import com.MegaStream.data.manager.reminder.ProgramReminderAlarmScheduler
+import com.MegaStream.data.mapper.*
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.remote.http.buildGenericProviderRequestProfile
+import com.MegaStream.data.remote.stalker.StalkerApiService
+import com.MegaStream.data.remote.stalker.StalkerProvider
+import com.MegaStream.data.remote.xtream.XtreamApiService
+import com.MegaStream.data.remote.xtream.XtreamProvider
+import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.data.security.CredentialDecryptionException
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.data.sync.hasUsableLiveCatalogForActivation
+import com.MegaStream.data.util.ProviderInputSanitizer
+import com.MegaStream.data.util.UrlSecurityPolicy
+import com.MegaStream.domain.manager.ProviderCredentials
+import com.MegaStream.domain.model.*
+import com.MegaStream.domain.provider.IptvProvider
+import com.MegaStream.domain.repository.LiveStreamProgramRequest
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.repository.SyncMetadataRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.CoroutineScope
@@ -172,7 +172,7 @@ class ProviderRepositoryImpl @Inject constructor(
         httpHeaders: String,
         xtreamFastSyncEnabled: Boolean,
         epgSyncMode: ProviderEpgSyncMode,
-        xtreamLiveSyncMode: com.streamvault.domain.model.ProviderXtreamLiveSyncMode,
+        xtreamLiveSyncMode: com.MegaStream.domain.model.ProviderXtreamLiveSyncMode,
         onProgress: ((String) -> Unit)?,
         id: Long?
     ): Result<Provider> {

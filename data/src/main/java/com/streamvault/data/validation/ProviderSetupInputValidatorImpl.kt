@@ -1,12 +1,12 @@
-package com.streamvault.data.validation
+package com.MegaStream.data.validation
 
-import com.streamvault.data.util.ProviderInputSanitizer
-import com.streamvault.data.util.UrlSecurityPolicy
-import com.streamvault.domain.manager.ProviderSetupInputValidator
-import com.streamvault.domain.manager.ValidatedM3uProviderInput
-import com.streamvault.domain.manager.ValidatedStalkerProviderInput
-import com.streamvault.domain.manager.ValidatedXtreamProviderInput
-import com.streamvault.domain.model.Result
+import com.MegaStream.data.util.ProviderInputSanitizer
+import com.MegaStream.data.util.UrlSecurityPolicy
+import com.MegaStream.domain.manager.ProviderSetupInputValidator
+import com.MegaStream.domain.manager.ValidatedM3uProviderInput
+import com.MegaStream.domain.manager.ValidatedStalkerProviderInput
+import com.MegaStream.domain.manager.ValidatedXtreamProviderInput
+import com.MegaStream.domain.model.Result
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton

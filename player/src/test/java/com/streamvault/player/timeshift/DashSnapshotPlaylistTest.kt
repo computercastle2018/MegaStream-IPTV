@@ -1,4 +1,4 @@
-package com.streamvault.player.timeshift
+package com.MegaStream.player.timeshift
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

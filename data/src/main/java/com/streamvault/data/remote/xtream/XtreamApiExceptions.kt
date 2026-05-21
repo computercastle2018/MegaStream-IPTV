@@ -1,4 +1,4 @@
-package com.streamvault.data.remote.xtream
+package com.MegaStream.data.remote.xtream
 
 import java.io.IOException
 

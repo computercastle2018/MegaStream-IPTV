@@ -1,4 +1,4 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 object ContentCachePolicy {
     const val CATALOG_TTL_MILLIS = 24L * 60 * 60 * 1000L

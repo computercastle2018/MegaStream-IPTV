@@ -1,32 +1,32 @@
-package com.streamvault.data.manager
+package com.MegaStream.data.manager
 
 import android.app.NotificationManager
 import android.content.ContentResolver
 import android.content.Context
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.RecordingRunDao
-import com.streamvault.data.local.dao.RecordingScheduleDao
-import com.streamvault.data.local.dao.RecordingStorageDao
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.local.entity.RecordingRunEntity
-import com.streamvault.data.local.entity.RecordingStorageEntity
-import com.streamvault.data.manager.recording.HlsLiveCaptureEngine
-import com.streamvault.data.manager.recording.RecordingAlarmScheduler
-import com.streamvault.data.manager.recording.RecordingServiceLauncher
-import com.streamvault.data.manager.recording.RecordingSourceResolver
-import com.streamvault.data.manager.recording.ResolvedRecordingSource
-import com.streamvault.data.manager.recording.TsPassThroughCaptureEngine
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.RecordingFailureCategory
-import com.streamvault.domain.model.RecordingRecurrence
-import com.streamvault.domain.model.RecordingRequest
-import com.streamvault.domain.model.RecordingSourceType
-import com.streamvault.domain.model.RecordingStatus
-import com.streamvault.domain.model.Result
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.RecordingRunDao
+import com.MegaStream.data.local.dao.RecordingScheduleDao
+import com.MegaStream.data.local.dao.RecordingStorageDao
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.local.entity.RecordingRunEntity
+import com.MegaStream.data.local.entity.RecordingStorageEntity
+import com.MegaStream.data.manager.recording.HlsLiveCaptureEngine
+import com.MegaStream.data.manager.recording.RecordingAlarmScheduler
+import com.MegaStream.data.manager.recording.RecordingServiceLauncher
+import com.MegaStream.data.manager.recording.RecordingSourceResolver
+import com.MegaStream.data.manager.recording.ResolvedRecordingSource
+import com.MegaStream.data.manager.recording.TsPassThroughCaptureEngine
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.RecordingFailureCategory
+import com.MegaStream.domain.model.RecordingRecurrence
+import com.MegaStream.domain.model.RecordingRequest
+import com.MegaStream.domain.model.RecordingSourceType
+import com.MegaStream.domain.model.RecordingStatus
+import com.MegaStream.domain.model.Result
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.flow.flowOf
@@ -95,7 +95,7 @@ class RecordingManagerImplTest {
         val manager = createManager()
         val result = manager.scheduleRecording(recordingRequest())
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Error::class.java)
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Error::class.java)
         verify(recordingScheduleDao, never()).insert(any())
         verify(recordingRunDao, never()).insert(any())
     }
@@ -123,7 +123,7 @@ class RecordingManagerImplTest {
         val manager = createManager()
         val result = manager.startManualRecording(request)
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
         verify(recordingRunDao).insert(argThat { status == RecordingStatus.RECORDING })
         verify(alarmScheduler).scheduleStop(any(), eq(request.scheduledEndMs))
         verify(recordingServiceLauncher).startCapture(eq(context), any())
@@ -142,7 +142,7 @@ class RecordingManagerImplTest {
                 manager.promoteScheduledRecording(run.id)
             }
 
-            assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
+            assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
             verify(recordingRunDao).update(argThat { id == run.id && status == RecordingStatus.RECORDING })
             verify(alarmScheduler).scheduleStop(run.id, run.scheduledEndMs)
         }
@@ -167,7 +167,7 @@ class RecordingManagerImplTest {
                 manager.promoteScheduledRecording(run.id)
             }
 
-            assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
+            assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
             verify(recordingRunDao).insert(any())
             verify(alarmScheduler, times(1)).scheduleStart(any(), any())
         }
@@ -184,7 +184,7 @@ class RecordingManagerImplTest {
         val manager = createManager()
         val result = manager.reconcileRecordingState()
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
         verify(recordingRunDao, atLeastOnce()).update(
             argThat {
                 id == staleRun.id &&

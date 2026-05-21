@@ -1,6 +1,6 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamInfo
 
 internal fun String?.safeTrimmedOrNull(): String? {
     val value = this ?: return null

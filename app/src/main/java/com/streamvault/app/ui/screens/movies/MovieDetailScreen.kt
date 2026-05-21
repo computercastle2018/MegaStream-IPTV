@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.movies
+package com.MegaStream.app.ui.screens.movies
 
 import android.content.Intent
 import android.net.Uri
@@ -48,21 +48,21 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
-import com.streamvault.app.R
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.components.rememberCrossfadeImageModel
-import com.streamvault.app.util.formatPositionMs
-import com.streamvault.app.ui.components.shell.ContentMetadataStrip
-import com.streamvault.app.ui.components.shell.ExternalRatingsStrip
-import com.streamvault.app.ui.components.shell.StatusPill
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.design.requestFocusSafely
-import com.streamvault.app.ui.model.formatVodRatingLabel
-import com.streamvault.domain.model.ExternalRatings
-import com.streamvault.domain.model.Movie
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvIconButton
+import com.MegaStream.app.R
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.components.rememberCrossfadeImageModel
+import com.MegaStream.app.util.formatPositionMs
+import com.MegaStream.app.ui.components.shell.ContentMetadataStrip
+import com.MegaStream.app.ui.components.shell.ExternalRatingsStrip
+import com.MegaStream.app.ui.components.shell.StatusPill
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.design.requestFocusSafely
+import com.MegaStream.app.ui.model.formatVodRatingLabel
+import com.MegaStream.domain.model.ExternalRatings
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvIconButton
 
 @Composable
 fun MovieDetailScreen(

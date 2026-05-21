@@ -1,4 +1,4 @@
-package com.streamvault.app.ui
+package com.MegaStream.app.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
@@ -13,12 +13,12 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.streamvault.app.ui.components.shell.CategoryRailPanel
-import com.streamvault.app.ui.screens.player.overlay.PlayerControlsOverlay
-import com.streamvault.app.ui.screens.player.overlay.PlayerTrackSelectionDialog
-import com.streamvault.app.ui.test.TestFixtures
-import com.streamvault.app.ui.theme.StreamVaultTheme
-import com.streamvault.player.TrackType
+import com.MegaStream.app.ui.components.shell.CategoryRailPanel
+import com.MegaStream.app.ui.screens.player.overlay.PlayerControlsOverlay
+import com.MegaStream.app.ui.screens.player.overlay.PlayerTrackSelectionDialog
+import com.MegaStream.app.ui.test.TestFixtures
+import com.MegaStream.app.ui.theme.MegaStreamTheme
+import com.MegaStream.player.TrackType
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,7 +35,7 @@ class PlayerSmokeTest {
 
         composeRule.setContent {
             val query = remember { mutableStateOf("") }
-            StreamVaultTheme {
+            MegaStreamTheme {
                 CategoryRailPanel(
                     title = "Guide",
                     searchValue = query.value,
@@ -61,7 +61,7 @@ class PlayerSmokeTest {
         val playButtonFocusRequester = FocusRequester()
 
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 PlayerControlsOverlay(
                     visible = true,
                     title = TestFixtures.vodTitle,
@@ -109,7 +109,7 @@ class PlayerSmokeTest {
     @Test
     fun playerControlsOverlay_showsMuteActionWhenMuted() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 PlayerControlsOverlay(
                     visible = true,
                     title = TestFixtures.liveTitle,
@@ -157,7 +157,7 @@ class PlayerSmokeTest {
         var selectedTrackId: String? = null
 
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 PlayerTrackSelectionDialog(
                     trackType = TrackType.AUDIO,
                     audioTracks = TestFixtures.audioTracks,

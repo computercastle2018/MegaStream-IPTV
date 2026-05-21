@@ -1,6 +1,6 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.domain.sync.SyncProgress
+import com.MegaStream.domain.sync.SyncProgress
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow

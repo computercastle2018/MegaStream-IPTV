@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -19,14 +19,14 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.BuildConfig
-import com.streamvault.app.R
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.Secondary
-import com.streamvault.domain.manager.DriveAuthState
+import com.MegaStream.app.BuildConfig
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.Secondary
+import com.MegaStream.domain.manager.DriveAuthState
 
 internal fun LazyListScope.settingsBackupSection(
     onCreateBackup: () -> Unit,
@@ -243,7 +243,7 @@ internal fun LazyListScope.settingsAboutSection(
     item {
         val downloadStatus = uiState.appUpdate.downloadStatus
         LaunchedEffect(downloadStatus) {
-            if (downloadStatus == com.streamvault.app.update.AppUpdateDownloadStatus.Downloading) {
+            if (downloadStatus == com.MegaStream.app.update.AppUpdateDownloadStatus.Downloading) {
                 while (true) {
                     kotlinx.coroutines.delay(2000L)
                     onRefreshDownloadState()
@@ -301,9 +301,9 @@ internal fun LazyListScope.settingsAboutSection(
                 label = stringResource(R.string.settings_update_download),
                 value = formatUpdateDownloadLabel(uiState.appUpdate, context),
                 onClick = {
-                    if (uiState.appUpdate.downloadStatus == com.streamvault.app.update.AppUpdateDownloadStatus.Downloaded) {
+                    if (uiState.appUpdate.downloadStatus == com.MegaStream.app.update.AppUpdateDownloadStatus.Downloaded) {
                         onInstallDownloadedUpdate()
-                    } else if (uiState.appUpdate.downloadStatus != com.streamvault.app.update.AppUpdateDownloadStatus.Downloading) {
+                    } else if (uiState.appUpdate.downloadStatus != com.MegaStream.app.update.AppUpdateDownloadStatus.Downloading) {
                         onDownloadLatestUpdate()
                     }
                 }
@@ -369,6 +369,11 @@ internal fun LazyListScope.settingsAboutSection(
             label = stringResource(R.string.settings_github),
             value = stringResource(R.string.settings_github_url),
             onClick = { onOpenUri(context.getString(R.string.settings_github_url)) }
+        )
+        ClickableSettingsRow(
+            label = stringResource(R.string.settings_repository),
+            value = stringResource(R.string.settings_repository_url),
+            onClick = { onOpenUri(context.getString(R.string.settings_repository_url)) }
         )
         ClickableSettingsRow(
             label = stringResource(R.string.settings_donate),

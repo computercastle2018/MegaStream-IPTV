@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

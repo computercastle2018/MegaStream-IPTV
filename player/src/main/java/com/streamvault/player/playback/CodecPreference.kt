@@ -1,10 +1,10 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.mediacodec.MediaCodecInfo
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.PlaybackCompatibilityRecord
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.PlaybackCompatibilityRecord
 import java.util.Locale
 
 enum class ActiveDecoderPolicy {

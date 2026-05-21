@@ -1,4 +1,4 @@
-package com.streamvault.player.ui
+package com.MegaStream.player.ui
 
 import android.content.Context
 import android.graphics.Color
@@ -7,9 +7,9 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.streamvault.player.PlayerRenderSurfaceType
-import com.streamvault.player.PlayerSurfaceResizeMode
-import com.streamvault.player.R
+import com.MegaStream.player.PlayerRenderSurfaceType
+import com.MegaStream.player.PlayerSurfaceResizeMode
+import com.MegaStream.player.R
 
 class PlayerViewBinder(
     private val subtitleStyleController: SubtitleStyleController

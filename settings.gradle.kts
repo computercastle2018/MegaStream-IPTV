@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "StreamVault"
+rootProject.name = "MegaStream"
 
 include(":app")
 include(":domain")

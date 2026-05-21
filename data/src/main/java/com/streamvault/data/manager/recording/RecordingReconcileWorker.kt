@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import android.content.Context
 import androidx.work.CoroutineWorker
@@ -22,7 +22,7 @@ class RecordingReconcileWorker(
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface RecordingWorkerEntryPoint {
-        fun recordingManager(): com.streamvault.domain.manager.RecordingManager
+        fun recordingManager(): com.MegaStream.domain.manager.RecordingManager
     }
 
     override suspend fun doWork(): Result {
@@ -31,9 +31,9 @@ class RecordingReconcileWorker(
             RecordingWorkerEntryPoint::class.java
         ).recordingManager()
         return when (manager.reconcileRecordingState()) {
-            is com.streamvault.domain.model.Result.Success -> Result.success()
-            is com.streamvault.domain.model.Result.Error -> Result.retry()
-            com.streamvault.domain.model.Result.Loading -> Result.retry()
+            is com.MegaStream.domain.model.Result.Success -> Result.success()
+            is com.MegaStream.domain.model.Result.Error -> Result.retry()
+            com.MegaStream.domain.model.Result.Loading -> Result.retry()
         }
     }
 

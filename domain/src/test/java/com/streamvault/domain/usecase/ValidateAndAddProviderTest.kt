@@ -1,20 +1,20 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.manager.ProviderCredentials
-import com.streamvault.domain.manager.ProviderSetupInputValidator
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.manager.ValidatedM3uProviderInput
-import com.streamvault.domain.manager.ValidatedStalkerProviderInput
-import com.streamvault.domain.manager.ValidatedXtreamProviderInput
-import com.streamvault.domain.model.ProviderEpgSyncMode
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderSavedWithSyncErrorException
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.ProviderXtreamLiveSyncMode
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.ProviderRepository
+import com.MegaStream.domain.manager.ProviderCredentials
+import com.MegaStream.domain.manager.ProviderSetupInputValidator
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.manager.ValidatedM3uProviderInput
+import com.MegaStream.domain.manager.ValidatedStalkerProviderInput
+import com.MegaStream.domain.manager.ValidatedXtreamProviderInput
+import com.MegaStream.domain.model.ProviderEpgSyncMode
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderSavedWithSyncErrorException
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.ProviderRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -164,7 +164,7 @@ class ValidateAndAddProviderTest {
                         username = "alice",
                         password = "normalized-secret",
                         name = "Premium",
-                        httpUserAgent = "StreamVaultTest/1.0",
+                        httpUserAgent = "MegaStreamTest/1.0",
                         httpHeaders = "Referer: https://example.com"
                     )
                 )
@@ -178,7 +178,7 @@ class ValidateAndAddProviderTest {
                 username = " alice ",
                 password = "secret\u0000",
                 name = " Premium ",
-                httpUserAgent = " StreamVaultTest/1.0 ",
+                httpUserAgent = " MegaStreamTest/1.0 ",
                 httpHeaders = " Referer: https://example.com ",
                 xtreamFastSyncEnabled = true,
                 epgSyncMode = ProviderEpgSyncMode.BACKGROUND,
@@ -193,7 +193,7 @@ class ValidateAndAddProviderTest {
                 username = "alice",
                 password = "normalized-secret",
                 name = "Premium",
-                httpUserAgent = "StreamVaultTest/1.0",
+                httpUserAgent = "MegaStreamTest/1.0",
                 httpHeaders = "Referer: https://example.com",
                 xtreamFastSyncEnabled = true,
                 epgSyncMode = ProviderEpgSyncMode.BACKGROUND,

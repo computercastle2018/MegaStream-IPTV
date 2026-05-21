@@ -1,11 +1,11 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.manager.ParentalControlManager
-import com.streamvault.domain.manager.ParentalControlSessionState
-import com.streamvault.domain.manager.ParentalControlSessionStore
-import com.streamvault.domain.manager.ParentalPinVerifier
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.manager.ParentalControlManager
+import com.MegaStream.domain.manager.ParentalControlSessionState
+import com.MegaStream.domain.manager.ParentalControlSessionStore
+import com.MegaStream.domain.manager.ParentalPinVerifier
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 

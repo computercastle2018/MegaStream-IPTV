@@ -1,15 +1,15 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingRecurrence
-import com.streamvault.domain.model.RecordingRequest
-import com.streamvault.domain.model.RecordingStorageState
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingRecurrence
+import com.MegaStream.domain.model.RecordingRequest
+import com.MegaStream.domain.model.RecordingStorageState
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest

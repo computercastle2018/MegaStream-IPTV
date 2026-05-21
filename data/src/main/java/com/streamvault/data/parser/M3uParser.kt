@@ -1,9 +1,9 @@
-package com.streamvault.data.parser
+package com.MegaStream.data.parser
 
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.util.ChannelNormalizer
-import com.streamvault.domain.util.StreamEntryUrlPolicy
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.util.ChannelNormalizer
+import com.MegaStream.domain.util.StreamEntryUrlPolicy
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader

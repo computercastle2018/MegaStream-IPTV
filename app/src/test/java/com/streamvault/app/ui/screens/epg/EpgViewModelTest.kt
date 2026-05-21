@@ -1,34 +1,34 @@
-package com.streamvault.app.ui.screens.epg
+package com.MegaStream.app.ui.screens.epg
 
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import androidx.lifecycle.ViewModel
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.manager.ParentalControlManager
-import com.streamvault.domain.manager.ProgramReminderManager
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.CategorySortMode
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.CombinedCategory
-import com.streamvault.domain.model.CombinedCategoryBinding
-import com.streamvault.domain.model.CombinedM3uProfile
-import com.streamvault.domain.model.CombinedM3uProfileMember
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.EpgRepository
-import com.streamvault.domain.repository.EpgSourceRepository
-import com.streamvault.domain.repository.FavoriteRepository
-import com.streamvault.domain.repository.LiveStreamProgramRequest
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.usecase.GetCustomCategories
-import com.streamvault.domain.usecase.ScheduleRecording
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.manager.ParentalControlManager
+import com.MegaStream.domain.manager.ProgramReminderManager
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.CategorySortMode
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.CombinedCategory
+import com.MegaStream.domain.model.CombinedCategoryBinding
+import com.MegaStream.domain.model.CombinedM3uProfile
+import com.MegaStream.domain.model.CombinedM3uProfileMember
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.EpgRepository
+import com.MegaStream.domain.repository.EpgSourceRepository
+import com.MegaStream.domain.repository.FavoriteRepository
+import com.MegaStream.domain.repository.LiveStreamProgramRequest
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.usecase.GetCustomCategories
+import com.MegaStream.domain.usecase.ScheduleRecording
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -640,7 +640,7 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideFavoritesOnly).thenReturn(flowOf(false))
         whenever(preferencesRepository.guideScheduledOnly).thenReturn(flowOf(false))
         whenever(preferencesRepository.guideAnchorTime).thenReturn(flowOf(null))
-        whenever(preferencesRepository.guideDefaultCategoryId).thenReturn(flowOf(com.streamvault.domain.model.VirtualCategoryIds.FAVORITES))
+        whenever(preferencesRepository.guideDefaultCategoryId).thenReturn(flowOf(com.MegaStream.domain.model.VirtualCategoryIds.FAVORITES))
         whenever(epgRepository.getResolvedProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
         whenever(epgRepository.getProgramsForChannelsSnapshot(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
 
@@ -721,7 +721,7 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideFavoritesOnly).thenReturn(flowOf(true))
         whenever(preferencesRepository.guideScheduledOnly).thenReturn(flowOf(false))
         whenever(preferencesRepository.guideAnchorTime).thenReturn(flowOf(null))
-        whenever(preferencesRepository.guideDefaultCategoryId).thenReturn(flowOf(com.streamvault.domain.model.VirtualCategoryIds.FAVORITES))
+        whenever(preferencesRepository.guideDefaultCategoryId).thenReturn(flowOf(com.MegaStream.domain.model.VirtualCategoryIds.FAVORITES))
         whenever(epgRepository.getResolvedProgramsForChannels(any(), any(), any(), any())).thenReturn(emptyMap())
         whenever(epgRepository.getProgramsForChannelsSnapshot(any(), any(), any(), any())).thenReturn(emptyMap())
 

@@ -1,40 +1,40 @@
-package com.streamvault.app.ui.screens.dashboard
+package com.MegaStream.app.ui.screens.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.BuildConfig
-import com.streamvault.app.ui.model.orderedByRequestedRawIds
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.app.update.AppUpdateInstaller
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.model.SyncState
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.FavoriteRepository
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.repository.SeriesRepository
-import com.streamvault.domain.usecase.ContinueWatchingResult
-import com.streamvault.domain.usecase.ContinueWatchingScope
-import com.streamvault.domain.usecase.GetContinueWatching
-import com.streamvault.domain.usecase.GetCustomCategories
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.app.BuildConfig
+import com.MegaStream.app.ui.model.orderedByRequestedRawIds
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.app.update.AppUpdateInstaller
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.model.SyncState
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.FavoriteRepository
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.repository.SeriesRepository
+import com.MegaStream.domain.usecase.ContinueWatchingResult
+import com.MegaStream.domain.usecase.ContinueWatchingScope
+import com.MegaStream.domain.usecase.GetContinueWatching
+import com.MegaStream.domain.usecase.GetCustomCategories
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.model.RecordingStatus
 import android.content.Context
-import com.streamvault.app.R
+import com.MegaStream.app.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
@@ -51,7 +51,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import com.streamvault.domain.util.AdultContentVisibilityPolicy
+import com.MegaStream.domain.util.AdultContentVisibilityPolicy
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -579,10 +579,10 @@ class DashboardViewModel @Inject constructor(
     fun installDownloadedUpdate() {
         viewModelScope.launch {
             when (val result = appUpdateInstaller.installDownloadedUpdate()) {
-                is com.streamvault.domain.model.Result.Error -> {
+                is com.MegaStream.domain.model.Result.Error -> {
                     _uiState.value = _uiState.value.copy(userMessage = result.message)
                 }
-                is com.streamvault.domain.model.Result.Success -> {
+                is com.MegaStream.domain.model.Result.Success -> {
                     _uiState.value = _uiState.value.copy(
                         userMessage = appContext.getString(R.string.settings_update_install_started)
                     )

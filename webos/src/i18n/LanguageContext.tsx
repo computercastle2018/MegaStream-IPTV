@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { type Lang, LANGUAGES, translations } from "./translations";
 
-const STORAGE_KEY = "streamvault.lang";
+const STORAGE_KEY = "MegaStream.lang";
 
 type TParams = Record<string, string | number>;
 

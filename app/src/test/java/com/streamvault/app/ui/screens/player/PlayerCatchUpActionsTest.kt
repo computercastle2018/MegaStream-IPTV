@@ -1,9 +1,9 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -17,7 +17,7 @@ class PlayerCatchUpActionsTest {
             url = "https://provider.example/archive.ts",
             title = null,
             headers = mapOf("Authorization" to "Bearer token"),
-            userAgent = "StreamVaultTest",
+            userAgent = "MegaStreamTest",
             streamType = StreamType.HLS,
             containerExtension = "m3u8",
             expirationTime = 123_456L
@@ -38,7 +38,7 @@ class PlayerCatchUpActionsTest {
         assertThat(requestedContentType).isEqualTo(ContentType.LIVE)
         assertThat(result).isEqualTo(resolved.copy(title = "Replay title"))
         assertThat(result?.headers).containsEntry("Authorization", "Bearer token")
-        assertThat(result?.userAgent).isEqualTo("StreamVaultTest")
+        assertThat(result?.userAgent).isEqualTo("MegaStreamTest")
         assertThat(result?.expirationTime).isEqualTo(123_456L)
     }
 }

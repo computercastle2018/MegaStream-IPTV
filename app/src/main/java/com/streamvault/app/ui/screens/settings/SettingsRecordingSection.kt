@@ -1,10 +1,10 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
-import com.streamvault.app.MainActivity
-import com.streamvault.app.navigation.Routes
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.app.MainActivity
+import com.MegaStream.app.navigation.Routes
+import com.MegaStream.domain.model.RecordingStatus
 
 internal fun LazyListScope.settingsRecordingSection(
     uiState: SettingsUiState,

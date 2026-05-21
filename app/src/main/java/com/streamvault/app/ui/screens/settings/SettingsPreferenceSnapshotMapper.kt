@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 internal fun SettingsUiState.applyPreferenceSnapshot(snapshot: SettingsPreferenceSnapshot): SettingsUiState {
     val cachedAppUpdate = snapshot.toCachedAppUpdateUiModel()

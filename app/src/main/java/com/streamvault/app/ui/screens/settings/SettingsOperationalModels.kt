@@ -1,11 +1,11 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.data.local.entity.XtreamLiveOnboardingStateEntity
-import com.streamvault.data.preferences.DatabaseMaintenanceSnapshot
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.CategorySortMode
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.VodSyncMode
+import com.MegaStream.data.local.entity.XtreamLiveOnboardingStateEntity
+import com.MegaStream.data.preferences.DatabaseMaintenanceSnapshot
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.CategorySortMode
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.VodSyncMode
 
 enum class ProviderCatalogCountStatus {
     PENDING,

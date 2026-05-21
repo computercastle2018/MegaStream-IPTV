@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.home
+package com.MegaStream.app.ui.screens.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -49,27 +49,27 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.components.FocusedMarqueeText
-import com.streamvault.app.ui.components.PlayerRenderView
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.theme.FocusBorder
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.PrimaryLight
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.app.ui.theme.SurfaceHighlight
-import com.streamvault.app.ui.time.LocalAppTimeFormat
-import com.streamvault.app.ui.time.createTimeFormat
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.player.PlayerEngine
-import com.streamvault.player.PlayerRenderSurfaceType
-import com.streamvault.player.PlayerSurfaceResizeMode
+import com.MegaStream.app.R
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.components.FocusedMarqueeText
+import com.MegaStream.app.ui.components.PlayerRenderView
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.theme.FocusBorder
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.PrimaryLight
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.ui.theme.SurfaceHighlight
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.time.createTimeFormat
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.player.PlayerEngine
+import com.MegaStream.player.PlayerRenderSurfaceType
+import com.MegaStream.player.PlayerSurfaceResizeMode
 import java.util.Date
 
 @Composable

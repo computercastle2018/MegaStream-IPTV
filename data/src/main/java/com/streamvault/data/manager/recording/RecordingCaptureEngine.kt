@@ -1,8 +1,8 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import android.content.ContentResolver
-import com.streamvault.domain.model.RecordingFailureCategory
-import com.streamvault.domain.model.RecordingSourceType
+import com.MegaStream.domain.model.RecordingFailureCategory
+import com.MegaStream.domain.model.RecordingSourceType
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.URI

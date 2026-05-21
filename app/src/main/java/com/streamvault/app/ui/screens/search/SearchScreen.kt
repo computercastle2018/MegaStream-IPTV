@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.search
+package com.MegaStream.app.ui.screens.search
 
 import androidx.annotation.StringRes
-import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvClickableSurface
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -42,33 +42,33 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
 import androidx.tv.material3.*
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.CategoryRow
-import com.streamvault.app.ui.components.SearchInput
-import com.streamvault.app.ui.components.ChannelCard
-import com.streamvault.app.ui.components.MovieCard
-import com.streamvault.app.ui.components.SeriesCard
-import com.streamvault.app.ui.components.TvEmptyState
-import com.streamvault.app.ui.components.shell.AppNavigationChrome
-import com.streamvault.app.ui.components.shell.AppScreenScaffold
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.design.requestFocusSafely
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.theme.*
-import com.streamvault.domain.manager.ParentalControlManager
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.SearchHistoryScope
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.repository.CategoryRepository
-import com.streamvault.domain.repository.FavoriteRepository
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.usecase.SearchContent
-import com.streamvault.domain.usecase.SearchContentScope
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.model.RecordingStatus
-import com.streamvault.domain.util.AdultContentVisibilityPolicy
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.CategoryRow
+import com.MegaStream.app.ui.components.SearchInput
+import com.MegaStream.app.ui.components.ChannelCard
+import com.MegaStream.app.ui.components.MovieCard
+import com.MegaStream.app.ui.components.SeriesCard
+import com.MegaStream.app.ui.components.TvEmptyState
+import com.MegaStream.app.ui.components.shell.AppNavigationChrome
+import com.MegaStream.app.ui.components.shell.AppScreenScaffold
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.design.requestFocusSafely
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.theme.*
+import com.MegaStream.domain.manager.ParentalControlManager
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.SearchHistoryScope
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.repository.CategoryRepository
+import com.MegaStream.domain.repository.FavoriteRepository
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.usecase.SearchContent
+import com.MegaStream.domain.usecase.SearchContentScope
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.model.RecordingStatus
+import com.MegaStream.domain.util.AdultContentVisibilityPolicy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -82,7 +82,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val providerRepository: ProviderRepository,
     private val searchContent: SearchContent,
-    private val preferencesRepository: com.streamvault.data.preferences.PreferencesRepository,
+    private val preferencesRepository: com.MegaStream.data.preferences.PreferencesRepository,
     private val parentalControlManager: ParentalControlManager,
     private val favoriteRepository: FavoriteRepository,
     private val categoryRepository: CategoryRepository,
@@ -305,7 +305,7 @@ class SearchViewModel @Inject constructor(
 }
 
 private data class SearchFilterParams(
-    val provider: com.streamvault.domain.model.Provider?,
+    val provider: com.MegaStream.domain.model.Provider?,
     val query: String,
     val tab: SearchTab,
     val level: Int,
@@ -436,7 +436,7 @@ fun SearchScreen(
     }
 
     if (showPinDialog) {
-        com.streamvault.app.ui.components.dialogs.PinDialog(
+        com.MegaStream.app.ui.components.dialogs.PinDialog(
             onDismissRequest = {
                 showPinDialog = false
                 pinError = null

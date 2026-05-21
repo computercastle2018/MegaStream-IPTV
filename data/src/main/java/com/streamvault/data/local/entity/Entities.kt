@@ -1,4 +1,4 @@
-package com.streamvault.data.local.entity
+package com.MegaStream.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -6,11 +6,11 @@ import androidx.room.ForeignKey
 import androidx.room.Fts4
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.ProviderEpgSyncMode
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.ProviderXtreamLiveSyncMode
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.ProviderEpgSyncMode
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
 
 @Entity(
     tableName = "providers",

@@ -1,7 +1,7 @@
-package com.streamvault.player.tracks
+package com.MegaStream.player.tracks
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.player.PLAYER_TRACK_AUTO_ID
+import com.MegaStream.player.PLAYER_TRACK_AUTO_ID
 import org.junit.Test
 
 class PlayerTrackControllerSelectionTest {

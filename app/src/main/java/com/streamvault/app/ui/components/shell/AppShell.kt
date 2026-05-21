@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components.shell
+package com.MegaStream.app.ui.components.shell
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,10 +39,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.streamvault.app.localization.LanguageMenuViewModel
-import com.streamvault.app.ui.screens.settings.LevelOption
-import com.streamvault.app.ui.screens.settings.PremiumSelectionDialog
-import com.streamvault.app.ui.screens.settings.supportedAppLanguages
+import com.MegaStream.app.localization.LanguageMenuViewModel
+import com.MegaStream.app.ui.screens.settings.LevelOption
+import com.MegaStream.app.ui.screens.settings.PremiumSelectionDialog
+import com.MegaStream.app.ui.screens.settings.supportedAppLanguages
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,16 +74,16 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.navigation.Routes
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.design.AppMotion
-import com.streamvault.app.ui.design.FocusSpec
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.interaction.rememberTvInteractionSounds
-import com.streamvault.app.ui.interaction.TvIconButton
-import com.streamvault.app.ui.design.LocalAppShapes
-import com.streamvault.app.ui.design.LocalAppSpacing
+import com.MegaStream.app.R
+import com.MegaStream.app.navigation.Routes
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.design.AppMotion
+import com.MegaStream.app.ui.design.FocusSpec
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.interaction.rememberTvInteractionSounds
+import com.MegaStream.app.ui.interaction.TvIconButton
+import com.MegaStream.app.ui.design.LocalAppShapes
+import com.MegaStream.app.ui.design.LocalAppSpacing
 
 enum class AppNavigationChrome {
     Rail,

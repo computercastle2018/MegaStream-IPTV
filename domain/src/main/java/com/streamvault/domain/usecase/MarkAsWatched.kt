@@ -1,10 +1,10 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.util.isPlaybackComplete
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.util.isPlaybackComplete
 import javax.inject.Inject
 
 class MarkAsWatched @Inject constructor(

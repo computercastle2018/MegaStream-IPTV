@@ -1,9 +1,9 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
-import com.streamvault.domain.model.ExternalRatings
-import com.streamvault.domain.model.ExternalRatingsLookup
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.ExternalRatingsRepository
+import com.MegaStream.domain.model.ExternalRatings
+import com.MegaStream.domain.model.ExternalRatingsLookup
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.ExternalRatingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 

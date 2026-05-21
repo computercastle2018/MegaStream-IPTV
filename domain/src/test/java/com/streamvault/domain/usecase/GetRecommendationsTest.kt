@@ -1,13 +1,13 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.LibraryBrowseQuery
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.PagedResult
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.repository.MovieRepository
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.LibraryBrowseQuery
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.PagedResult
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.repository.MovieRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow

@@ -1,7 +1,7 @@
 import type { Provider } from "../types";
 
-const PROVIDERS_KEY = "streamvault.providers";
-const ACTIVE_KEY = "streamvault.activeProviderId";
+const PROVIDERS_KEY = "MegaStream.providers";
+const ACTIVE_KEY = "MegaStream.activeProviderId";
 
 export function loadProviders(): Provider[] {
   try {

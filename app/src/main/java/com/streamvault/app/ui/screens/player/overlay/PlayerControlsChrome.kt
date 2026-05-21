@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.player.overlay
+package com.MegaStream.app.ui.screens.player.overlay
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -67,28 +67,28 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.components.rememberCrossfadeImageModel
-import com.streamvault.app.ui.screens.player.NumericChannelInputState
-import com.streamvault.app.ui.screens.player.PlayerTimeshiftUiState
-import com.streamvault.app.ui.screens.player.SeekPreviewState
-import com.streamvault.app.ui.screens.player.SleepTimerUiState
-import com.streamvault.app.ui.time.LocalAppTimeFormat
-import com.streamvault.app.ui.time.createTimeFormat
-import com.streamvault.app.ui.theme.ErrorColor
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.app.R
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.components.rememberCrossfadeImageModel
+import com.MegaStream.app.ui.screens.player.NumericChannelInputState
+import com.MegaStream.app.ui.screens.player.PlayerTimeshiftUiState
+import com.MegaStream.app.ui.screens.player.SeekPreviewState
+import com.MegaStream.app.ui.screens.player.SleepTimerUiState
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.time.createTimeFormat
+import com.MegaStream.app.ui.theme.ErrorColor
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.RecordingStatus
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Locale
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvIconButton
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvIconButton
 
 private data class PlayerActionSpec(
     val label: String,

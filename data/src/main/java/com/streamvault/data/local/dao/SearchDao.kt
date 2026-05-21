@@ -1,4 +1,4 @@
-package com.streamvault.data.local.dao
+package com.MegaStream.data.local.dao
 
 import androidx.room.ColumnInfo
 import androidx.room.Dao

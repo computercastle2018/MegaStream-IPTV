@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.model
+package com.MegaStream.app.ui.model
 
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Program
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Program
 
 private const val MILLIS_PER_DAY = 86_400_000L
 

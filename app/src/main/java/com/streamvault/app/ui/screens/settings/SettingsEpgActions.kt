@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.EpgSourceRepository
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.EpgSourceRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

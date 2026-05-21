@@ -1,4 +1,4 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 internal data class PlaybackBufferPolicy(
     val label: String,

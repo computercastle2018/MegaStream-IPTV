@@ -1,10 +1,10 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.player.PlaybackState
-import com.streamvault.player.PlayerError
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.player.PlaybackState
+import com.MegaStream.player.PlayerError
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

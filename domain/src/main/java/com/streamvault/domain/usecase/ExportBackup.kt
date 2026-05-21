@@ -1,7 +1,7 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
-import com.streamvault.domain.manager.BackupManager
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.manager.BackupManager
+import com.MegaStream.domain.model.Result
 import javax.inject.Inject
 
 data class ExportBackupCommand(

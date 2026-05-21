@@ -1,7 +1,7 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.ExternalSubtitle
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.ExternalSubtitle
 import java.io.File
 
 interface ExternalSubtitleRepository {

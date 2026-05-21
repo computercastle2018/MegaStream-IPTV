@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,19 +12,19 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.dialogs.PremiumDialog
-import com.streamvault.app.ui.components.dialogs.PremiumDialogFooterButton
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.model.VodViewMode
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.GroupedChannelLabelMode
-import com.streamvault.domain.model.LiveChannelGroupingMode
-import com.streamvault.domain.model.LiveVariantPreferenceMode
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.dialogs.PremiumDialog
+import com.MegaStream.app.ui.components.dialogs.PremiumDialogFooterButton
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.GroupedChannelLabelMode
+import com.MegaStream.domain.model.LiveChannelGroupingMode
+import com.MegaStream.domain.model.LiveVariantPreferenceMode
 
 @Composable
 internal fun VodViewModeDialog(

@@ -24,12 +24,12 @@
 
     <queries>
         <intent>
-            <action android:name="com.streamvault.plugin.API" />
+            <action android:name="com.MegaStream.plugin.API" />
         </intent>
     </queries>
 
     <application
-        android:name=".StreamVaultApp"
+        android:name=".MegaStreamApp"
         android:allowBackup="false"
         android:banner="@drawable/app_banner"
         android:icon="@mipmap/ic_launcher_vault"
@@ -38,7 +38,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:usesCleartextTraffic="false"
         android:supportsRtl="true"
-        android:theme="@style/Theme.StreamVault">
+        android:theme="@style/Theme.MegaStream">
 
         <activity
             android:name=".MainActivity"
@@ -111,17 +111,17 @@
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.StreamVault.CastChooser" />
+            android:theme="@style/Theme.MegaStream.CastChooser" />
 
         <activity
             android:name=".tvinput.TvInputSetupActivity"
             android:exported="true"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.StreamVault" />
+            android:theme="@style/Theme.MegaStream" />
 
         <service
-            android:name=".tvinput.StreamVaultTvInputService"
+            android:name=".tvinput.MegaStreamTvInputService"
             android:exported="true"
             android:label="MegaStream Live Channels"
             android:permission="android.permission.BIND_TV_INPUT">
@@ -137,7 +137,7 @@
 
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.streamvault.app.cast.StreamVaultCastOptionsProvider" />
+            android:value="com.MegaStream.app.cast.MegaStreamCastOptionsProvider" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

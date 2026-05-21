@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.player.overlay
+package com.MegaStream.app.ui.screens.player.overlay
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,11 +8,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.streamvault.app.ui.test.TestFixtures
-import com.streamvault.app.ui.test.assertAgainstGolden
-import com.streamvault.app.ui.theme.StreamVaultTheme
-import com.streamvault.player.PlayerError
-import com.streamvault.player.TrackType
+import com.MegaStream.app.ui.test.TestFixtures
+import com.MegaStream.app.ui.test.assertAgainstGolden
+import com.MegaStream.app.ui.theme.MegaStreamTheme
+import com.MegaStream.player.PlayerError
+import com.MegaStream.player.TrackType
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,7 +26,7 @@ class PlayerOverlayGoldenTest {
     @Test
     fun playerControlsOverlay_vod_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -77,7 +77,7 @@ class PlayerOverlayGoldenTest {
     @Test
     fun playerNoticeBanner_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -98,7 +98,7 @@ class PlayerOverlayGoldenTest {
     @Test
     fun playerErrorOverlay_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -121,7 +121,7 @@ class PlayerOverlayGoldenTest {
     @Test
     fun playerTrackSelectionDialog_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -147,7 +147,7 @@ class PlayerOverlayGoldenTest {
     @Test
     fun playerResumePrompt_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -168,7 +168,7 @@ class PlayerOverlayGoldenTest {
     @Test
     fun playerNumericInputOverlay_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

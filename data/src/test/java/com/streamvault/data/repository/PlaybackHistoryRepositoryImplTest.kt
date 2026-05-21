@@ -1,16 +1,16 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.EpisodeDao
-import com.streamvault.data.local.dao.MovieDao
-import com.streamvault.data.local.dao.PlaybackHistoryDao
-import com.streamvault.data.local.entity.PlaybackHistoryEntity
-import com.streamvault.data.local.entity.PlaybackHistoryLiteEntity
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.PlaybackWatchedStatus
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.EpisodeDao
+import com.MegaStream.data.local.dao.MovieDao
+import com.MegaStream.data.local.dao.PlaybackHistoryDao
+import com.MegaStream.data.local.entity.PlaybackHistoryEntity
+import com.MegaStream.data.local.entity.PlaybackHistoryLiteEntity
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.PlaybackWatchedStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest

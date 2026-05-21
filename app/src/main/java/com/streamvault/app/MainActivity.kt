@@ -1,4 +1,4 @@
-package com.streamvault.app
+package com.MegaStream.app
 
 import android.app.SearchManager
 import android.content.Intent
@@ -11,24 +11,24 @@ import android.util.Rational
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
-import com.streamvault.app.cast.CastManager
-import com.streamvault.app.cast.CastRouteChooserActivity
-import com.streamvault.app.backup.BackupFileBridge
-import com.streamvault.app.device.isTelevisionDevice
-import com.streamvault.app.localization.resolveAppLocale
-import com.streamvault.app.navigation.AppNavigation
-import com.streamvault.app.navigation.ExternalDestination
-import com.streamvault.app.navigation.ExternalNavigationRequest
-import com.streamvault.app.navigation.PlayerNavigationRequest
-import com.streamvault.app.tv.LauncherRecommendationsManager
-import com.streamvault.app.tv.WatchNextManager
-import com.streamvault.app.tvinput.TvInputChannelSyncManager
-import com.streamvault.app.ui.theme.StreamVaultTheme
-import com.streamvault.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.cast.CastManager
+import com.MegaStream.app.cast.CastRouteChooserActivity
+import com.MegaStream.app.backup.BackupFileBridge
+import com.MegaStream.app.device.isTelevisionDevice
+import com.MegaStream.app.localization.resolveAppLocale
+import com.MegaStream.app.navigation.AppNavigation
+import com.MegaStream.app.navigation.ExternalDestination
+import com.MegaStream.app.navigation.ExternalNavigationRequest
+import com.MegaStream.app.navigation.PlayerNavigationRequest
+import com.MegaStream.app.tv.LauncherRecommendationsManager
+import com.MegaStream.app.tv.WatchNextManager
+import com.MegaStream.app.tvinput.TvInputChannelSyncManager
+import com.MegaStream.app.ui.theme.MegaStreamTheme
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
 import dagger.hilt.android.AndroidEntryPoint
 
 import javax.inject.Inject
-import com.streamvault.data.preferences.PreferencesRepository
+import com.MegaStream.data.preferences.PreferencesRepository
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -58,9 +58,9 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     companion object {
-        const val EXTRA_PLAYER_REQUEST = "com.streamvault.app.extra.PLAYER_REQUEST"
-        const val EXTRA_EXTERNAL_DESTINATION = "com.streamvault.app.extra.EXTERNAL_DESTINATION"
-        const val EXTRA_EXTERNAL_ROUTE = "com.streamvault.app.extra.EXTERNAL_ROUTE"
+        const val EXTRA_PLAYER_REQUEST = "com.MegaStream.app.extra.PLAYER_REQUEST"
+        const val EXTRA_EXTERNAL_DESTINATION = "com.MegaStream.app.extra.EXTERNAL_DESTINATION"
+        const val EXTRA_EXTERNAL_ROUTE = "com.MegaStream.app.extra.EXTERNAL_ROUTE"
         private const val MAX_PIP_ASPECT_RATIO = 2.39f
         private const val MIN_PIP_ASPECT_RATIO = 1f / MAX_PIP_ASPECT_RATIO
     }
@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             val appLanguage by preferencesRepository.appLanguage.collectAsState(initial = "system")
-            val appTimeFormat by preferencesRepository.appTimeFormat.collectAsState(initial = com.streamvault.domain.model.AppTimeFormat.SYSTEM)
+            val appTimeFormat by preferencesRepository.appTimeFormat.collectAsState(initial = com.MegaStream.domain.model.AppTimeFormat.SYSTEM)
             val currentContext = LocalContext.current
             
             val configuration = remember(appLanguage) {
@@ -163,7 +163,7 @@ class MainActivity : ComponentActivity() {
                 LocalLayoutDirection provides layoutDirection,
                 LocalAppTimeFormat provides appTimeFormat
             ) {
-                StreamVaultTheme {
+                MegaStreamTheme {
                     AppNavigation(mainActivity = this@MainActivity)
                 }
             }

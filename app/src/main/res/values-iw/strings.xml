@@ -408,11 +408,13 @@
     <string name="settings_enabled">מופעל</string>
     <string name="settings_disabled">מושבת</string>
     <string name="settings_developed_by">פותח על ידי</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">megaStation</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">תמיכה ב-Ko-Fi</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/computercastle2018</string>
+    <string name="settings_repository">Repository</string>
+    <string name="settings_repository_url">https://github.com/computercastle2018/MegaStream-IPTV</string>
+    <string name="settings_donate">Website</string>
+    <string name="settings_donate_url">https://megastation.ee/megastream</string>
     <string name="settings_updates_title">עדכונים</string>
     <string name="settings_updates_subtitle">בדקו את GitHub Releases לגרסאות חדשות יותר של MegaStream בלי לצאת מהאפליקציה.</string>
     <string name="settings_update_auto_check">בדיקה אוטומטית לעדכונים</string>
@@ -702,7 +704,7 @@
     <string name="a11y_catch_up_available">השג זמין</string>
     <string name="a11y_now_playing">עכשיו משחק %1$s</string>
     <string name="a11y_channel_with_number">ערוץ %1$d, %2$s</string>
-    <string name="setup_title_streamvault">MegaStream</string>
+    <string name="setup_title_MegaStream">MegaStream</string>
     <string name="setup_provider_title">הוסף ספק</string>
     <string name="setup_edit_provider">ערוך ספק</string>
     <string name="setup_update_desc">עדכן את פרטי ספק ה-IPTV שלך</string>

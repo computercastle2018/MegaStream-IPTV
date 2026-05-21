@@ -1,4 +1,4 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
 data class ExternalRatingsLookup(
     val contentType: ContentType,

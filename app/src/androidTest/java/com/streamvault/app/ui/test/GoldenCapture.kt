@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.test
+package com.MegaStream.app.ui.test
 
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap

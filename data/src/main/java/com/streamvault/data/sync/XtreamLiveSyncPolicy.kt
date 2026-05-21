@@ -1,7 +1,7 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.domain.model.ProviderXtreamLiveSyncMode
-import com.streamvault.domain.model.SyncMetadata
+import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
+import com.MegaStream.domain.model.SyncMetadata
 
 enum class XtreamLiveSyncReason {
     INITIAL_ONBOARDING,

@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components
+package com.MegaStream.app.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -48,14 +48,14 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.theme.FocusBorder
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.app.ui.theme.SurfaceHighlight
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.theme.FocusBorder
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.ui.theme.SurfaceHighlight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

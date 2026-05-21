@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.player.overlay
+package com.MegaStream.app.ui.screens.player.overlay
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -54,22 +54,22 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.components.shell.StatusPill
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.screens.player.PlayerDiagnosticsUiState
-import com.streamvault.app.ui.time.LocalAppTimeFormat
-import com.streamvault.app.ui.time.createTimeFormat
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Program
-import com.streamvault.player.PlayerStats
+import com.MegaStream.app.R
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.components.shell.StatusPill
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.screens.player.PlayerDiagnosticsUiState
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.time.createTimeFormat
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Program
+import com.MegaStream.player.PlayerStats
 import java.util.Date
-import com.streamvault.app.ui.design.AppColors.Brand as Primary
-import com.streamvault.app.ui.design.AppColors.SurfaceElevated as SurfaceVariant
-import com.streamvault.app.ui.design.AppColors.TextSecondary as TextSecondary
-import com.streamvault.app.ui.design.AppColors.TextTertiary as OnSurfaceDim
+import com.MegaStream.app.ui.design.AppColors.Brand as Primary
+import com.MegaStream.app.ui.design.AppColors.SurfaceElevated as SurfaceVariant
+import com.MegaStream.app.ui.design.AppColors.TextSecondary as TextSecondary
+import com.MegaStream.app.ui.design.AppColors.TextTertiary as OnSurfaceDim
 
 @Composable
 fun ChannelListOverlay(
@@ -838,11 +838,11 @@ private fun formatOffsetLabel(offsetMs: Int): String = when {
 
 @Composable
 fun CategoryListOverlay(
-    categories: List<com.streamvault.domain.model.Category>,
+    categories: List<com.MegaStream.domain.model.Category>,
     currentCategoryId: Long,
     overlayFocusRequester: FocusRequester = remember { FocusRequester() },
-    isCategoryLocked: (com.streamvault.domain.model.Category) -> Boolean = { false },
-    onSelectCategory: (com.streamvault.domain.model.Category) -> Unit,
+    isCategoryLocked: (com.MegaStream.domain.model.Category) -> Boolean = { false },
+    onSelectCategory: (com.MegaStream.domain.model.Category) -> Unit,
     onDismiss: () -> Unit,
     onOverlayInteracted: () -> Unit = {}
 ) {

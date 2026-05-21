@@ -1,8 +1,8 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import androidx.media3.common.util.UnstableApi
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.DecoderMode
+import com.MegaStream.domain.model.DecoderMode
 import org.junit.Test
 
 @UnstableApi
@@ -135,8 +135,8 @@ class PlaybackCodecSelectorTest {
         failures: Int,
         successAt: Long,
         failedAt: Long
-    ) = com.streamvault.domain.model.PlaybackCompatibilityRecord(
-        key = com.streamvault.domain.model.PlaybackCompatibilityKey(
+    ) = com.MegaStream.domain.model.PlaybackCompatibilityRecord(
+        key = com.MegaStream.domain.model.PlaybackCompatibilityKey(
             deviceFingerprint = "device",
             deviceModel = "model",
             androidSdk = 35,

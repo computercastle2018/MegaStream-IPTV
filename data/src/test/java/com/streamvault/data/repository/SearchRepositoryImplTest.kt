@@ -1,15 +1,15 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import android.database.sqlite.SQLiteException
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.SearchDao
-import com.streamvault.data.local.dao.SearchHitEntity
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.SeriesRepository
+import com.MegaStream.data.local.dao.SearchDao
+import com.MegaStream.data.local.dao.SearchHitEntity
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.SeriesRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf

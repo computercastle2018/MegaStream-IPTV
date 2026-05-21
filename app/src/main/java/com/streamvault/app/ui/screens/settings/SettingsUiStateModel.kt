@@ -1,31 +1,31 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.app.ui.model.LiveTvChannelMode
-import com.streamvault.app.ui.model.LiveTvQuickFilterVisibilityMode
-import com.streamvault.app.ui.model.VodViewMode
-import com.streamvault.domain.manager.BackupImportPlan
-import com.streamvault.domain.manager.BackupPreview
-import com.streamvault.domain.manager.DriveAuthState
-import com.streamvault.domain.manager.DriveSignInRequest
-import com.streamvault.domain.manager.DriveSyncStatus
-import com.streamvault.domain.manager.ProviderCredentials
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.AppTimeFormat
-import com.streamvault.domain.model.AudioOutputPreference
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.CategorySortMode
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.CombinedM3uProfile
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.EpgResolutionSummary
-import com.streamvault.domain.model.GroupedChannelLabelMode
-import com.streamvault.domain.model.LiveChannelGroupingMode
-import com.streamvault.domain.model.LiveVariantPreferenceMode
-import com.streamvault.domain.model.PlayerSurfaceMode
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingStorageState
+import com.MegaStream.app.ui.model.LiveTvChannelMode
+import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
+import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.domain.manager.BackupImportPlan
+import com.MegaStream.domain.manager.BackupPreview
+import com.MegaStream.domain.manager.DriveAuthState
+import com.MegaStream.domain.manager.DriveSignInRequest
+import com.MegaStream.domain.manager.DriveSyncStatus
+import com.MegaStream.domain.manager.ProviderCredentials
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.AppTimeFormat
+import com.MegaStream.domain.model.AudioOutputPreference
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.CategorySortMode
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.CombinedM3uProfile
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.EpgResolutionSummary
+import com.MegaStream.domain.model.GroupedChannelLabelMode
+import com.MegaStream.domain.model.LiveChannelGroupingMode
+import com.MegaStream.domain.model.LiveVariantPreferenceMode
+import com.MegaStream.domain.model.PlayerSurfaceMode
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingStorageState
 
 data class CrashReportUiModel(
     val timestamp: String = "",
@@ -117,15 +117,15 @@ data class SettingsUiState(
     val liveVariantPreferenceMode: LiveVariantPreferenceMode = LiveVariantPreferenceMode.BALANCED,
     val vodViewMode: VodViewMode = VodViewMode.MODERN,
     val vodInfiniteScroll: Boolean = true,
-    val guideDefaultCategoryId: Long = com.streamvault.domain.model.VirtualCategoryIds.FAVORITES,
+    val guideDefaultCategoryId: Long = com.MegaStream.domain.model.VirtualCategoryIds.FAVORITES,
     val guideDefaultCategoryOptions: List<Category> = emptyList(),
     val preventStandbyDuringPlayback: Boolean = true,
     val zapAutoRevert: Boolean = true,
     val autoPlayNextEpisode: Boolean = true,
     val categorySortModes: Map<ContentType, CategorySortMode> = emptyMap(),
     val hiddenCategories: List<Category> = emptyList(),
-    val epgSources: List<com.streamvault.domain.model.EpgSource> = emptyList(),
-    val epgSourceAssignments: Map<Long, List<com.streamvault.domain.model.ProviderEpgSourceAssignment>> = emptyMap(),
+    val epgSources: List<com.MegaStream.domain.model.EpgSource> = emptyList(),
+    val epgSourceAssignments: Map<Long, List<com.MegaStream.domain.model.ProviderEpgSourceAssignment>> = emptyMap(),
     val epgResolutionSummaries: Map<Long, EpgResolutionSummary> = emptyMap(),
     val refreshingEpgSourceIds: Set<Long> = emptySet(),
     val epgPendingDeleteSourceId: Long? = null,

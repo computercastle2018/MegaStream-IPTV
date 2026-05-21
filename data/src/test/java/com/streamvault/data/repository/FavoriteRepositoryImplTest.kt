@@ -1,14 +1,14 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.dao.VirtualGroupDao
-import com.streamvault.data.local.entity.CategoryCount
-import com.streamvault.data.local.entity.FavoriteEntity
-import com.streamvault.data.local.entity.VirtualGroupEntity
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.model.ContentType
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.dao.VirtualGroupDao
+import com.MegaStream.data.local.entity.CategoryCount
+import com.MegaStream.data.local.entity.FavoriteEntity
+import com.MegaStream.data.local.entity.VirtualGroupEntity
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.model.ContentType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first

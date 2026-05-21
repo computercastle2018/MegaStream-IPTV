@@ -1,8 +1,8 @@
-package com.streamvault.app.ui.screens.vod
+package com.MegaStream.app.ui.screens.vod
 
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Favorite
-import com.streamvault.app.ui.screens.vod.matchesVodGroupMembership
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.app.ui.screens.vod.matchesVodGroupMembership
 
 data class VodCatalogSnapshot<Item>(
     val grouped: Map<String, List<Item>>,

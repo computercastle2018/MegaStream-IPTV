@@ -1,4 +1,4 @@
-package com.streamvault.domain.manager
+package com.MegaStream.domain.manager
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

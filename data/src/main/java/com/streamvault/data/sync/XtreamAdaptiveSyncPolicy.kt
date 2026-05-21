@@ -1,8 +1,8 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.data.remote.xtream.XtreamAuthenticationException
-import com.streamvault.data.remote.xtream.XtreamNetworkException
-import com.streamvault.data.remote.xtream.XtreamRequestException
+import com.MegaStream.data.remote.xtream.XtreamAuthenticationException
+import com.MegaStream.data.remote.xtream.XtreamNetworkException
+import com.MegaStream.data.remote.xtream.XtreamRequestException
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.delay

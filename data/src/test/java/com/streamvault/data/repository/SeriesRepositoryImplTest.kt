@@ -1,49 +1,49 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import android.database.sqlite.SQLiteException
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.CategoryDao
-import com.streamvault.data.local.dao.EpisodeDao
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.dao.PlaybackHistoryDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.SeriesDao
-import com.streamvault.data.local.dao.SeriesCategoryHydrationDao
-import com.streamvault.data.local.dao.XtreamContentIndexDao
-import com.streamvault.data.local.entity.EpisodeBrowseEntity
-import com.streamvault.data.local.entity.EpisodeEntity
-import com.streamvault.data.local.entity.SeriesEntity
-import com.streamvault.data.local.entity.SeriesBrowseEntity
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.remote.dto.XtreamSeason
-import com.streamvault.data.remote.dto.XtreamSeriesInfoResponse
-import com.streamvault.data.remote.stalker.StalkerCategoryRecord
-import com.streamvault.data.remote.stalker.StalkerEpisodeRecord
-import com.streamvault.data.remote.stalker.StalkerItemRecord
-import com.streamvault.data.remote.stalker.StalkerPagedItems
-import com.streamvault.data.remote.stalker.StalkerProviderProfile
-import com.streamvault.data.remote.stalker.StalkerSeasonRecord
-import com.streamvault.data.remote.stalker.StalkerSeriesDetails
-import com.streamvault.data.remote.stalker.StalkerSession
-import com.streamvault.data.remote.dto.XtreamCategory
-import com.streamvault.data.remote.dto.XtreamSeriesItem
-import com.streamvault.data.remote.stalker.StalkerApiService
-import com.streamvault.data.remote.xtream.XtreamParsingException
-import com.streamvault.data.remote.xtream.XtreamApiService
-import com.streamvault.data.remote.xtream.XtreamStreamUrlResolver
-import com.streamvault.data.security.CredentialCrypto
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.LibraryBrowseQuery
-import com.streamvault.domain.model.LibraryFilterBy
-import com.streamvault.domain.model.LibraryFilterType
-import com.streamvault.domain.model.LibrarySortBy
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.data.local.dao.CategoryDao
+import com.MegaStream.data.local.dao.EpisodeDao
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.dao.PlaybackHistoryDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.SeriesDao
+import com.MegaStream.data.local.dao.SeriesCategoryHydrationDao
+import com.MegaStream.data.local.dao.XtreamContentIndexDao
+import com.MegaStream.data.local.entity.EpisodeBrowseEntity
+import com.MegaStream.data.local.entity.EpisodeEntity
+import com.MegaStream.data.local.entity.SeriesEntity
+import com.MegaStream.data.local.entity.SeriesBrowseEntity
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.remote.dto.XtreamSeason
+import com.MegaStream.data.remote.dto.XtreamSeriesInfoResponse
+import com.MegaStream.data.remote.stalker.StalkerCategoryRecord
+import com.MegaStream.data.remote.stalker.StalkerEpisodeRecord
+import com.MegaStream.data.remote.stalker.StalkerItemRecord
+import com.MegaStream.data.remote.stalker.StalkerPagedItems
+import com.MegaStream.data.remote.stalker.StalkerProviderProfile
+import com.MegaStream.data.remote.stalker.StalkerSeasonRecord
+import com.MegaStream.data.remote.stalker.StalkerSeriesDetails
+import com.MegaStream.data.remote.stalker.StalkerSession
+import com.MegaStream.data.remote.dto.XtreamCategory
+import com.MegaStream.data.remote.dto.XtreamSeriesItem
+import com.MegaStream.data.remote.stalker.StalkerApiService
+import com.MegaStream.data.remote.xtream.XtreamParsingException
+import com.MegaStream.data.remote.xtream.XtreamApiService
+import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
+import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.LibraryBrowseQuery
+import com.MegaStream.domain.model.LibraryFilterBy
+import com.MegaStream.domain.model.LibraryFilterType
+import com.MegaStream.domain.model.LibrarySortBy
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -207,7 +207,7 @@ class SeriesRepositoryImplTest {
         whenever(seriesDao.getByCategoryPreview(7L, 77L, 18)).thenReturn(flowOf(emptyList()))
         whenever(seriesCategoryHydrationDao.get(7L, 77L)).thenReturn(null)
         whenever(categoryDao.getByProviderAndType(7L, ContentType.SERIES.name)).thenReturn(
-            flowOf(listOf(com.streamvault.data.local.entity.CategoryEntity(providerId = 7L, categoryId = 77L, name = "Drama", type = ContentType.SERIES)))
+            flowOf(listOf(com.MegaStream.data.local.entity.CategoryEntity(providerId = 7L, categoryId = 77L, name = "Drama", type = ContentType.SERIES)))
         )
         whenever(providerDao.getById(7L)).thenReturn(
             ProviderEntity(
@@ -341,8 +341,8 @@ class SeriesRepositoryImplTest {
 
         val result = repository.getSeriesDetails(7L, 301L)
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
-        val series = (result as com.streamvault.domain.model.Result.Success).data
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
+        val series = (result as com.MegaStream.domain.model.Result.Success).data
         assertThat(series.id).isEqualTo(15L)
         assertThat(series.seriesId).isEqualTo(301L)
     }
@@ -377,8 +377,8 @@ class SeriesRepositoryImplTest {
 
         val result = repository.getSeriesDetails(7L, 301L)
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
-        val series = (result as com.streamvault.domain.model.Result.Success).data
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
+        val series = (result as com.MegaStream.domain.model.Result.Success).data
         assertThat(series.id).isEqualTo(15L)
         assertThat(series.name).isEqualTo("Stored Series")
         assertThat(series.posterUrl).isEqualTo("https://img.example.test/poster.jpg")
@@ -435,8 +435,8 @@ class SeriesRepositoryImplTest {
 
         val result = createRepository().getSeriesDetails(7L, 15L)
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
-        val series = (result as com.streamvault.domain.model.Result.Success).data
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
+        val series = (result as com.MegaStream.domain.model.Result.Success).data
         assertThat(series.seasons).hasSize(1)
         assertThat(series.seasons.first().name).isEqualTo("Season 1")
         assertThat(series.seasons.first().episodes.map { it.title }).containsExactly("Pilot")
@@ -499,8 +499,8 @@ class SeriesRepositoryImplTest {
 
         val result = repository.getSeriesDetails(7L, 15L)
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
-        val series = (result as com.streamvault.domain.model.Result.Success).data
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
+        val series = (result as com.MegaStream.domain.model.Result.Success).data
         assertThat(series.name).isEqualTo("Stored Series")
         verify(stalkerApiService).getSeriesDetails(any(), any(), eq("55000:55000"))
         verifyNoInteractions(xtreamApiService)

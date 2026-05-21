@@ -1,4 +1,4 @@
-package com.streamvault.domain.manager
+package com.MegaStream.domain.manager
 
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first

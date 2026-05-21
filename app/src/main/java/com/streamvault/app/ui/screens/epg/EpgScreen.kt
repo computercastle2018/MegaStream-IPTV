@@ -1,8 +1,8 @@
-package com.streamvault.app.ui.screens.epg
+package com.MegaStream.app.ui.screens.epg
 
 import android.view.inputmethod.InputMethodManager
-import com.streamvault.app.ui.model.isArchivePlayable
-import com.streamvault.app.ui.model.guideLookupKey
+import com.MegaStream.app.ui.model.isArchivePlayable
+import com.MegaStream.app.ui.model.guideLookupKey
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -85,34 +85,34 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.components.ChannelLogoBadge
-import com.streamvault.app.navigation.Routes
-import com.streamvault.app.ui.notifications.rememberNotificationPermissionGate
-import com.streamvault.app.ui.components.SelectionChip
-import com.streamvault.app.ui.components.SelectionChipRow
+import com.MegaStream.app.R
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.components.ChannelLogoBadge
+import com.MegaStream.app.navigation.Routes
+import com.MegaStream.app.ui.notifications.rememberNotificationPermissionGate
+import com.MegaStream.app.ui.components.SelectionChip
+import com.MegaStream.app.ui.components.SelectionChipRow
 import kotlinx.coroutines.launch
-import com.streamvault.app.ui.components.dialogs.PinDialog
-import com.streamvault.app.ui.components.shell.AppNavigationChrome
-import com.streamvault.app.ui.components.shell.AppScreenScaffold
-import com.streamvault.app.ui.theme.FocusBorder
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.app.ui.theme.SurfaceHighlight
-import com.streamvault.app.ui.theme.TextPrimary
-import com.streamvault.app.ui.theme.TextSecondary
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.EpgMatchType
-import com.streamvault.domain.model.EpgOverrideCandidate
-import com.streamvault.domain.model.EpgSourceType
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.repository.ChannelRepository
+import com.MegaStream.app.ui.components.dialogs.PinDialog
+import com.MegaStream.app.ui.components.shell.AppNavigationChrome
+import com.MegaStream.app.ui.components.shell.AppScreenScaffold
+import com.MegaStream.app.ui.theme.FocusBorder
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.ui.theme.SurfaceHighlight
+import com.MegaStream.app.ui.theme.TextPrimary
+import com.MegaStream.app.ui.theme.TextSecondary
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.EpgMatchType
+import com.MegaStream.domain.model.EpgOverrideCandidate
+import com.MegaStream.domain.model.EpgSourceType
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.repository.ChannelRepository
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -120,9 +120,9 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvIconButton
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvIconButton
 
 private sealed interface LockedGuideAction {
     data class SelectCategory(val category: Category) : LockedGuideAction
@@ -236,7 +236,7 @@ fun FullEpgScreen(
             title = {
                 androidx.compose.material3.Text(
                     text = stringResource(R.string.epg_recording_conflict_title),
-                    color = com.streamvault.app.ui.theme.OnSurface
+                    color = com.MegaStream.app.ui.theme.OnSurface
                 )
             },
             text = {
@@ -245,7 +245,7 @@ fun FullEpgScreen(
                 }
                 androidx.compose.material3.Text(
                     text = stringResource(R.string.epg_recording_conflict_body, conflict.programTitle, conflictNames),
-                    color = com.streamvault.app.ui.theme.TextSecondary
+                    color = com.MegaStream.app.ui.theme.TextSecondary
                 )
             },
             confirmButton = {
@@ -258,7 +258,7 @@ fun FullEpgScreen(
                 ) {
                     androidx.compose.material3.Text(
                         text = stringResource(R.string.epg_recording_conflict_replace),
-                        color = com.streamvault.app.ui.theme.Primary
+                        color = com.MegaStream.app.ui.theme.Primary
                     )
                 }
             },
@@ -266,13 +266,13 @@ fun FullEpgScreen(
                 androidx.compose.material3.TextButton(onClick = { viewModel.dismissRecordingConflict() }) {
                     androidx.compose.material3.Text(
                         text = stringResource(R.string.epg_recording_conflict_cancel),
-                        color = com.streamvault.app.ui.theme.OnSurface
+                        color = com.MegaStream.app.ui.theme.OnSurface
                     )
                 }
             },
-            containerColor = com.streamvault.app.ui.theme.SurfaceElevated,
-            titleContentColor = com.streamvault.app.ui.theme.OnSurface,
-            textContentColor = com.streamvault.app.ui.theme.TextSecondary
+            containerColor = com.MegaStream.app.ui.theme.SurfaceElevated,
+            titleContentColor = com.MegaStream.app.ui.theme.OnSurface,
+            textContentColor = com.MegaStream.app.ui.theme.TextSecondary
         )
     }
 
@@ -661,7 +661,7 @@ fun FullEpgScreen(
                 onScheduleDailyRecording = if (channel.streamUrl.isNotBlank() && program.endTime > currentGuideNow()) {
                     {
                         notificationPermissionGate.runRecordingAction {
-                            viewModel.scheduleRecording(channel, program, com.streamvault.domain.model.RecordingRecurrence.DAILY)
+                            viewModel.scheduleRecording(channel, program, com.MegaStream.domain.model.RecordingRecurrence.DAILY)
                         }
                     }
                 } else {
@@ -670,7 +670,7 @@ fun FullEpgScreen(
                 onScheduleWeeklyRecording = if (channel.streamUrl.isNotBlank() && program.endTime > currentGuideNow()) {
                     {
                         notificationPermissionGate.runRecordingAction {
-                            viewModel.scheduleRecording(channel, program, com.streamvault.domain.model.RecordingRecurrence.WEEKLY)
+                            viewModel.scheduleRecording(channel, program, com.MegaStream.domain.model.RecordingRecurrence.WEEKLY)
                         }
                     }
                 } else {

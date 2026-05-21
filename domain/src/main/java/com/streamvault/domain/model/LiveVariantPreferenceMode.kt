@@ -1,4 +1,4 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
 enum class LiveVariantPreferenceMode(val storageValue: String) {
     BEST_QUALITY("best_quality"),

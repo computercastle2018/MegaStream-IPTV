@@ -1,13 +1,13 @@
-package com.streamvault.data.manager
+package com.MegaStream.data.manager
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.ProgramReminderDao
-import com.streamvault.data.local.entity.ProgramReminderEntity
-import com.streamvault.data.manager.reminder.ProgramReminderAlarmScheduler
-import com.streamvault.data.manager.reminder.ProgramReminderNotifier
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.ProgramReminder
-import com.streamvault.domain.model.Result
+import com.MegaStream.data.local.dao.ProgramReminderDao
+import com.MegaStream.data.local.entity.ProgramReminderEntity
+import com.MegaStream.data.manager.reminder.ProgramReminderAlarmScheduler
+import com.MegaStream.data.manager.reminder.ProgramReminderNotifier
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.ProgramReminder
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -57,7 +57,7 @@ class ProgramReminderManagerImplTest {
             program = program
         )
 
-        assertThat(result).isInstanceOf(com.streamvault.domain.model.Result.Success::class.java)
+        assertThat(result).isInstanceOf(com.MegaStream.domain.model.Result.Success::class.java)
         verify(dao).insert(org.mockito.kotlin.any())
         verify(alarmScheduler).schedule(eq(42L), org.mockito.kotlin.any())
     }

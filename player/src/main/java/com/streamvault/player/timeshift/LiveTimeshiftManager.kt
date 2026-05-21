@@ -1,10 +1,10 @@
-package com.streamvault.player.timeshift
+package com.MegaStream.player.timeshift
 
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.res.Configuration
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
 import java.io.File

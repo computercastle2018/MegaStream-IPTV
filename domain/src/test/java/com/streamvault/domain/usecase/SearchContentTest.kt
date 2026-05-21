@@ -1,13 +1,13 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.manager.ProviderSyncStateReader
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.model.SyncState
-import com.streamvault.domain.repository.SearchRepository
-import com.streamvault.domain.repository.SearchRepositoryResult
+import com.MegaStream.domain.manager.ProviderSyncStateReader
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.model.SyncState
+import com.MegaStream.domain.repository.SearchRepository
+import com.MegaStream.domain.repository.SearchRepositoryResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

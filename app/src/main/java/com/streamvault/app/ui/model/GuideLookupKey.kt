@@ -1,6 +1,6 @@
-package com.streamvault.app.ui.model
+package com.MegaStream.app.ui.model
 
-import com.streamvault.domain.model.Channel
+import com.MegaStream.domain.model.Channel
 
 fun Channel.guideLookupKey(): String? {
     return epgChannelId?.trim()?.takeIf { it.isNotEmpty() }

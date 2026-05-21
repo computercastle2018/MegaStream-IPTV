@@ -1,8 +1,8 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.util.shouldRethrowDomainFlowFailure
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.util.shouldRethrowDomainFlowFailure
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.inject.Inject

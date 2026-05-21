@@ -1,10 +1,10 @@
-package com.streamvault.data.local.entity
+package com.MegaStream.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import com.streamvault.domain.model.ContentType
+import com.MegaStream.domain.model.ContentType
 
 @Entity(
     tableName = "xtream_content_index",

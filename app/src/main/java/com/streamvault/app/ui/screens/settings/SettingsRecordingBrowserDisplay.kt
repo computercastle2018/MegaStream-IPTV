@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,16 +15,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.theme.ErrorColor
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.Secondary
-import com.streamvault.app.ui.time.LocalAppTimeFormat
-import com.streamvault.app.ui.time.createDateTimeFormat
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.theme.ErrorColor
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.Secondary
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.time.createDateTimeFormat
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingStatus
 
 @Composable
 internal fun RecordingMetricCard(

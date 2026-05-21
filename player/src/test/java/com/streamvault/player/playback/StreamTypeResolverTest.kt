@@ -1,4 +1,4 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

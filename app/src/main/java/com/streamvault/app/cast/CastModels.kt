@@ -1,4 +1,4 @@
-package com.streamvault.app.cast
+package com.MegaStream.app.cast
 
 /**
  * Media payload sent to a Chromecast receiver.

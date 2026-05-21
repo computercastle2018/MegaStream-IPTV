@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Series
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Series
 
 internal fun resolveEpisode(
     series: Series,

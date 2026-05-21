@@ -1,16 +1,16 @@
 {
-  "name": "streamvault-webos",
+  "name": "MegaStream-webos",
   "version": "0.1.0",
   "private": true,
-  "description": "StreamVault IPTV — standalone webOS TV app (Live TV MVP)",
+  "description": "MegaStream IPTV — standalone webOS TV app (Live TV MVP)",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "package": "npm run build && ares-package dist -o out",
-    "install-tv": "ares-install -d tv out/com.streamvault.webos_0.1.0_all.ipk",
-    "launch-tv": "ares-launch -d tv com.streamvault.webos"
+    "install-tv": "ares-install -d tv out/com.MegaStream.webos_0.1.0_all.ipk",
+    "launch-tv": "ares-launch -d tv com.MegaStream.webos"
   },
   "dependencies": {
     "@noriginmedia/norigin-spatial-navigation": "^3.1.0",

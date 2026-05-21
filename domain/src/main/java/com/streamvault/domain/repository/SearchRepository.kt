@@ -1,8 +1,8 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.Series
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.Series
 import kotlinx.coroutines.flow.Flow
 
 data class SearchRepositoryResult(

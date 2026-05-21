@@ -1,40 +1,40 @@
-package com.streamvault.app.ui.screens.epg
+package com.MegaStream.app.ui.screens.epg
 
-import com.streamvault.app.ui.model.isArchivePlayable
-import com.streamvault.app.ui.model.guideLookupKey
+import com.MegaStream.app.ui.model.isArchivePlayable
+import com.MegaStream.app.ui.model.guideLookupKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.ui.model.applyProviderCategoryDisplayPreferences
-import com.streamvault.app.ui.model.orderedByRequestedRawIds
-import com.streamvault.domain.manager.ParentalControlManager
-import com.streamvault.domain.manager.ProgramReminderManager
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.ChannelEpgMapping
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.CombinedCategory
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.EpgOverrideCandidate
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.EpgRepository
-import com.streamvault.domain.repository.EpgSourceRepository
-import com.streamvault.domain.repository.FavoriteRepository
-import com.streamvault.domain.repository.LiveStreamProgramRequest
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.model.RecordingRecurrence
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingRequest
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.usecase.GetCustomCategories
-import com.streamvault.domain.usecase.ScheduleRecording
-import com.streamvault.domain.usecase.ScheduleRecordingCommand
-import com.streamvault.domain.util.AdultContentVisibilityPolicy
-import com.streamvault.data.preferences.PreferencesRepository
+import com.MegaStream.app.ui.model.applyProviderCategoryDisplayPreferences
+import com.MegaStream.app.ui.model.orderedByRequestedRawIds
+import com.MegaStream.domain.manager.ParentalControlManager
+import com.MegaStream.domain.manager.ProgramReminderManager
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.ChannelEpgMapping
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.CombinedCategory
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.EpgOverrideCandidate
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.EpgRepository
+import com.MegaStream.domain.repository.EpgSourceRepository
+import com.MegaStream.domain.repository.FavoriteRepository
+import com.MegaStream.domain.repository.LiveStreamProgramRequest
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.model.RecordingRecurrence
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingRequest
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.usecase.GetCustomCategories
+import com.MegaStream.domain.usecase.ScheduleRecording
+import com.MegaStream.domain.usecase.ScheduleRecordingCommand
+import com.MegaStream.domain.util.AdultContentVisibilityPolicy
+import com.MegaStream.data.preferences.PreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -631,7 +631,7 @@ class EpgViewModel @Inject constructor(
                 epgSourceId = candidate.epgSourceId,
                 xmltvChannelId = candidate.xmltvChannelId
             )) {
-                is com.streamvault.domain.model.Result.Error -> {
+                is com.MegaStream.domain.model.Result.Error -> {
                     _overrideUiState.update { it.copy(isSaving = false, error = result.message) }
                 }
                 else -> {
@@ -647,7 +647,7 @@ class EpgViewModel @Inject constructor(
         viewModelScope.launch {
             _overrideUiState.update { it.copy(isSaving = true, error = null) }
             when (val result = epgSourceRepository.clearManualOverride(channel.providerId, channel.id)) {
-                is com.streamvault.domain.model.Result.Error -> {
+                is com.MegaStream.domain.model.Result.Error -> {
                     _overrideUiState.update { it.copy(isSaving = false, error = result.message) }
                 }
                 else -> {
@@ -807,7 +807,7 @@ class EpgViewModel @Inject constructor(
         }
     }
 
-    private suspend fun observeSingleProviderGuide(provider: com.streamvault.domain.model.Provider) {
+    private suspend fun observeSingleProviderGuide(provider: com.MegaStream.domain.model.Provider) {
         combine(
             channelRepository.getCategories(provider.id),
             getCustomCategories(provider.id, ContentType.LIVE),
@@ -1266,25 +1266,25 @@ class EpgViewModel @Inject constructor(
         }
     }
 
-    private fun buildProviderSourceLabel(provider: com.streamvault.domain.model.Provider): String {
+    private fun buildProviderSourceLabel(provider: com.MegaStream.domain.model.Provider): String {
         return when (provider.type) {
-            com.streamvault.domain.model.ProviderType.XTREAM_CODES -> "Xtream Codes"
-            com.streamvault.domain.model.ProviderType.M3U -> "M3U Playlist"
-            com.streamvault.domain.model.ProviderType.STALKER_PORTAL -> "Stalker/MAG Portal"
+            com.MegaStream.domain.model.ProviderType.XTREAM_CODES -> "Xtream Codes"
+            com.MegaStream.domain.model.ProviderType.M3U -> "M3U Playlist"
+            com.MegaStream.domain.model.ProviderType.STALKER_PORTAL -> "Stalker/MAG Portal"
         }
     }
 
-    private fun buildProviderArchiveSummary(provider: com.streamvault.domain.model.Provider): String {
+    private fun buildProviderArchiveSummary(provider: com.MegaStream.domain.model.Provider): String {
         return when (provider.type) {
-            com.streamvault.domain.model.ProviderType.XTREAM_CODES ->
+            com.MegaStream.domain.model.ProviderType.XTREAM_CODES ->
                 "Xtream replay depends on archive-enabled channels and valid replay stream ids from the provider."
-            com.streamvault.domain.model.ProviderType.M3U ->
+            com.MegaStream.domain.model.ProviderType.M3U ->
                 if (provider.epgUrl.isBlank()) {
                     "M3U replay is limited: archive depends on provider templates and guide coverage is weaker without XMLTV."
                 } else {
                     "M3U replay depends on the provider catch-up template and matching guide data."
                 }
-            com.streamvault.domain.model.ProviderType.STALKER_PORTAL ->
+            com.MegaStream.domain.model.ProviderType.STALKER_PORTAL ->
                 if (provider.epgUrl.isBlank()) {
                     "Portal guide falls back to on-demand Stalker data when XMLTV is unavailable."
                 } else {
@@ -1531,7 +1531,7 @@ class EpgViewModel @Inject constructor(
     }
 
     private suspend fun fetchXtreamGuideFallback(
-        provider: com.streamvault.domain.model.Provider,
+        provider: com.MegaStream.domain.model.Provider,
         providerId: Long,
         channels: List<Channel>,
         existingProgramsByChannel: Map<String, List<Program>>,
@@ -1539,8 +1539,8 @@ class EpgViewModel @Inject constructor(
         windowEnd: Long
     ): Map<String, List<Program>> {
         if (
-            provider.type != com.streamvault.domain.model.ProviderType.XTREAM_CODES &&
-            provider.type != com.streamvault.domain.model.ProviderType.STALKER_PORTAL
+            provider.type != com.MegaStream.domain.model.ProviderType.XTREAM_CODES &&
+            provider.type != com.MegaStream.domain.model.ProviderType.STALKER_PORTAL
         ) {
             return emptyMap()
         }
@@ -1573,7 +1573,7 @@ class EpgViewModel @Inject constructor(
                     streamId = channel.streamId,
                     epgChannelId = channel.epgChannelId
                 )
-            ] as? com.streamvault.domain.model.Result.Success)?.data
+            ] as? com.MegaStream.domain.model.Result.Success)?.data
                 .orEmpty()
                 .filter { program -> program.endTime > windowStart && program.startTime < windowEnd }
                 .sortedBy { program -> program.startTime }
@@ -1822,6 +1822,6 @@ private data class GuideCategoryData(
     val providerCategories: List<Category>,
     val customCategories: List<Category>,
     val hiddenCategoryIds: Set<Long>,
-    val sortMode: com.streamvault.domain.model.CategorySortMode,
+    val sortMode: com.MegaStream.domain.model.CategorySortMode,
     val showAllChannels: Boolean = true
 )

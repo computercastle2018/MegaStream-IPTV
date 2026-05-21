@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.player.overlay
+package com.MegaStream.app.ui.screens.player.overlay
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.basicMarquee
@@ -46,21 +46,21 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.ChannelLogoBadge
-import com.streamvault.app.ui.components.shell.StatusPill
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.screens.player.PlayerTimeshiftUiState
-import com.streamvault.app.ui.time.LocalAppTimeFormat
-import com.streamvault.app.ui.time.createTimeFormat
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.RecordingStatus
-import com.streamvault.player.timeshift.LiveTimeshiftStatus
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.ChannelLogoBadge
+import com.MegaStream.app.ui.components.shell.StatusPill
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.screens.player.PlayerTimeshiftUiState
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.time.createTimeFormat
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.RecordingStatus
+import com.MegaStream.player.timeshift.LiveTimeshiftStatus
 import java.util.Date
-import com.streamvault.app.ui.design.AppColors.Brand as Primary
-import com.streamvault.app.ui.design.AppColors.TextTertiary as OnSurfaceDim
+import com.MegaStream.app.ui.design.AppColors.Brand as Primary
+import com.MegaStream.app.ui.design.AppColors.TextTertiary as OnSurfaceDim
 
 @Composable
 fun ChannelInfoOverlay(
@@ -684,7 +684,7 @@ private enum class ChannelInfoPanel {
     CATCH_UP
 }
 
-private fun com.streamvault.domain.model.LiveChannelVariantAttributes.toOverlayBadgeLabel(): String {
+private fun com.MegaStream.domain.model.LiveChannelVariantAttributes.toOverlayBadgeLabel(): String {
     val parts = buildList {
         resolutionLabel?.let(::add)
         codecLabel?.takeIf { it == "HEVC" || it == "AV1" }?.let(::add)

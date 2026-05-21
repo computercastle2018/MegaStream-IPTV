@@ -1,12 +1,12 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import android.app.Application
-import com.streamvault.app.R
-import com.streamvault.app.tvinput.TvInputChannelSyncManager
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.data.sync.SyncRepairSection
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
+import com.MegaStream.app.R
+import com.MegaStream.app.tvinput.TvInputChannelSyncManager
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.data.sync.SyncRepairSection
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update

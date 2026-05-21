@@ -1,35 +1,35 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import android.database.sqlite.SQLiteException
 import android.util.Log
-import com.streamvault.data.local.dao.CategoryDao
-import com.streamvault.data.local.dao.ChannelDao
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.entity.CategoryEntity
-import com.streamvault.data.local.entity.ChannelBrowseEntity
-import com.streamvault.data.local.entity.ChannelEntity
-import com.streamvault.data.local.entity.CategoryCount
-import com.streamvault.data.mapper.toDomain
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.remote.xtream.XtreamStreamUrlResolver
-import com.streamvault.data.util.rankSearchResults
-import com.streamvault.data.util.toFtsPrefixQuery
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.ChannelQualityOption
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.GroupedChannelLabelMode
-import com.streamvault.domain.model.LiveChannelGroupingMode
-import com.streamvault.domain.model.LiveChannelObservedQuality
-import com.streamvault.domain.model.LiveChannelVariant
-import com.streamvault.domain.model.LiveChannelVariantAttributes
-import com.streamvault.domain.model.LiveVariantPreferenceMode
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.util.ChannelNormalizer
+import com.MegaStream.data.local.dao.CategoryDao
+import com.MegaStream.data.local.dao.ChannelDao
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.entity.CategoryEntity
+import com.MegaStream.data.local.entity.ChannelBrowseEntity
+import com.MegaStream.data.local.entity.ChannelEntity
+import com.MegaStream.data.local.entity.CategoryCount
+import com.MegaStream.data.mapper.toDomain
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
+import com.MegaStream.data.util.rankSearchResults
+import com.MegaStream.data.util.toFtsPrefixQuery
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.ChannelQualityOption
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.GroupedChannelLabelMode
+import com.MegaStream.domain.model.LiveChannelGroupingMode
+import com.MegaStream.domain.model.LiveChannelObservedQuality
+import com.MegaStream.domain.model.LiveChannelVariant
+import com.MegaStream.domain.model.LiveChannelVariantAttributes
+import com.MegaStream.domain.model.LiveVariantPreferenceMode
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.util.ChannelNormalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
@@ -52,7 +52,7 @@ class ChannelRepositoryImpl @Inject constructor(
     private val categoryDao: CategoryDao,
     private val favoriteDao: FavoriteDao,
     private val preferencesRepository: PreferencesRepository,
-    private val parentalControlManager: com.streamvault.domain.manager.ParentalControlManager,
+    private val parentalControlManager: com.MegaStream.domain.manager.ParentalControlManager,
     private val xtreamStreamUrlResolver: XtreamStreamUrlResolver
 ) : ChannelRepository {
     private companion object {

@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.model
+package com.MegaStream.app.ui.model
 
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.CategorySortMode
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.CategorySortMode
 
 fun applyProviderCategoryDisplayPreferences(
     categories: List<Category>,

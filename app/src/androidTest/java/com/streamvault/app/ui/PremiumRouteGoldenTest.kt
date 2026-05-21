@@ -1,4 +1,4 @@
-package com.streamvault.app.ui
+package com.MegaStream.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,27 +9,27 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.streamvault.app.navigation.Routes
-import com.streamvault.app.ui.components.SearchInput
-import com.streamvault.app.ui.components.shell.AppHeroHeader
-import com.streamvault.app.ui.components.shell.AppMessageState
-import com.streamvault.app.ui.components.shell.AppScreenScaffold
-import com.streamvault.app.ui.components.shell.AppSectionHeader
-import com.streamvault.app.ui.components.shell.BrowseHeroPanel
-import com.streamvault.app.ui.components.shell.BrowseSearchLaunchCard
-import com.streamvault.app.ui.components.shell.CategoryRailPanel
-import com.streamvault.app.ui.components.shell.ContentMetadataStrip
-import com.streamvault.app.ui.components.shell.EpisodeRowCard
-import com.streamvault.app.ui.components.shell.LibraryBrowseScaffold
-import com.streamvault.app.ui.components.shell.LiveChannelRowSurface
-import com.streamvault.app.ui.components.shell.LoadMoreCard
-import com.streamvault.app.ui.components.shell.MoviePosterCard
-import com.streamvault.app.ui.components.shell.SeriesPosterCard
-import com.streamvault.app.ui.components.shell.StatusPill
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.test.TestFixtures
-import com.streamvault.app.ui.test.assertAgainstGolden
-import com.streamvault.app.ui.theme.StreamVaultTheme
+import com.MegaStream.app.navigation.Routes
+import com.MegaStream.app.ui.components.SearchInput
+import com.MegaStream.app.ui.components.shell.AppHeroHeader
+import com.MegaStream.app.ui.components.shell.AppMessageState
+import com.MegaStream.app.ui.components.shell.AppScreenScaffold
+import com.MegaStream.app.ui.components.shell.AppSectionHeader
+import com.MegaStream.app.ui.components.shell.BrowseHeroPanel
+import com.MegaStream.app.ui.components.shell.BrowseSearchLaunchCard
+import com.MegaStream.app.ui.components.shell.CategoryRailPanel
+import com.MegaStream.app.ui.components.shell.ContentMetadataStrip
+import com.MegaStream.app.ui.components.shell.EpisodeRowCard
+import com.MegaStream.app.ui.components.shell.LibraryBrowseScaffold
+import com.MegaStream.app.ui.components.shell.LiveChannelRowSurface
+import com.MegaStream.app.ui.components.shell.LoadMoreCard
+import com.MegaStream.app.ui.components.shell.MoviePosterCard
+import com.MegaStream.app.ui.components.shell.SeriesPosterCard
+import com.MegaStream.app.ui.components.shell.StatusPill
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.test.TestFixtures
+import com.MegaStream.app.ui.test.assertAgainstGolden
+import com.MegaStream.app.ui.theme.MegaStreamTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,7 +43,7 @@ class PremiumRouteGoldenTest {
     @Test
     fun dashboard_route_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -93,7 +93,7 @@ class PremiumRouteGoldenTest {
     @Test
     fun live_route_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -162,7 +162,7 @@ class PremiumRouteGoldenTest {
     @Test
     fun movies_route_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -220,7 +220,7 @@ class PremiumRouteGoldenTest {
     @Test
     fun series_detail_route_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -258,7 +258,7 @@ class PremiumRouteGoldenTest {
     @Test
     fun saved_guide_and_settings_routes_matchGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -341,7 +341,7 @@ class PremiumRouteGoldenTest {
     @Test
     fun search_route_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

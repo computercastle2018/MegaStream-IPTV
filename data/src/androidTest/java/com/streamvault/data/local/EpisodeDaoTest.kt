@@ -1,15 +1,15 @@
-package com.streamvault.data.local
+package com.MegaStream.data.local
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.EpisodeDao
-import com.streamvault.data.local.dao.PlaybackHistoryDao
-import com.streamvault.data.local.entity.EpisodeEntity
-import com.streamvault.data.local.entity.PlaybackHistoryEntity
-import com.streamvault.domain.model.ContentType
+import com.MegaStream.data.local.dao.EpisodeDao
+import com.MegaStream.data.local.dao.PlaybackHistoryDao
+import com.MegaStream.data.local.entity.EpisodeEntity
+import com.MegaStream.data.local.entity.PlaybackHistoryEntity
+import com.MegaStream.domain.model.ContentType
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -19,7 +19,7 @@ import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 class EpisodeDaoTest {
-    private lateinit var db: StreamVaultDatabase
+    private lateinit var db: MegaStreamDatabase
     private lateinit var episodeDao: EpisodeDao
     private lateinit var historyDao: PlaybackHistoryDao
 
@@ -27,7 +27,7 @@ class EpisodeDaoTest {
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(
-            context, StreamVaultDatabase::class.java
+            context, MegaStreamDatabase::class.java
         ).build()
         episodeDao = db.episodeDao()
         historyDao = db.playbackHistoryDao()

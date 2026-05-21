@@ -1,6 +1,6 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.domain.model.LiveChannelVariant
+import com.MegaStream.domain.model.LiveChannelVariant
 
 internal fun buildPlayerRecoveryActions(
     hasAlternateStream: Boolean,

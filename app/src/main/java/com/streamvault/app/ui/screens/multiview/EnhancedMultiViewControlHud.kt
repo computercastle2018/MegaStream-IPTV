@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.multiview
+package com.MegaStream.app.ui.screens.multiview
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,11 +22,11 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvIconButton
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvIconButton
 
 @Composable
 internal fun EnhancedMultiViewControlHud(

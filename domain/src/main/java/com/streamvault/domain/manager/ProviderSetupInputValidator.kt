@@ -1,6 +1,6 @@
-package com.streamvault.domain.manager
+package com.MegaStream.domain.manager
 
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Result
 
 data class ValidatedXtreamProviderInput(
     val serverUrl: String,

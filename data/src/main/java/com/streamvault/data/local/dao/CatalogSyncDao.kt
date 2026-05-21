@@ -1,13 +1,13 @@
-package com.streamvault.data.local.dao
+package com.MegaStream.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.streamvault.data.local.entity.CategoryImportStageEntity
-import com.streamvault.data.local.entity.ChannelImportStageEntity
-import com.streamvault.data.local.entity.MovieImportStageEntity
-import com.streamvault.data.local.entity.SeriesImportStageEntity
+import com.MegaStream.data.local.entity.CategoryImportStageEntity
+import com.MegaStream.data.local.entity.ChannelImportStageEntity
+import com.MegaStream.data.local.entity.MovieImportStageEntity
+import com.MegaStream.data.local.entity.SeriesImportStageEntity
 
 data class ChannelStageCategorySummary(
   val categoryId: Long,

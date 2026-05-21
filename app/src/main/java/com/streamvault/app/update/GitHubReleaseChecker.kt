@@ -1,7 +1,7 @@
-package com.streamvault.app.update
+package com.MegaStream.app.update
 
-import com.streamvault.app.BuildConfig
-import com.streamvault.domain.model.Result
+import com.MegaStream.app.BuildConfig
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -14,8 +14,8 @@ import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val GITHUB_RELEASES_LATEST_URL = "https://api.github.com/repos/Davidona/StreamVault-IPTV/releases/latest"
-private const val GITHUB_RELEASES_LIST_URL = "https://api.github.com/repos/Davidona/StreamVault-IPTV/releases?per_page=20"
+private const val GITHUB_RELEASES_LATEST_URL = "https://api.github.com/repos/computercastle2018/MegaStream-IPTV/releases/latest"
+private const val GITHUB_RELEASES_LIST_URL = "https://api.github.com/repos/computercastle2018/MegaStream-IPTV/releases?per_page=20"
 
 data class GitHubReleaseInfo(
     val versionName: String,
@@ -41,7 +41,7 @@ class GitHubReleaseChecker @Inject constructor(
             val request = Request.Builder()
                 .url(updateChannel.releaseApiUrl)
                 .header("Accept", "application/vnd.github+json")
-                .header("User-Agent", "StreamVault-Update-Checker")
+                .header("User-Agent", "MegaStream-Update-Checker")
                 .build()
 
             okHttpClient.newCall(request).execute().use { response ->
@@ -157,7 +157,7 @@ class GitHubReleaseChecker @Inject constructor(
             if (!isHttpsUrl(url)) continue
             when (updateChannel) {
                 AppUpdateChannel.Stable -> {
-                    if (name.equals("StreamVault.apk", ignoreCase = true)) {
+                    if (name.equals("MegaStream.apk", ignoreCase = true)) {
                         return url
                     }
                     if (fallback == null &&
@@ -168,7 +168,7 @@ class GitHubReleaseChecker @Inject constructor(
                     }
                 }
                 AppUpdateChannel.Beta -> {
-                    if (name.equals("StreamVault-beta.apk", ignoreCase = true)) {
+                    if (name.equals("MegaStream-beta.apk", ignoreCase = true)) {
                         return url
                     }
                     if (fallback == null &&

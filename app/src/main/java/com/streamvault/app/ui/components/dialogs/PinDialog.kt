@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components.dialogs
+package com.MegaStream.app.ui.components.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,17 +20,17 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.theme.ErrorColor
-import com.streamvault.app.ui.theme.FocusBorder
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.app.ui.design.requestFocusSafely
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.theme.ErrorColor
+import com.MegaStream.app.ui.theme.FocusBorder
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.ui.design.requestFocusSafely
 import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
-import com.streamvault.app.R
-import com.streamvault.app.ui.design.FocusSpec
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.design.FocusSpec
 import androidx.tv.material3.Border
 
 /**

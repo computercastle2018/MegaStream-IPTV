@@ -1,4 +1,4 @@
-package com.streamvault.data.remote.dto
+package com.MegaStream.data.remote.dto
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer

@@ -1,4 +1,4 @@
-package com.streamvault.data.security
+package com.MegaStream.data.security
 
 class CredentialDecryptionException(
     message: String = MESSAGE,

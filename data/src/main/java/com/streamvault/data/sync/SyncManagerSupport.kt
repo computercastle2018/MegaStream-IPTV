@@ -1,11 +1,11 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.data.local.entity.CategoryEntity
-import com.streamvault.data.local.entity.ChannelEntity
-import com.streamvault.data.parser.M3uParser
-import com.streamvault.data.remote.dto.XtreamCategory
-import com.streamvault.data.util.AdultContentClassifier
-import com.streamvault.domain.model.ContentType
+import com.MegaStream.data.local.entity.CategoryEntity
+import com.MegaStream.data.local.entity.ChannelEntity
+import com.MegaStream.data.parser.M3uParser
+import com.MegaStream.data.remote.dto.XtreamCategory
+import com.MegaStream.data.util.AdultContentClassifier
+import com.MegaStream.domain.model.ContentType
 import java.io.InputStream
 import java.security.MessageDigest
 

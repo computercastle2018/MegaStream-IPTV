@@ -1,14 +1,14 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.app.ui.model.applyProviderCategoryDisplayPreferences
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.usecase.GetCustomCategories
+import com.MegaStream.app.ui.model.applyProviderCategoryDisplayPreferences
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.usecase.GetCustomCategories
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine

@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.multiview
+package com.MegaStream.app.ui.screens.multiview
 
-import com.streamvault.domain.model.Channel
-import com.streamvault.player.PlayerEngine
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.player.PlayerEngine
 
 enum class DevicePerformanceTier {
     LOW,
@@ -89,8 +89,8 @@ data class MultiViewPresetUiModel(
 )
 
 data class MultiViewPickerState(
-    val categories: List<com.streamvault.domain.model.Category> = emptyList(),
-    val selectedCategory: com.streamvault.domain.model.Category? = null,
+    val categories: List<com.MegaStream.domain.model.Category> = emptyList(),
+    val selectedCategory: com.MegaStream.domain.model.Category? = null,
     val channels: List<Channel> = emptyList(),
     val filteredChannels: List<Channel> = emptyList(),
     val searchQuery: String = "",

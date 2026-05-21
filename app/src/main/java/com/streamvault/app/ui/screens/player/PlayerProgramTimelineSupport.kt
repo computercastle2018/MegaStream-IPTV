@@ -1,6 +1,6 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.domain.model.Program
+import com.MegaStream.domain.model.Program
 
 internal data class PlayerProgramTimeline(
     val currentProgram: Program?,

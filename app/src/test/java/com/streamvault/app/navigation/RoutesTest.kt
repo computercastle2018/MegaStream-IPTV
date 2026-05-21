@@ -1,10 +1,10 @@
-package com.streamvault.app.navigation
+package com.MegaStream.app.navigation
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.repository.ChannelRepository
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.repository.ChannelRepository
 import org.junit.Test
 
 class RoutesTest {

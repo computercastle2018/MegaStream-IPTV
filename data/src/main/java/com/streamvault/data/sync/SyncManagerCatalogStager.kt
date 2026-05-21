@@ -1,12 +1,12 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.data.local.entity.ChannelEntity
-import com.streamvault.data.local.entity.MovieEntity
-import com.streamvault.data.local.entity.SeriesEntity
-import com.streamvault.data.mapper.toEntity
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.Series
+import com.MegaStream.data.local.entity.ChannelEntity
+import com.MegaStream.data.local.entity.MovieEntity
+import com.MegaStream.data.local.entity.SeriesEntity
+import com.MegaStream.data.mapper.toEntity
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.Series
 
 internal class SyncManagerCatalogStager(
     private val syncCatalogStore: SyncCatalogStore,

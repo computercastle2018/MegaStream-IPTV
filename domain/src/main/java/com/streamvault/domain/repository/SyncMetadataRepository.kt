@@ -1,6 +1,6 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.SyncMetadata
+import com.MegaStream.domain.model.SyncMetadata
 import kotlinx.coroutines.flow.Flow
 
 interface SyncMetadataRepository {

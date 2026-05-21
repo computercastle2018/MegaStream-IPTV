@@ -1,4 +1,4 @@
-package com.streamvault.data.util
+package com.MegaStream.data.util
 
 /**
  * Builds a Room FTS MATCH query string from a raw user search term.

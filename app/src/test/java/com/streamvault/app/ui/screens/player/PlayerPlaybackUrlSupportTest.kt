@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamInfo
 import org.junit.Test
 
 class PlayerPlaybackUrlSupportTest {
@@ -12,7 +12,7 @@ class PlayerPlaybackUrlSupportTest {
             url = "https://resolved.example/live.m3u8",
             title = "Resolved title",
             headers = mapOf("Authorization" to "Bearer token"),
-            userAgent = "StreamVaultTest",
+            userAgent = "MegaStreamTest",
             expirationTime = 123_456L
         )
 
@@ -27,7 +27,7 @@ class PlayerPlaybackUrlSupportTest {
 
         assertThat(result).isEqualTo(resolved)
         assertThat(result?.headers).containsEntry("Authorization", "Bearer token")
-        assertThat(result?.userAgent).isEqualTo("StreamVaultTest")
+        assertThat(result?.userAgent).isEqualTo("MegaStreamTest")
         assertThat(result?.expirationTime).isEqualTo(123_456L)
     }
 

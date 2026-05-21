@@ -1,9 +1,9 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.media3.exoplayer.source.MediaSource
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamInfo
 
 /**
  * Main-thread-only cache for a single preloaded media source owned by Media3PlayerEngine.

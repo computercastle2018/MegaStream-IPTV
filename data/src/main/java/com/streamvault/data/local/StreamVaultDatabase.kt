@@ -1,12 +1,12 @@
-package com.streamvault.data.local
+package com.MegaStream.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.streamvault.data.local.dao.*
-import com.streamvault.data.local.entity.*
+import com.MegaStream.data.local.dao.*
+import com.MegaStream.data.local.entity.*
 
 @Database(
     entities = [
@@ -53,7 +53,7 @@ import com.streamvault.data.local.entity.*
     exportSchema = true   // ← was false; schema JSON now tracked in version control
 )
 @TypeConverters(RoomEnumConverters::class)
-abstract class StreamVaultDatabase : RoomDatabase() {
+abstract class MegaStreamDatabase : RoomDatabase() {
     abstract fun providerDao(): ProviderDao
     abstract fun channelDao(): ChannelDao
     abstract fun channelPreferenceDao(): ChannelPreferenceDao

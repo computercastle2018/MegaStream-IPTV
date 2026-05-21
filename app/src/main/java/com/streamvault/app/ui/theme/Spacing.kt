@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.theme
+package com.MegaStream.app.ui.theme
 
-import com.streamvault.app.ui.design.AppSpacing
-import com.streamvault.app.ui.design.LocalAppSpacing
+import com.MegaStream.app.ui.design.AppSpacing
+import com.MegaStream.app.ui.design.LocalAppSpacing
 
 typealias Spacing = AppSpacing
 

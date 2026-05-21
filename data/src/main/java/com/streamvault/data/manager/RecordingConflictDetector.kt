@@ -1,9 +1,9 @@
-package com.streamvault.data.manager
+package com.MegaStream.data.manager
 
-import com.streamvault.data.local.entity.RecordingRunEntity
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingFailureCategory
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.data.local.entity.RecordingRunEntity
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingFailureCategory
+import com.MegaStream.domain.model.RecordingStatus
 
 internal fun Iterable<RecordingItem>.findRecordingConflict(
     candidateStartMs: Long,
@@ -43,7 +43,7 @@ internal fun RecordingRunEntity.toConflictFailure(
         status = RecordingStatus.FAILED,
         scheduledStartMs = conflictStartMs,
         scheduledEndMs = conflictEndMs,
-        sourceType = com.streamvault.domain.model.RecordingSourceType.UNKNOWN,
+        sourceType = com.MegaStream.domain.model.RecordingSourceType.UNKNOWN,
         resolvedUrl = null,
         headersJson = "{}",
         userAgent = null,

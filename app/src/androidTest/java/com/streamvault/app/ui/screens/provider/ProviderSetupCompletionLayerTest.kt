@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.provider
+package com.MegaStream.app.ui.screens.provider
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -9,7 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.streamvault.app.ui.theme.StreamVaultTheme
+import com.MegaStream.app.ui.theme.MegaStreamTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -33,7 +33,7 @@ class ProviderSetupCompletionLayerTest {
         var cleanupCallCount by mutableIntStateOf(0)
 
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 ProviderSetupCompletionLayer(
                     uiState = uiState,
                     knownLocalM3uUrls = emptySet(),

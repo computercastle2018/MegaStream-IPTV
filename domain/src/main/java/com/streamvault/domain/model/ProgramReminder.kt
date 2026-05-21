@@ -1,4 +1,4 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
 data class ProgramReminder(
     val id: Long = 0,

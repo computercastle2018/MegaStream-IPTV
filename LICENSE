@@ -1,8 +1,8 @@
 MegaStream Source-Available License (Non-Commercial)
 
-MegaStream is a derivative work based on StreamVault.
+MegaStream is maintained by megaStation.
 
-Copyright (c) 2026 David Nashash (Davidona) — original StreamVault author
+Copyright (c) 2026 megaStation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to use,
@@ -14,31 +14,32 @@ copy, modify, and distribute the Software, subject to the following conditions:
    copyright notice and this permission notice.
 
    Any modified, compiled, or redistributed versions of the Software must
-   clearly credit "David Nashash" (also known as "Davidona") as the original
-   developer. Attribution must be visible both within the application
-   (for example, in an "About", "Credits", or equivalent screen) and in any
-   accompanying documentation.
+   clearly credit "megaStation" as the developer. Attribution must be visible
+   both within the application (for example, in an "About", "Credits", or
+   equivalent screen) and in any accompanying documentation.
 
 2. LINKS PRESERVATION
 
    The following links must be retained, visible, and accessible to end users
    in any distributed or modified versions of the Software:
 
-   - Original GitHub repository:
-     https://github.com/Davidona/StreamVault-IPTV
+   - GitHub profile:
+     https://github.com/computercastle2018
 
-   - Support / donation page:
-     https://ko-fi.com/davidona
+   - GitHub repository:
+     https://github.com/computercastle2018/MegaStream-IPTV
+
+   - Project website:
+     https://megastation.ee/megastream
 
    These links may not be removed, hidden, or replaced.
 
 3. NAMING AND DERIVATIVE IDENTIFICATION
 
-   The original software is named "StreamVault". This distribution is named
-   "MegaStream" and is a derivative work based on StreamVault.
+   This distribution is named "MegaStream".
 
-   Any modified or forked version of the Software must clearly state that it is:
-   "Based on StreamVault" or "Derived from StreamVault" in:
+   Any modified or forked version of the Software must clearly state that it is
+   "Based on MegaStream" or "Derived from MegaStream" in:
    - The application (e.g., About section)
    - Any public distribution pages or descriptions
 
@@ -70,9 +71,8 @@ copy, modify, and distribute the Software, subject to the following conditions:
 
 6. NO ENDORSEMENT
 
-   The name "David Nashash" or "Davidona" may not be used to endorse or
-   promote products derived from this Software without specific prior
-   written permission.
+   The name "megaStation" may not be used to endorse or promote products
+   derived from this Software without specific prior written permission.
 
 7. TERMINATION
 

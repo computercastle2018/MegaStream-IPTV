@@ -1,11 +1,11 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.manager.ProviderCredentials
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderEpgSyncMode
-import com.streamvault.domain.model.ProviderXtreamLiveSyncMode
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.manager.ProviderCredentials
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderEpgSyncMode
+import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 
 data class LiveStreamProgramRequest(

@@ -1,7 +1,7 @@
-package com.streamvault.data.local.dao
+package com.MegaStream.data.local.dao
 
 import androidx.room.*
-import com.streamvault.data.local.entity.*
+import com.MegaStream.data.local.entity.*
 import kotlinx.coroutines.flow.Flow
 
 data class RemoteIdMapping(

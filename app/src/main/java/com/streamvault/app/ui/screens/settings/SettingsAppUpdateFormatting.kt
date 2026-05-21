@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.app.R
-import com.streamvault.app.update.AppUpdateDownloadStatus
+import com.MegaStream.app.R
+import com.MegaStream.app.update.AppUpdateDownloadStatus
 import java.text.DateFormat
 
 internal fun formatLatestReleaseLabel(update: AppUpdateUiModel, context: android.content.Context): String {

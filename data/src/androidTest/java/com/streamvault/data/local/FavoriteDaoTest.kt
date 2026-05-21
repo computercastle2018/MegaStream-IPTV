@@ -1,18 +1,18 @@
-package com.streamvault.data.local
+package com.MegaStream.data.local
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.VirtualGroupDao
-import com.streamvault.data.local.entity.FavoriteEntity
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.local.entity.VirtualGroupEntity
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.VirtualGroupDao
+import com.MegaStream.data.local.entity.FavoriteEntity
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.local.entity.VirtualGroupEntity
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.ProviderType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -23,7 +23,7 @@ import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 class FavoriteDaoTest {
-    private lateinit var db: StreamVaultDatabase
+    private lateinit var db: MegaStreamDatabase
     private lateinit var providerDao: ProviderDao
     private lateinit var favoriteDao: FavoriteDao
     private lateinit var virtualGroupDao: VirtualGroupDao
@@ -31,7 +31,7 @@ class FavoriteDaoTest {
     @Before
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, StreamVaultDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(context, MegaStreamDatabase::class.java).build()
         providerDao = db.providerDao()
         favoriteDao = db.favoriteDao()
         virtualGroupDao = db.virtualGroupDao()

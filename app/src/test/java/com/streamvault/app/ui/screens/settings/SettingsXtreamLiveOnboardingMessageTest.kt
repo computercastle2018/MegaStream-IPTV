@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.app.R
+import com.MegaStream.app.R
 import org.junit.Test
 
 class SettingsXtreamLiveOnboardingMessageTest {

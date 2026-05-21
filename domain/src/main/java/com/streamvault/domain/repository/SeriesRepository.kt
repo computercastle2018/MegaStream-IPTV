@@ -1,12 +1,12 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.LibraryBrowseQuery
-import com.streamvault.domain.model.PagedResult
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.LibraryBrowseQuery
+import com.MegaStream.domain.model.PagedResult
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.model.StreamInfo
 import kotlinx.coroutines.flow.Flow
 
 interface SeriesRepository {

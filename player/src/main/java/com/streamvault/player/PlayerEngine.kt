@@ -1,22 +1,22 @@
-package com.streamvault.player
+package com.MegaStream.player
 
 import android.content.Context
 import android.view.View
-import com.streamvault.domain.model.AudioOutputPreference
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.PlayerSurfaceMode
-import com.streamvault.domain.model.DrmScheme
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.VideoFormat
+import com.MegaStream.domain.model.AudioOutputPreference
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.PlayerSurfaceMode
+import com.MegaStream.domain.model.DrmScheme
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.VideoFormat
 import androidx.media3.common.PlaybackException
 import androidx.media3.datasource.HttpDataSource
-import com.streamvault.player.playback.PlaybackErrorCategory
-import com.streamvault.player.playback.PlayerErrorClassifier
+import com.MegaStream.player.playback.PlaybackErrorCategory
+import com.MegaStream.player.playback.PlayerErrorClassifier
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import com.streamvault.player.timeshift.LiveTimeshiftState
-import com.streamvault.player.timeshift.TimeshiftConfig
+import com.MegaStream.player.timeshift.LiveTimeshiftState
+import com.MegaStream.player.timeshift.TimeshiftConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 

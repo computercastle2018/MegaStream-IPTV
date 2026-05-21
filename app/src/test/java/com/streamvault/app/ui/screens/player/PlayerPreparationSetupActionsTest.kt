@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Episode
+import com.MegaStream.domain.model.Episode
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 

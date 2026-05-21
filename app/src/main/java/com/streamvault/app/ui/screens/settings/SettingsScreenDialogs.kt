@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import android.content.Context
 import androidx.compose.foundation.layout.heightIn
@@ -11,11 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.app.ui.theme.TextSecondary
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.ui.theme.TextSecondary
 import kotlinx.coroutines.CoroutineScope
 
 @Composable

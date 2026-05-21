@@ -1,8 +1,8 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.ProviderXtreamLiveSyncMode
-import com.streamvault.domain.model.SyncMetadata
+import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
+import com.MegaStream.domain.model.SyncMetadata
 import org.junit.Test
 
 class XtreamLiveSyncPolicyTest {

@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.plugins
+package com.MegaStream.app.ui.screens.plugins
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,22 +51,22 @@ import androidx.tv.material3.Border
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.navigation.Routes
-import com.streamvault.app.plugins.InstalledStreamVaultPlugin
-import com.streamvault.app.plugins.PluginConfigurationAction
-import com.streamvault.app.plugins.PluginConfigurationField
-import com.streamvault.app.plugins.PluginConfigurationSection
-import com.streamvault.app.ui.components.dialogs.PremiumDialog
-import com.streamvault.app.ui.components.dialogs.PremiumDialogFooterButton
-import com.streamvault.app.ui.components.shell.AppNavigationChrome
-import com.streamvault.app.ui.components.shell.AppScreenScaffold
-import com.streamvault.app.ui.components.shell.StatusPill
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.design.FocusSpec
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.theme.FocusBorder
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.Primary
+import com.MegaStream.app.navigation.Routes
+import com.MegaStream.app.plugins.InstalledMegaStreamPlugin
+import com.MegaStream.app.plugins.PluginConfigurationAction
+import com.MegaStream.app.plugins.PluginConfigurationField
+import com.MegaStream.app.plugins.PluginConfigurationSection
+import com.MegaStream.app.ui.components.dialogs.PremiumDialog
+import com.MegaStream.app.ui.components.dialogs.PremiumDialogFooterButton
+import com.MegaStream.app.ui.components.shell.AppNavigationChrome
+import com.MegaStream.app.ui.components.shell.AppScreenScaffold
+import com.MegaStream.app.ui.components.shell.StatusPill
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.design.FocusSpec
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.theme.FocusBorder
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.Primary
 
 @Composable
 fun PluginsScreen(
@@ -361,7 +361,7 @@ private fun PluginInstallUrlDialog(
 
 @Composable
 private fun PluginCard(
-    plugin: InstalledStreamVaultPlugin,
+    plugin: InstalledMegaStreamPlugin,
     busy: Boolean,
     onEnabledChange: (Boolean) -> Unit,
     onOpenConfiguration: () -> Unit

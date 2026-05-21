@@ -1,4 +1,4 @@
-package com.streamvault.app.tv
+package com.MegaStream.app.tv
 
 import android.content.ContentUris
 import android.content.ContentValues
@@ -10,25 +10,25 @@ import android.media.tv.TvContract
 import android.net.Uri
 import android.provider.BaseColumns
 import android.util.Log
-import com.streamvault.app.MainActivity
-import com.streamvault.app.R
-import com.streamvault.app.device.isTelevisionDevice
-import com.streamvault.app.navigation.ExternalDestination
-import com.streamvault.app.navigation.PlayerNavigationRequest
-import com.streamvault.app.navigation.toPlayerNavigationRequest
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.repository.SeriesRepository
-import com.streamvault.domain.usecase.GetRecommendations
-import com.streamvault.domain.usecase.GetContinueWatching
-import com.streamvault.domain.usecase.ContinueWatchingResult
-import com.streamvault.domain.usecase.RecommendationsResult
+import com.MegaStream.app.MainActivity
+import com.MegaStream.app.R
+import com.MegaStream.app.device.isTelevisionDevice
+import com.MegaStream.app.navigation.ExternalDestination
+import com.MegaStream.app.navigation.PlayerNavigationRequest
+import com.MegaStream.app.navigation.toPlayerNavigationRequest
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.repository.SeriesRepository
+import com.MegaStream.domain.usecase.GetRecommendations
+import com.MegaStream.domain.usecase.GetContinueWatching
+import com.MegaStream.domain.usecase.ContinueWatchingResult
+import com.MegaStream.domain.usecase.RecommendationsResult
 import kotlinx.coroutines.Dispatchers
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -426,9 +426,9 @@ class LauncherRecommendationsManager @Inject constructor(
     private companion object {
         const val TAG = "LauncherRecommendations"
         const val MIN_REFRESH_INTERVAL_MS = 15 * 60 * 1000L
-        const val CHANNEL_CONTINUE_WATCHING = "streamvault_continue_watching"
-        const val CHANNEL_TOP_MOVIES = "streamvault_top_movies"
-        const val CHANNEL_FRESH_SERIES = "streamvault_fresh_series"
+        const val CHANNEL_CONTINUE_WATCHING = "MegaStream_continue_watching"
+        const val CHANNEL_TOP_MOVIES = "MegaStream_top_movies"
+        const val CHANNEL_FRESH_SERIES = "MegaStream_fresh_series"
         val MANAGED_CHANNEL_KEYS = setOf(
             CHANNEL_CONTINUE_WATCHING,
             CHANNEL_TOP_MOVIES,

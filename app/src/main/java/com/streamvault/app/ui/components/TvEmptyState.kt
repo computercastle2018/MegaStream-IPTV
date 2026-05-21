@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components
+package com.MegaStream.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,9 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.ui.components.shell.AppMessageState
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.components.shell.AppMessageState
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
 
 @Composable
 fun TvEmptyState(

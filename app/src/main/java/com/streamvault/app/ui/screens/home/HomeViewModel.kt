@@ -1,55 +1,55 @@
-package com.streamvault.app.ui.screens.home
+package com.MegaStream.app.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.di.AuxiliaryPlayerEngine
-import com.streamvault.app.player.LivePreviewHandoffManager
-import com.streamvault.app.plugins.StreamVaultPluginManager
-import com.streamvault.app.tvinput.TvInputChannelSyncManager
-import com.streamvault.app.ui.screens.multiview.MultiViewManager
-import com.streamvault.app.ui.model.applyProviderCategoryDisplayPreferences
-import com.streamvault.app.ui.model.orderedByRequestedRawIds
-import com.streamvault.app.ui.model.guideLookupKey
-import com.streamvault.app.ui.model.LiveTvChannelMode
-import com.streamvault.app.ui.model.LiveTvQuickFilterVisibilityMode
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.domain.manager.ParentalControlManager
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.ActiveLiveSourceOption
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.CategorySortMode
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.CombinedCategory
-import com.streamvault.domain.model.CombinedM3uProfileMember
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
-import com.streamvault.domain.model.SyncState
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.repository.CategoryRepository
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.EpgRepository
-import com.streamvault.domain.repository.FavoriteRepository
-import com.streamvault.domain.repository.LiveStreamProgramRequest
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.util.AdultContentVisibilityPolicy
-import com.streamvault.domain.usecase.GetCustomCategories
-import com.streamvault.domain.usecase.UnlockParentalCategory
-import com.streamvault.domain.usecase.UnlockParentalCategoryCommand
-import com.streamvault.player.PlaybackState
-import com.streamvault.player.PlayerEngine
+import com.MegaStream.app.di.AuxiliaryPlayerEngine
+import com.MegaStream.app.player.LivePreviewHandoffManager
+import com.MegaStream.app.plugins.MegaStreamPluginManager
+import com.MegaStream.app.tvinput.TvInputChannelSyncManager
+import com.MegaStream.app.ui.screens.multiview.MultiViewManager
+import com.MegaStream.app.ui.model.applyProviderCategoryDisplayPreferences
+import com.MegaStream.app.ui.model.orderedByRequestedRawIds
+import com.MegaStream.app.ui.model.guideLookupKey
+import com.MegaStream.app.ui.model.LiveTvChannelMode
+import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.domain.manager.ParentalControlManager
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.ActiveLiveSourceOption
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.CategorySortMode
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.CombinedCategory
+import com.MegaStream.domain.model.CombinedM3uProfileMember
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.domain.model.SyncState
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.repository.CategoryRepository
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.EpgRepository
+import com.MegaStream.domain.repository.FavoriteRepository
+import com.MegaStream.domain.repository.LiveStreamProgramRequest
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.util.AdultContentVisibilityPolicy
+import com.MegaStream.domain.usecase.GetCustomCategories
+import com.MegaStream.domain.usecase.UnlockParentalCategory
+import com.MegaStream.domain.usecase.UnlockParentalCategoryCommand
+import com.MegaStream.player.PlaybackState
+import com.MegaStream.player.PlayerEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.streamvault.app.R
+import com.MegaStream.app.R
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -83,7 +83,7 @@ class HomeViewModel @Inject constructor(
     private val tvInputChannelSyncManager: TvInputChannelSyncManager,
     private val multiViewManager: MultiViewManager,
     private val livePreviewHandoffManager: LivePreviewHandoffManager,
-    private val pluginManager: StreamVaultPluginManager,
+    private val pluginManager: MegaStreamPluginManager,
     @param:AuxiliaryPlayerEngine
     private val playerEngineProvider: InjectProvider<PlayerEngine>
 ) : ViewModel() {
@@ -1205,8 +1205,8 @@ class HomeViewModel @Inject constructor(
     ): Map<String, Program> {
         val providerType = _uiState.value.provider?.type
         if (
-            providerType != com.streamvault.domain.model.ProviderType.XTREAM_CODES &&
-            providerType != com.streamvault.domain.model.ProviderType.STALKER_PORTAL
+            providerType != com.MegaStream.domain.model.ProviderType.XTREAM_CODES &&
+            providerType != com.MegaStream.domain.model.ProviderType.STALKER_PORTAL
         ) {
             return emptyMap()
         }

@@ -1,8 +1,8 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
 import org.junit.Test
 
 class PlayerZapActionsLivePlaybackTest {

@@ -44,7 +44,17 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(grep -E \"node_modules|/build/|\\\\.gradle/|\\\\.apk$|local.properties|\\\\.ipk$|dist/\")",
-      "Bash(xargs -I{} du -k \"{}\")"
+      "Bash(xargs -I{} du -k \"{}\")",
+      "Bash(git -c user.name=mega -c user.email=dealer@c-castle.com commit -q -m ' *)",
+      "Bash(git -c user.name=\"mega\" -c user.email=\"dealer@c-castle.com\" branch -M main)",
+      "Bash(ssh -o BatchMode=yes -o ConnectTimeout=6 -T git@github.com)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(git -c user.name=\"mega\" -c user.email=\"dealer@c-castle.com\" commit -q -m \"Rebrand license to MegaStream Source-Available \\(Non-Commercial\\), preserving original StreamVault attribution\")",
+      "Read(//Users/mega/Projects/IPTV/**)",
+      "Bash(pkill -f ares-server)",
+      "Bash(pkill -f vite)",
+      "Bash(mv StreamVault-IPTV-master MegaStream-IPTV)"
     ]
   }
 }

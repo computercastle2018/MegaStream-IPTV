@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components.shell
+package com.MegaStream.app.ui.components.shell
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -22,7 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
-import com.streamvault.domain.util.isPlaybackComplete
+import com.MegaStream.domain.util.isPlaybackComplete
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,18 +59,18 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.ChannelLogoBadge
-import com.streamvault.app.ui.components.rememberCrossfadeImageModel
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.design.AppMotion
-import com.streamvault.app.ui.design.FocusSpec
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.interaction.rememberTvInteractionSounds
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.Series
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.ChannelLogoBadge
+import com.MegaStream.app.ui.components.rememberCrossfadeImageModel
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.design.AppMotion
+import com.MegaStream.app.ui.design.FocusSpec
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.interaction.rememberTvInteractionSounds
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.Series
 
 private object LiveChannelRowTicker {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

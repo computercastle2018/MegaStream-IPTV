@@ -1,8 +1,8 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.sync.Section
-import com.streamvault.domain.sync.SyncProgress
+import com.MegaStream.domain.sync.Section
+import com.MegaStream.domain.sync.SyncProgress
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch

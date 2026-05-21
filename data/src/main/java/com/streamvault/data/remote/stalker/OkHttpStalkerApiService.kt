@@ -1,12 +1,12 @@
-package com.streamvault.data.remote.stalker
+package com.MegaStream.data.remote.stalker
 
 import android.util.Log
 import com.google.gson.JsonObject as GsonJsonObject
 import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.util.StreamEntryUrlPolicy
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.util.StreamEntryUrlPolicy
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream

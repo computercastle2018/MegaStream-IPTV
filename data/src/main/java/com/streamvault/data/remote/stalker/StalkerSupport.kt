@@ -1,7 +1,7 @@
-package com.streamvault.data.remote.stalker
+package com.MegaStream.data.remote.stalker
 
-import com.streamvault.data.local.entity.CategoryEntity
-import com.streamvault.domain.model.ContentType
+import com.MegaStream.data.local.entity.CategoryEntity
+import com.MegaStream.domain.model.ContentType
 import java.util.Locale
 
 internal fun stalkerSyntheticId(providerId: Long, type: ContentType, seed: String): Long {
@@ -19,6 +19,6 @@ internal fun StalkerCategoryRecord.toCategoryEntity(
         categoryId = syntheticId,
         name = name,
         type = type,
-        isAdult = com.streamvault.data.util.AdultContentClassifier.isAdultCategoryName(name)
+        isAdult = com.MegaStream.data.util.AdultContentClassifier.isAdultCategoryName(name)
     )
 }

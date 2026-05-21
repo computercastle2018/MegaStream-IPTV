@@ -1,8 +1,8 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 
 interface CategoryRepository {

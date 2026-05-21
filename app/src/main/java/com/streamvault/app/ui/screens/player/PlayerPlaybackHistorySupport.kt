@@ -1,8 +1,8 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.PlaybackHistory
 
 internal fun buildPlaybackHistorySnapshot(
     positionMs: Long,

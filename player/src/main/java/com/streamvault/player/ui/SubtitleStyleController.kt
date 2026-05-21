@@ -1,10 +1,10 @@
-package com.streamvault.player.ui
+package com.MegaStream.player.ui
 
 import android.graphics.Color
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
-import com.streamvault.player.PlayerSubtitleStyle
+import com.MegaStream.player.PlayerSubtitleStyle
 
 class SubtitleStyleController {
     private var style: PlayerSubtitleStyle = PlayerSubtitleStyle()

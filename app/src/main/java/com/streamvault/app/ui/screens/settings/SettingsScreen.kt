@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,17 +19,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
-import com.streamvault.app.backup.BackupFileBridge
-import com.streamvault.app.diagnostics.CrashReportStore
-import com.streamvault.app.util.OfficialBuildVerifier
-import com.streamvault.app.ui.components.shell.AppTopBarCloseAction
-import com.streamvault.app.ui.components.shell.AppNavigationChrome
-import com.streamvault.app.ui.components.shell.AppScreenScaffold
-import com.streamvault.app.ui.theme.*
-import com.streamvault.domain.model.Provider
+import com.MegaStream.app.backup.BackupFileBridge
+import com.MegaStream.app.diagnostics.CrashReportStore
+import com.MegaStream.app.util.OfficialBuildVerifier
+import com.MegaStream.app.ui.components.shell.AppTopBarCloseAction
+import com.MegaStream.app.ui.components.shell.AppNavigationChrome
+import com.MegaStream.app.ui.components.shell.AppScreenScaffold
+import com.MegaStream.app.ui.theme.*
+import com.MegaStream.domain.model.Provider
 import androidx.compose.ui.res.stringResource
-import com.streamvault.app.R
-import com.streamvault.app.ui.design.requestFocusSafely
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.design.requestFocusSafely
 import kotlinx.coroutines.delay
 
 
@@ -191,7 +191,7 @@ fun SettingsScreen(
                     onEditProvider = onEditProvider,
                     onNavigateToParentalControl = onNavigateToParentalControl,
                     onChooseRecordingFolder = { recordingFolderLauncher.launch(null) },
-                    onCreateBackup = { createDocumentLauncher.launch("streamvault_backup.json") },
+                    onCreateBackup = { createDocumentLauncher.launch("MegaStream_backup.json") },
                     onShareBackup = ::shareBackup,
                     onViewCrashReport = viewModel::viewCrashReport,
                     onShareCrashReport = ::shareCrashReport,

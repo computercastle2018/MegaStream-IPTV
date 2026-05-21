@@ -1,8 +1,8 @@
-package com.streamvault.app.navigation
+package com.MegaStream.app.navigation
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
 import org.junit.Test
 
 class PlaybackHistoryNavigationTest {

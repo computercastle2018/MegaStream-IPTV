@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -15,8 +15,8 @@ class RecordingAlarmReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        const val ACTION_START_RECORDING = "com.streamvault.data.recording.action.START"
-        const val ACTION_STOP_RECORDING = "com.streamvault.data.recording.action.STOP"
+        const val ACTION_START_RECORDING = "com.MegaStream.data.recording.action.START"
+        const val ACTION_STOP_RECORDING = "com.MegaStream.data.recording.action.STOP"
         const val EXTRA_RECORDING_ID = "recording_id"
     }
 }

@@ -1,6 +1,6 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.domain.model.SyncState
+import com.MegaStream.domain.model.SyncState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map

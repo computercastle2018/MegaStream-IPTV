@@ -1,4 +1,4 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,8 +12,8 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.streamvault.data.R
-import com.streamvault.domain.manager.RecordingManager
+import com.MegaStream.data.R
+import com.MegaStream.domain.manager.RecordingManager
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -130,7 +130,7 @@ class RecordingForegroundService : Service() {
         }
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
-            .setContentTitle("StreamVault DVR")
+            .setContentTitle("MegaStream DVR")
             .setContentText(title)
             .setOngoing(activeCount > 0 || pendingCommand)
             .setOnlyAlertOnce(true)
@@ -155,7 +155,7 @@ class RecordingForegroundService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "StreamVault DVR",
+            "MegaStream DVR",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = "Active recording and scheduling status"
@@ -207,13 +207,13 @@ class RecordingForegroundService : Service() {
     }
 
     companion object {
-        private const val CHANNEL_ID = "streamvault_recording"
+        private const val CHANNEL_ID = "MegaStream_recording"
         private const val NOTIFICATION_ID = 4102
         private const val IDLE_GRACE_MS = 3_000L
-        private const val ACTION_START_CAPTURE = "com.streamvault.data.recording.service.START_CAPTURE"
-        private const val ACTION_STOP_CAPTURE = "com.streamvault.data.recording.service.STOP_CAPTURE"
-        private const val ACTION_RECONCILE = "com.streamvault.data.recording.service.RECONCILE"
-        private const val ACTION_EVALUATE_IDLE = "com.streamvault.data.recording.service.EVALUATE_IDLE"
+        private const val ACTION_START_CAPTURE = "com.MegaStream.data.recording.service.START_CAPTURE"
+        private const val ACTION_STOP_CAPTURE = "com.MegaStream.data.recording.service.STOP_CAPTURE"
+        private const val ACTION_RECONCILE = "com.MegaStream.data.recording.service.RECONCILE"
+        private const val ACTION_EVALUATE_IDLE = "com.MegaStream.data.recording.service.EVALUATE_IDLE"
         private const val EXTRA_RECORDING_ID = "recording_id"
 
         fun startCapture(context: Context, recordingId: String) {

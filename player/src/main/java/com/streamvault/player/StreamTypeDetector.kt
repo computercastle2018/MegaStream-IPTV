@@ -1,8 +1,8 @@
-package com.streamvault.player
+package com.MegaStream.player
 
-import com.streamvault.domain.model.StreamType
-import com.streamvault.player.playback.ResolvedStreamType
-import com.streamvault.player.playback.StreamTypeResolver
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.player.playback.ResolvedStreamType
+import com.MegaStream.player.playback.StreamTypeResolver
 
 @Deprecated("Use StreamTypeResolver")
 object StreamTypeDetector {

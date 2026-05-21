@@ -1,8 +1,8 @@
-package com.streamvault.app.player
+package com.MegaStream.app.player
 
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.player.PlayerEngine
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.player.PlayerEngine
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope

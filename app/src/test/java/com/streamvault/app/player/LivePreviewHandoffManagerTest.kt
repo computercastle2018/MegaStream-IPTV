@@ -1,9 +1,9 @@
-package com.streamvault.app.player
+package com.MegaStream.app.player
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.player.PlayerEngine
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.player.PlayerEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -28,11 +28,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.getValue
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.extractProgressFraction
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.extractProgressFraction
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
 
 @Composable
 internal fun SyncingOverlay(

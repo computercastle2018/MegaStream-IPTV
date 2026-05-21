@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.streamvault.player"
+    namespace = "com.MegaStream.player"
     compileSdk = 36
 
     defaultConfig {

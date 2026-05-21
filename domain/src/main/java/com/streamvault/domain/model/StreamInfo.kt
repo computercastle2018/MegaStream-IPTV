@@ -1,6 +1,6 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
-import com.streamvault.domain.util.StreamEntryUrlPolicy
+import com.MegaStream.domain.util.StreamEntryUrlPolicy
 
 data class StreamInfo(
     val url: String,

@@ -1,76 +1,76 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import android.app.Application
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.R
-import com.streamvault.app.BuildConfig
-import com.streamvault.app.diagnostics.CrashReportStore
-import com.streamvault.app.tv.LauncherRecommendationsManager
-import com.streamvault.app.tv.WatchNextManager
-import com.streamvault.app.tvinput.TvInputChannelSyncManager
-import com.streamvault.app.ui.model.LiveTvChannelMode
-import com.streamvault.app.ui.model.LiveTvQuickFilterVisibilityMode
-import com.streamvault.app.ui.model.VodViewMode
-import com.streamvault.app.update.AppUpdateDownloadState
-import com.streamvault.app.update.AppUpdateDownloadStatus
-import com.streamvault.app.update.AppUpdateInstaller
-import com.streamvault.app.update.GitHubReleaseChecker
-import com.streamvault.app.update.GitHubReleaseInfo
-import com.streamvault.data.local.dao.XtreamIndexJobDao
-import com.streamvault.data.local.dao.XtreamLiveOnboardingDao
-import com.streamvault.data.local.entity.XtreamIndexJobEntity
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.data.sync.SyncRepairSection
-import com.streamvault.domain.manager.BackupConflictStrategy
-import com.streamvault.domain.manager.BackupImportPlan
-import com.streamvault.domain.manager.BackupManager
-import com.streamvault.domain.manager.BackupPreview
-import com.streamvault.domain.manager.DriveBackupSyncManager
-import com.streamvault.domain.manager.ParentalControlManager
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.AppTimeFormat
-import com.streamvault.domain.model.CategorySortMode
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.CombinedM3uProfile
-import com.streamvault.domain.model.GroupedChannelLabelMode
-import com.streamvault.domain.model.AudioOutputPreference
-import com.streamvault.domain.model.LiveChannelGroupingMode
-import com.streamvault.domain.model.LiveVariantPreferenceMode
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingStorageConfig
-import com.streamvault.domain.model.RecordingStorageState
-import com.streamvault.domain.model.EpgResolutionSummary
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.usecase.ExportBackup
-import com.streamvault.domain.usecase.ExportBackupCommand
-import com.streamvault.domain.usecase.ExportBackupResult
-import com.streamvault.domain.usecase.ImportBackup
-import com.streamvault.domain.usecase.ImportBackupCommand
-import com.streamvault.domain.usecase.ImportBackupResult
-import com.streamvault.domain.usecase.InspectBackupCommand
-import com.streamvault.domain.usecase.InspectBackupResult
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.CategoryRepository
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.SeriesRepository
-import com.streamvault.domain.repository.SyncMetadataRepository
-import com.streamvault.domain.usecase.GetCustomCategories
-import com.streamvault.domain.usecase.SyncProvider
-import com.streamvault.domain.usecase.SyncProviderCommand
-import com.streamvault.domain.usecase.SyncProviderResult
-import com.streamvault.player.AudioCompatibilityMemoryStore
+import com.MegaStream.app.R
+import com.MegaStream.app.BuildConfig
+import com.MegaStream.app.diagnostics.CrashReportStore
+import com.MegaStream.app.tv.LauncherRecommendationsManager
+import com.MegaStream.app.tv.WatchNextManager
+import com.MegaStream.app.tvinput.TvInputChannelSyncManager
+import com.MegaStream.app.ui.model.LiveTvChannelMode
+import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
+import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.app.update.AppUpdateDownloadState
+import com.MegaStream.app.update.AppUpdateDownloadStatus
+import com.MegaStream.app.update.AppUpdateInstaller
+import com.MegaStream.app.update.GitHubReleaseChecker
+import com.MegaStream.app.update.GitHubReleaseInfo
+import com.MegaStream.data.local.dao.XtreamIndexJobDao
+import com.MegaStream.data.local.dao.XtreamLiveOnboardingDao
+import com.MegaStream.data.local.entity.XtreamIndexJobEntity
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.data.sync.SyncRepairSection
+import com.MegaStream.domain.manager.BackupConflictStrategy
+import com.MegaStream.domain.manager.BackupImportPlan
+import com.MegaStream.domain.manager.BackupManager
+import com.MegaStream.domain.manager.BackupPreview
+import com.MegaStream.domain.manager.DriveBackupSyncManager
+import com.MegaStream.domain.manager.ParentalControlManager
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.AppTimeFormat
+import com.MegaStream.domain.model.CategorySortMode
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.CombinedM3uProfile
+import com.MegaStream.domain.model.GroupedChannelLabelMode
+import com.MegaStream.domain.model.AudioOutputPreference
+import com.MegaStream.domain.model.LiveChannelGroupingMode
+import com.MegaStream.domain.model.LiveVariantPreferenceMode
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingStorageConfig
+import com.MegaStream.domain.model.RecordingStorageState
+import com.MegaStream.domain.model.EpgResolutionSummary
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.usecase.ExportBackup
+import com.MegaStream.domain.usecase.ExportBackupCommand
+import com.MegaStream.domain.usecase.ExportBackupResult
+import com.MegaStream.domain.usecase.ImportBackup
+import com.MegaStream.domain.usecase.ImportBackupCommand
+import com.MegaStream.domain.usecase.ImportBackupResult
+import com.MegaStream.domain.usecase.InspectBackupCommand
+import com.MegaStream.domain.usecase.InspectBackupResult
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.CategoryRepository
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.SeriesRepository
+import com.MegaStream.domain.repository.SyncMetadataRepository
+import com.MegaStream.domain.usecase.GetCustomCategories
+import com.MegaStream.domain.usecase.SyncProvider
+import com.MegaStream.domain.usecase.SyncProviderCommand
+import com.MegaStream.domain.usecase.SyncProviderResult
+import com.MegaStream.player.AudioCompatibilityMemoryStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -100,12 +100,12 @@ class SettingsViewModel @Inject constructor(
     private val xtreamIndexJobDao: XtreamIndexJobDao,
     private val xtreamLiveOnboardingDao: XtreamLiveOnboardingDao,
     private val syncMetadataRepository: SyncMetadataRepository,
-    private val playbackHistoryRepository: com.streamvault.domain.repository.PlaybackHistoryRepository,
+    private val playbackHistoryRepository: com.MegaStream.domain.repository.PlaybackHistoryRepository,
     private val watchNextManager: WatchNextManager,
     private val launcherRecommendationsManager: LauncherRecommendationsManager,
     private val tvInputChannelSyncManager: TvInputChannelSyncManager,
     private val syncProvider: SyncProvider,
-    private val epgSourceRepository: com.streamvault.domain.repository.EpgSourceRepository,
+    private val epgSourceRepository: com.MegaStream.domain.repository.EpgSourceRepository,
     private val gitHubReleaseChecker: GitHubReleaseChecker,
     private val appUpdateInstaller: AppUpdateInstaller,
     private val getCustomCategories: GetCustomCategories,
@@ -247,7 +247,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun com.streamvault.app.diagnostics.CrashReportSummary.toUiModel(): CrashReportUiModel =
+    private fun com.MegaStream.app.diagnostics.CrashReportSummary.toUiModel(): CrashReportUiModel =
         CrashReportUiModel(
             timestamp = timestamp,
             exception = exception,
@@ -696,7 +696,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setPlayerSurfaceMode(mode: com.streamvault.domain.model.PlayerSurfaceMode) {
+    fun setPlayerSurfaceMode(mode: com.MegaStream.domain.model.PlayerSurfaceMode) {
         viewModelScope.launch {
             preferencesRepository.setPlayerSurfaceMode(mode)
         }

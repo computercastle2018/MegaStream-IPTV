@@ -1,6 +1,6 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
-import com.streamvault.domain.model.Channel
+import com.MegaStream.domain.model.Channel
 import java.util.Locale
 
 internal fun isAuthExpiryPlaybackError(message: String?): Boolean {

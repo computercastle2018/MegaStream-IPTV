@@ -1,4 +1,4 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
 /**
  * Generic result wrapper for handling success/failure across layers.

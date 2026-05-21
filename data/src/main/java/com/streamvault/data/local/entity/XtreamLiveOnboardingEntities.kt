@@ -1,4 +1,4 @@
-package com.streamvault.data.local.entity
+package com.MegaStream.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

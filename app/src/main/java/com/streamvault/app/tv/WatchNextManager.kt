@@ -1,4 +1,4 @@
-package com.streamvault.app.tv
+package com.MegaStream.app.tv
 
 import android.content.ContentUris
 import android.content.ContentValues
@@ -8,14 +8,14 @@ import android.media.tv.TvContract
 import android.net.Uri
 import android.provider.BaseColumns
 import android.util.Log
-import com.streamvault.app.MainActivity
-import com.streamvault.app.R
-import com.streamvault.app.device.isTelevisionDevice
-import com.streamvault.app.navigation.toPlayerNavigationRequest
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.repository.ProviderRepository
+import com.MegaStream.app.MainActivity
+import com.MegaStream.app.R
+import com.MegaStream.app.device.isTelevisionDevice
+import com.MegaStream.app.navigation.toPlayerNavigationRequest
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.repository.ProviderRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first

@@ -1,9 +1,9 @@
-package com.streamvault.app.ui.screens.vod
+package com.MegaStream.app.ui.screens.vod
 
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.repository.FavoriteRepository
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.repository.FavoriteRepository
 import kotlinx.coroutines.flow.first
 
 suspend fun <Item> loadVodReorderItems(

@@ -1,15 +1,15 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.data.local.entity.CategoryEntity
-import com.streamvault.data.util.AdultContentClassifier
-import com.streamvault.data.remote.xtream.XtreamNetworkException
-import com.streamvault.data.remote.xtream.XtreamParsingException
-import com.streamvault.data.remote.xtream.XtreamResponseTooLargeException
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.model.SyncMetadata
+import com.MegaStream.data.local.entity.CategoryEntity
+import com.MegaStream.data.util.AdultContentClassifier
+import com.MegaStream.data.remote.xtream.XtreamNetworkException
+import com.MegaStream.data.remote.xtream.XtreamParsingException
+import com.MegaStream.data.remote.xtream.XtreamResponseTooLargeException
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.model.SyncMetadata
 
 internal class SyncManagerCatalogStrategySupport(
     private val shouldRememberSequentialPreference: (Throwable) -> Boolean,

@@ -1,7 +1,7 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.PlaybackCompatibilityKey
-import com.streamvault.domain.model.PlaybackCompatibilityRecord
+import com.MegaStream.domain.model.PlaybackCompatibilityKey
+import com.MegaStream.domain.model.PlaybackCompatibilityRecord
 
 interface PlaybackCompatibilityRepository {
     suspend fun getKnownBadRecords(

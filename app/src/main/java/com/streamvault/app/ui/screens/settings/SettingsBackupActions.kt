@@ -1,15 +1,15 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.domain.manager.BackupConflictStrategy
-import com.streamvault.domain.manager.BackupImportPlan
-import com.streamvault.domain.usecase.ExportBackup
-import com.streamvault.domain.usecase.ExportBackupCommand
-import com.streamvault.domain.usecase.ExportBackupResult
-import com.streamvault.domain.usecase.ImportBackup
-import com.streamvault.domain.usecase.ImportBackupCommand
-import com.streamvault.domain.usecase.ImportBackupResult
-import com.streamvault.domain.usecase.InspectBackupCommand
-import com.streamvault.domain.usecase.InspectBackupResult
+import com.MegaStream.domain.manager.BackupConflictStrategy
+import com.MegaStream.domain.manager.BackupImportPlan
+import com.MegaStream.domain.usecase.ExportBackup
+import com.MegaStream.domain.usecase.ExportBackupCommand
+import com.MegaStream.domain.usecase.ExportBackupResult
+import com.MegaStream.domain.usecase.ImportBackup
+import com.MegaStream.domain.usecase.ImportBackupCommand
+import com.MegaStream.domain.usecase.ImportBackupResult
+import com.MegaStream.domain.usecase.InspectBackupCommand
+import com.MegaStream.domain.usecase.InspectBackupResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update

@@ -1,6 +1,6 @@
-package com.streamvault.domain.manager
+package com.MegaStream.domain.manager
 
-import com.streamvault.domain.model.SyncState
+import com.MegaStream.domain.model.SyncState
 import kotlinx.coroutines.flow.Flow
 
 interface ProviderSyncStateReader {

@@ -1,6 +1,6 @@
-package com.streamvault.domain.manager
+package com.MegaStream.domain.manager
 
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -61,7 +61,7 @@ interface DriveBackupSyncManager {
 
     /**
      * Uploads the provider credentials list to a private sibling file
-     * (`streamvault_credentials.json`) in the same Drive `appDataFolder`.
+     * (`MegaStream_credentials.json`) in the same Drive `appDataFolder`.
      * Companion to [pushBackup] — credentials are stripped from the main
      * backup JSON by design, so this restores the round-trip.
      *
@@ -72,7 +72,7 @@ interface DriveBackupSyncManager {
     suspend fun pushCredentials(credentials: List<ProviderCredentials>): Result<Unit>
 
     /**
-     * Downloads `streamvault_credentials.json` from Drive `appDataFolder`.
+     * Downloads `MegaStream_credentials.json` from Drive `appDataFolder`.
      * Returns an empty list if the file is absent (graceful backwards
      * compatibility with backups produced before M3).
      */

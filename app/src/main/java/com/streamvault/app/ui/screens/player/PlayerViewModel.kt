@@ -1,64 +1,64 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.cast.CastConnectionState
-import com.streamvault.app.cast.CastManager
-import com.streamvault.app.cast.CastMediaRequest
-import com.streamvault.app.cast.CastStartResult
-import com.streamvault.app.di.MainPlayerEngine
-import com.streamvault.app.player.LivePreviewHandoffManager
-import com.streamvault.app.plugins.StreamVaultPluginManager
-import com.streamvault.app.util.isPlaybackComplete
-import com.streamvault.app.tv.LauncherRecommendationsManager
-import com.streamvault.app.tv.WatchNextManager
-import com.streamvault.data.remote.stalker.StalkerUrlFactory
-import com.streamvault.data.remote.xtream.XtreamStreamUrlResolver
-import com.streamvault.data.security.CredentialDecryptionException
-import com.streamvault.domain.manager.RecordingManager
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.CombinedCategory
-import com.streamvault.domain.model.CombinedM3uProfileMember
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.model.LiveChannelObservedQuality
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingRecurrence
-import com.streamvault.domain.model.RecordingRequest
-import com.streamvault.domain.model.RecordingStatus
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.model.VideoFormat
-import com.streamvault.domain.usecase.GetCustomCategories
-import com.streamvault.domain.usecase.MarkAsWatched
-import com.streamvault.domain.usecase.ScheduleRecording
-import com.streamvault.domain.usecase.ScheduleRecordingCommand
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.EpgRepository
-import com.streamvault.domain.repository.MovieRepository
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.repository.SeriesRepository
-import com.streamvault.player.Media3PlayerEngine
-import com.streamvault.player.AUDIO_VIDEO_OFFSET_MAX_MS
-import com.streamvault.player.AUDIO_VIDEO_OFFSET_MIN_MS
-import com.streamvault.player.PlaybackState
-import com.streamvault.player.PlayerEngine
-import com.streamvault.player.PlayerError
-import com.streamvault.player.PlayerSubtitleStyle
-import com.streamvault.player.timeshift.LiveTimeshiftBackend
-import com.streamvault.player.timeshift.LiveTimeshiftState
-import com.streamvault.player.timeshift.LiveTimeshiftStatus
-import com.streamvault.player.timeshift.TimeshiftConfig
+import com.MegaStream.app.cast.CastConnectionState
+import com.MegaStream.app.cast.CastManager
+import com.MegaStream.app.cast.CastMediaRequest
+import com.MegaStream.app.cast.CastStartResult
+import com.MegaStream.app.di.MainPlayerEngine
+import com.MegaStream.app.player.LivePreviewHandoffManager
+import com.MegaStream.app.plugins.MegaStreamPluginManager
+import com.MegaStream.app.util.isPlaybackComplete
+import com.MegaStream.app.tv.LauncherRecommendationsManager
+import com.MegaStream.app.tv.WatchNextManager
+import com.MegaStream.data.remote.stalker.StalkerUrlFactory
+import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
+import com.MegaStream.data.security.CredentialDecryptionException
+import com.MegaStream.domain.manager.RecordingManager
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.CombinedCategory
+import com.MegaStream.domain.model.CombinedM3uProfileMember
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.model.LiveChannelObservedQuality
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingRecurrence
+import com.MegaStream.domain.model.RecordingRequest
+import com.MegaStream.domain.model.RecordingStatus
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.model.VideoFormat
+import com.MegaStream.domain.usecase.GetCustomCategories
+import com.MegaStream.domain.usecase.MarkAsWatched
+import com.MegaStream.domain.usecase.ScheduleRecording
+import com.MegaStream.domain.usecase.ScheduleRecordingCommand
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.EpgRepository
+import com.MegaStream.domain.repository.MovieRepository
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.repository.SeriesRepository
+import com.MegaStream.player.Media3PlayerEngine
+import com.MegaStream.player.AUDIO_VIDEO_OFFSET_MAX_MS
+import com.MegaStream.player.AUDIO_VIDEO_OFFSET_MIN_MS
+import com.MegaStream.player.PlaybackState
+import com.MegaStream.player.PlayerEngine
+import com.MegaStream.player.PlayerError
+import com.MegaStream.player.PlayerSubtitleStyle
+import com.MegaStream.player.timeshift.LiveTimeshiftBackend
+import com.MegaStream.player.timeshift.LiveTimeshiftState
+import com.MegaStream.player.timeshift.LiveTimeshiftStatus
+import com.MegaStream.player.timeshift.TimeshiftConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -81,11 +81,11 @@ class PlayerViewModel @Inject constructor(
     internal val channelRepository: ChannelRepository,
     internal val movieRepository: MovieRepository,
     private val seriesRepository: SeriesRepository,
-    internal val favoriteRepository: com.streamvault.domain.repository.FavoriteRepository,
+    internal val favoriteRepository: com.MegaStream.domain.repository.FavoriteRepository,
     internal val playbackHistoryRepository: PlaybackHistoryRepository,
-    internal val providerRepository: com.streamvault.domain.repository.ProviderRepository,
+    internal val providerRepository: com.MegaStream.domain.repository.ProviderRepository,
     internal val combinedM3uRepository: CombinedM3uRepository,
-    internal val preferencesRepository: com.streamvault.data.preferences.PreferencesRepository,
+    internal val preferencesRepository: com.MegaStream.data.preferences.PreferencesRepository,
     internal val getCustomCategories: GetCustomCategories,
     internal val markAsWatched: MarkAsWatched,
     internal val scheduleRecordingUseCase: ScheduleRecording,
@@ -93,7 +93,7 @@ class PlayerViewModel @Inject constructor(
     internal val watchNextManager: WatchNextManager,
     internal val launcherRecommendationsManager: LauncherRecommendationsManager,
     internal val castManager: CastManager,
-    internal val pluginManager: StreamVaultPluginManager,
+    internal val pluginManager: MegaStreamPluginManager,
     internal val xtreamStreamUrlResolver: XtreamStreamUrlResolver,
     internal val seekThumbnailProvider: SeekThumbnailProvider,
     internal val livePreviewHandoffManager: LivePreviewHandoffManager,
@@ -139,8 +139,8 @@ class PlayerViewModel @Inject constructor(
     private val _upcomingPrograms = MutableStateFlow<List<Program>>(emptyList())
     val upcomingPrograms: StateFlow<List<Program>> = _upcomingPrograms.asStateFlow()
 
-    internal val currentChannelFlow = MutableStateFlow<com.streamvault.domain.model.Channel?>(null)
-    val currentChannel: StateFlow<com.streamvault.domain.model.Channel?> = currentChannelFlow.asStateFlow()
+    internal val currentChannelFlow = MutableStateFlow<com.MegaStream.domain.model.Channel?>(null)
+    val currentChannel: StateFlow<com.MegaStream.domain.model.Channel?> = currentChannelFlow.asStateFlow()
 
     private val _currentSeries = MutableStateFlow<Series?>(null)
     val currentSeries: StateFlow<Series?> = _currentSeries.asStateFlow()
@@ -169,11 +169,11 @@ class PlayerViewModel @Inject constructor(
     internal val showEpgOverlayFlow = MutableStateFlow(false)
     val showEpgOverlay: StateFlow<Boolean> = showEpgOverlayFlow.asStateFlow()
 
-    internal val currentChannelFlowList = MutableStateFlow<List<com.streamvault.domain.model.Channel>>(emptyList())
-    val currentChannelList: StateFlow<List<com.streamvault.domain.model.Channel>> = currentChannelFlowList.asStateFlow()
+    internal val currentChannelFlowList = MutableStateFlow<List<com.MegaStream.domain.model.Channel>>(emptyList())
+    val currentChannelList: StateFlow<List<com.MegaStream.domain.model.Channel>> = currentChannelFlowList.asStateFlow()
 
-    internal val recentChannelsFlow = MutableStateFlow<List<com.streamvault.domain.model.Channel>>(emptyList())
-    val recentChannels: StateFlow<List<com.streamvault.domain.model.Channel>> = recentChannelsFlow.asStateFlow()
+    internal val recentChannelsFlow = MutableStateFlow<List<com.MegaStream.domain.model.Channel>>(emptyList())
+    val recentChannels: StateFlow<List<com.MegaStream.domain.model.Channel>> = recentChannelsFlow.asStateFlow()
 
     internal val _lastVisitedCategory = MutableStateFlow<Category?>(null)
     val lastVisitedCategory: StateFlow<Category?> = _lastVisitedCategory.asStateFlow()
@@ -257,8 +257,8 @@ class PlayerViewModel @Inject constructor(
     internal var playerNoticeTimeoutMs: Long = 6_000L
     internal var diagnosticsTimeoutMs: Long = 15_000L
     private var preferredDecoderMode: DecoderMode = DecoderMode.AUTO
-    private var preferredSurfaceMode: com.streamvault.domain.model.PlayerSurfaceMode =
-        com.streamvault.domain.model.PlayerSurfaceMode.AUTO
+    private var preferredSurfaceMode: com.MegaStream.domain.model.PlayerSurfaceMode =
+        com.MegaStream.domain.model.PlayerSurfaceMode.AUTO
     internal var timeshiftConfig: TimeshiftConfig = TimeshiftConfig()
 
     // Zapping state
@@ -272,12 +272,12 @@ class PlayerViewModel @Inject constructor(
      * Ordered list of channels in the current category, set by the playlist [combine]
      * collector. Linked to [currentChannelIndex] — see invariant comment above.
      */
-    internal var channelList: List<com.streamvault.domain.model.Channel> = emptyList()
+    internal var channelList: List<com.MegaStream.domain.model.Channel> = emptyList()
         set(value) {
             field = value
             rebuildChannelNumberIndex()
         }
-    internal var channelNumberIndex: Map<Int, com.streamvault.domain.model.Channel> = emptyMap()
+    internal var channelNumberIndex: Map<Int, com.MegaStream.domain.model.Channel> = emptyMap()
         private set
 
     private fun rebuildChannelNumberIndex() {
@@ -361,8 +361,8 @@ class PlayerViewModel @Inject constructor(
         .flatMapLatest(selector)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initialValue)
 
-    internal fun logRepositoryFailure(operation: String, result: com.streamvault.domain.model.Result<Unit>) {
-        if (result is com.streamvault.domain.model.Result.Error) {
+    internal fun logRepositoryFailure(operation: String, result: com.MegaStream.domain.model.Result<Unit>) {
+        if (result is com.MegaStream.domain.model.Result.Error) {
             android.util.Log.w("PlayerVM", "$operation failed: ${result.message}", result.exception)
         }
     }
@@ -863,15 +863,15 @@ class PlayerViewModel @Inject constructor(
 
     val videoFormat: StateFlow<VideoFormat> = activeEngineState(VideoFormat(0, 0)) { it.videoFormat }
 
-    val playerStats: StateFlow<com.streamvault.player.PlayerStats> =
-        activeEngineState(com.streamvault.player.PlayerStats()) { it.playerStats }
-    val availableAudioTracks: StateFlow<List<com.streamvault.player.PlayerTrack>> by lazy(LazyThreadSafetyMode.NONE) {
+    val playerStats: StateFlow<com.MegaStream.player.PlayerStats> =
+        activeEngineState(com.MegaStream.player.PlayerStats()) { it.playerStats }
+    val availableAudioTracks: StateFlow<List<com.MegaStream.player.PlayerTrack>> by lazy(LazyThreadSafetyMode.NONE) {
         activeEngineState(emptyList()) { it.availableAudioTracks }
     }
-    val availableSubtitleTracks: StateFlow<List<com.streamvault.player.PlayerTrack>> by lazy(LazyThreadSafetyMode.NONE) {
+    val availableSubtitleTracks: StateFlow<List<com.MegaStream.player.PlayerTrack>> by lazy(LazyThreadSafetyMode.NONE) {
         activeEngineState(emptyList()) { it.availableSubtitleTracks }
     }
-    val availableVideoQualities: StateFlow<List<com.streamvault.player.PlayerTrack>> by lazy(LazyThreadSafetyMode.NONE) {
+    val availableVideoQualities: StateFlow<List<com.MegaStream.player.PlayerTrack>> by lazy(LazyThreadSafetyMode.NONE) {
         activeEngineState(emptyList()) { it.availableVideoTracks }
     }
     val isMuted: StateFlow<Boolean> = activeEngineState(false) { it.isMuted }
@@ -1101,7 +1101,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     internal suspend fun preparePlayer(
-        streamInfo: com.streamvault.domain.model.StreamInfo,
+        streamInfo: com.MegaStream.domain.model.StreamInfo,
         requestVersion: Long
     ): Boolean {
         if (!isActivePlaybackSession(requestVersion)) return false
@@ -1164,7 +1164,7 @@ class PlayerViewModel @Inject constructor(
         return true
     }
 
-    private suspend fun probePlaybackUrl(streamInfo: com.streamvault.domain.model.StreamInfo): PlaybackProbeFailure? {
+    private suspend fun probePlaybackUrl(streamInfo: com.MegaStream.domain.model.StreamInfo): PlaybackProbeFailure? {
         val url = streamInfo.url
         if (!shouldProbePlaybackUrl(url)) return null
 
@@ -1196,12 +1196,12 @@ class PlayerViewModel @Inject constructor(
             currentStreamUrl = currentStreamUrl,
             url = url
         )
-        if (provider.type != com.streamvault.domain.model.ProviderType.STALKER_PORTAL && cacheKey in probePassedPlaybackKeys) {
+        if (provider.type != com.MegaStream.domain.model.ProviderType.STALKER_PORTAL && cacheKey in probePassedPlaybackKeys) {
             return false
         }
         return (
-            provider.type == com.streamvault.domain.model.ProviderType.XTREAM_CODES ||
-                provider.type == com.streamvault.domain.model.ProviderType.STALKER_PORTAL
+            provider.type == com.MegaStream.domain.model.ProviderType.XTREAM_CODES ||
+                provider.type == com.MegaStream.domain.model.ProviderType.STALKER_PORTAL
             ) &&
             (xtreamStreamUrlResolver.isInternalStreamUrl(currentStreamUrl) || xtreamStreamUrlResolver.isInternalStreamUrl(url))
     }
@@ -1347,9 +1347,9 @@ class PlayerViewModel @Inject constructor(
                         it.copy(
                             providerName = provider.name,
                             providerSourceLabel = when (provider.type) {
-                                com.streamvault.domain.model.ProviderType.XTREAM_CODES -> "Xtream Codes"
-                                com.streamvault.domain.model.ProviderType.M3U -> "M3U Playlist"
-                                com.streamvault.domain.model.ProviderType.STALKER_PORTAL -> "Stalker/MAG Portal"
+                                com.MegaStream.domain.model.ProviderType.XTREAM_CODES -> "Xtream Codes"
+                                com.MegaStream.domain.model.ProviderType.M3U -> "M3U Playlist"
+                                com.MegaStream.domain.model.ProviderType.STALKER_PORTAL -> "Stalker/MAG Portal"
                             }
                         )
                     }
@@ -1496,7 +1496,7 @@ class PlayerViewModel @Inject constructor(
         _playerDiagnostics.update { it.copy(streamClassLabel = label) }
     }
 
-    internal fun updateChannelDiagnostics(channel: com.streamvault.domain.model.Channel) {
+    internal fun updateChannelDiagnostics(channel: com.MegaStream.domain.model.Channel) {
         _playerDiagnostics.update { currentState ->
             updateChannelDiagnosticsState(
                 currentState = currentState,
@@ -1521,7 +1521,7 @@ class PlayerViewModel @Inject constructor(
         internalContentId: Long,
         providerId: Long,
         contentType: ContentType
-    ): com.streamvault.domain.model.StreamInfo? {
+    ): com.MegaStream.domain.model.StreamInfo? {
         val resolution = resolvePlayerPlaybackStreamInfo(
             logicalUrl = logicalUrl,
             internalContentId = internalContentId,

@@ -1,8 +1,8 @@
-package com.streamvault.domain.manager
+package com.MegaStream.domain.manager
 
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.ProgramReminder
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.ProgramReminder
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 
 interface ProgramReminderManager {

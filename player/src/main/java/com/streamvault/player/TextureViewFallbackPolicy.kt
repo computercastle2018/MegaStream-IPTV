@@ -1,6 +1,6 @@
-package com.streamvault.player
+package com.MegaStream.player
 
-import com.streamvault.domain.model.PlayerSurfaceMode
+import com.MegaStream.domain.model.PlayerSurfaceMode
 
 private const val UNKNOWN_DECODER_NAME = "Unknown"
 

@@ -1,4 +1,4 @@
-package com.streamvault.player
+package com.MegaStream.player
 
 import androidx.media3.ui.CaptionStyleCompat
 

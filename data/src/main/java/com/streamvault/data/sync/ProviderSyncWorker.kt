@@ -1,4 +1,4 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import android.content.Context
 import android.database.sqlite.SQLiteException
@@ -15,16 +15,16 @@ import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.ChannelDao
-import com.streamvault.data.local.dao.XtreamIndexJobDao
-import com.streamvault.data.local.dao.XtreamLiveOnboardingDao
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.ProviderEpgSyncMode
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.SyncState
-import com.streamvault.domain.repository.SyncMetadataRepository
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.ChannelDao
+import com.MegaStream.data.local.dao.XtreamIndexJobDao
+import com.MegaStream.data.local.dao.XtreamLiveOnboardingDao
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.ProviderEpgSyncMode
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.SyncState
+import com.MegaStream.domain.repository.SyncMetadataRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -36,12 +36,12 @@ internal suspend fun reconcileTargetedProviderStatus(
     channelDao: ChannelDao,
     syncMetadataRepository: SyncMetadataRepository,
     syncManager: SyncManager,
-    provider: com.streamvault.data.local.entity.ProviderEntity,
-    result: com.streamvault.domain.model.Result<Unit>,
+    provider: com.MegaStream.data.local.entity.ProviderEntity,
+    result: com.MegaStream.domain.model.Result<Unit>,
     currentTimeMillis: Long = System.currentTimeMillis()
 ) {
     when (result) {
-        is com.streamvault.domain.model.Result.Success -> {
+        is com.MegaStream.domain.model.Result.Success -> {
             val finalStatus = if (syncManager.currentSyncState(provider.id) is SyncState.Partial) {
                 ProviderStatus.PARTIAL
             } else {
@@ -70,17 +70,17 @@ internal suspend fun reconcileTargetedProviderStatus(
                 )
             )
         }
-        is com.streamvault.domain.model.Result.Error -> {
+        is com.MegaStream.domain.model.Result.Error -> {
             if (provider.status != ProviderStatus.PARTIAL) {
                 providerDao.update(provider.copy(isActive = false, status = ProviderStatus.ERROR))
             }
         }
-        is com.streamvault.domain.model.Result.Loading -> Unit
+        is com.MegaStream.domain.model.Result.Loading -> Unit
     }
 }
 
 internal suspend fun shouldTrackInitialLiveOnboarding(
-    provider: com.streamvault.data.local.entity.ProviderEntity,
+    provider: com.MegaStream.data.local.entity.ProviderEntity,
     onboardingDao: XtreamLiveOnboardingDao
 ): Boolean = provider.type == ProviderType.XTREAM_CODES &&
     onboardingDao.getIncompleteByProvider(provider.id) != null
@@ -138,7 +138,7 @@ class ProviderSyncWorker(
                     reconcileTargetedProviderStatus(entryPoint, provider, result)
                 }
                 when (result) {
-                    is com.streamvault.domain.model.Result.Error -> {
+                    is com.MegaStream.domain.model.Result.Error -> {
                         Log.w(TAG, "Provider sync worker failed for provider ${provider.id}: ${result.message}")
                         if (shouldRetry(result.exception)) {
                             sawRetryableFailure = true
@@ -243,8 +243,8 @@ class ProviderSyncWorker(
 
     private suspend fun syncXtreamProviderIfStale(
         entryPoint: ProviderSyncWorkerEntryPoint,
-        provider: com.streamvault.data.local.entity.ProviderEntity
-    ): com.streamvault.domain.model.Result<Unit> {
+        provider: com.MegaStream.data.local.entity.ProviderEntity
+    ): com.MegaStream.domain.model.Result<Unit> {
         val now = System.currentTimeMillis()
         if (shouldTrackInitialLiveOnboarding(provider, entryPoint.xtreamLiveOnboardingDao())) {
             return entryPoint.syncManager().sync(
@@ -269,7 +269,7 @@ class ProviderSyncWorker(
         val seriesIndexDue = shouldRunIndexJob(entryPoint, provider.id, ContentType.SERIES, now)
 
         if (!provider.isActive) {
-            return com.streamvault.domain.model.Result.success(Unit)
+            return com.MegaStream.domain.model.Result.success(Unit)
         }
 
         if (liveStale) {
@@ -278,13 +278,13 @@ class ProviderSyncWorker(
                 SyncRepairSection.LIVE,
                 syncReason = XtreamLiveSyncReason.BACKGROUND_STALE
             )) {
-                is com.streamvault.domain.model.Result.Error -> return liveResult
+                is com.MegaStream.domain.model.Result.Error -> return liveResult
                 else -> Unit
             }
         }
         if (epgStale) {
             when (val epgResult = entryPoint.syncManager().syncEpg(provider.id, force = false)) {
-                is com.streamvault.domain.model.Result.Error -> return epgResult
+                is com.MegaStream.domain.model.Result.Error -> return epgResult
                 else -> Unit
             }
         }
@@ -294,7 +294,7 @@ class ProviderSyncWorker(
         if (seriesIndexDue) {
             entryPoint.syncManager().scheduleXtreamIndexSync(provider.id, ContentType.SERIES)
         }
-        return com.streamvault.domain.model.Result.success(Unit)
+        return com.MegaStream.domain.model.Result.success(Unit)
     }
 
     private suspend fun shouldRunIndexJob(
@@ -310,8 +310,8 @@ class ProviderSyncWorker(
 
     private suspend fun reconcileTargetedProviderStatus(
         entryPoint: ProviderSyncWorkerEntryPoint,
-        provider: com.streamvault.data.local.entity.ProviderEntity,
-        result: com.streamvault.domain.model.Result<Unit>
+        provider: com.MegaStream.data.local.entity.ProviderEntity,
+        result: com.MegaStream.domain.model.Result<Unit>
     ) {
         reconcileTargetedProviderStatus(
             providerDao = entryPoint.providerDao(),

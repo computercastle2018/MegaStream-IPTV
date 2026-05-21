@@ -1,4 +1,4 @@
-package com.streamvault.data.security
+package com.MegaStream.data.security
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -29,7 +29,7 @@ interface CredentialCrypto {
 class AndroidKeystoreCredentialCrypto @Inject constructor() : CredentialCrypto {
     private val TAG = "CredentialCrypto"
     private val KEYSTORE_TYPE = "AndroidKeyStore"
-    private val KEY_ALIAS = "streamvault_credentials"
+    private val KEY_ALIAS = "MegaStream_credentials"
     private val TRANSFORMATION = "AES/GCM/NoPadding"
     private val IV_SIZE_BYTES = 12
     private val AUTH_TAG_BITS = 128

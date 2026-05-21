@@ -1,4 +1,4 @@
-package com.streamvault.domain.util
+package com.MegaStream.domain.util
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

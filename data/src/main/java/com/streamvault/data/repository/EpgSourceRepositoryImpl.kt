@@ -1,40 +1,40 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.streamvault.data.epg.EpgNameNormalizer
-import com.streamvault.data.epg.EpgResolutionEngine
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.ChannelEpgMappingDao
-import com.streamvault.data.local.dao.EpgChannelDao
-import com.streamvault.data.local.dao.EpgProgrammeDao
-import com.streamvault.data.local.dao.EpgSourceDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.ProviderEpgSourceDao
-import com.streamvault.data.local.entity.ChannelEpgMappingEntity
-import com.streamvault.data.local.entity.EpgChannelEntity
-import com.streamvault.data.local.entity.EpgProgrammeEntity
-import com.streamvault.data.local.entity.EpgSourceEntity
-import com.streamvault.data.local.entity.ProviderEpgSourceEntity
-import com.streamvault.data.mapper.toDomain
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.EpgMatchType
-import com.streamvault.domain.model.EpgOverrideCandidate
-import com.streamvault.domain.model.EpgSourceType
-import com.streamvault.data.parser.XmltvParser
-import com.streamvault.data.util.UrlSecurityPolicy
-import com.streamvault.data.remote.http.HttpRequestProfile
-import com.streamvault.data.remote.http.safeRequestIdentitySummary
-import com.streamvault.data.remote.http.withRequestProfile
-import com.streamvault.domain.model.ChannelEpgMapping
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.EpgResolutionSummary
-import com.streamvault.domain.model.EpgSource
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.ProviderEpgSourceAssignment
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.EpgSourceRepository
+import com.MegaStream.data.epg.EpgNameNormalizer
+import com.MegaStream.data.epg.EpgResolutionEngine
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.ChannelEpgMappingDao
+import com.MegaStream.data.local.dao.EpgChannelDao
+import com.MegaStream.data.local.dao.EpgProgrammeDao
+import com.MegaStream.data.local.dao.EpgSourceDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.ProviderEpgSourceDao
+import com.MegaStream.data.local.entity.ChannelEpgMappingEntity
+import com.MegaStream.data.local.entity.EpgChannelEntity
+import com.MegaStream.data.local.entity.EpgProgrammeEntity
+import com.MegaStream.data.local.entity.EpgSourceEntity
+import com.MegaStream.data.local.entity.ProviderEpgSourceEntity
+import com.MegaStream.data.mapper.toDomain
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.EpgMatchType
+import com.MegaStream.domain.model.EpgOverrideCandidate
+import com.MegaStream.domain.model.EpgSourceType
+import com.MegaStream.data.parser.XmltvParser
+import com.MegaStream.data.util.UrlSecurityPolicy
+import com.MegaStream.data.remote.http.HttpRequestProfile
+import com.MegaStream.data.remote.http.safeRequestIdentitySummary
+import com.MegaStream.data.remote.http.withRequestProfile
+import com.MegaStream.domain.model.ChannelEpgMapping
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.EpgResolutionSummary
+import com.MegaStream.domain.model.EpgSource
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.ProviderEpgSourceAssignment
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.EpgSourceRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -48,7 +48,7 @@ import java.io.FilterInputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
-import com.streamvault.data.remote.NetworkTimeoutConfig
+import com.MegaStream.data.remote.NetworkTimeoutConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -570,7 +570,7 @@ class EpgSourceRepositoryImpl @Inject constructor(
                 EpgSourceEntity(
                     id = stagingId,
                     name = "${source.name} staging",
-                    url = "streamvault://epg-source-staging/${source.id}",
+                    url = "MegaStream://epg-source-staging/${source.id}",
                     enabled = false,
                     priority = Int.MAX_VALUE,
                     createdAt = now,

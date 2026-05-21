@@ -1,4 +1,4 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
 /**
  * Represents every stage of a provider sync operation.

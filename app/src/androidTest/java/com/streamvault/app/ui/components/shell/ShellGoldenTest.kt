@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components.shell
+package com.MegaStream.app.ui.components.shell
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +10,10 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.streamvault.app.navigation.Routes
-import com.streamvault.app.ui.test.assertAgainstGolden
-import com.streamvault.app.ui.theme.StreamVaultTheme
-import com.streamvault.domain.model.Channel
+import com.MegaStream.app.navigation.Routes
+import com.MegaStream.app.ui.test.assertAgainstGolden
+import com.MegaStream.app.ui.theme.MegaStreamTheme
+import com.MegaStream.domain.model.Channel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,7 +27,7 @@ class ShellGoldenTest {
     @Test
     fun browseHeroPanel_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -52,7 +52,7 @@ class ShellGoldenTest {
     @Test
     fun liveChannelRowSurface_matchesGolden() {
         composeRule.setContent {
-            StreamVaultTheme {
+            MegaStreamTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -81,7 +81,7 @@ class ShellGoldenTest {
     fun appScreenScaffold_rtl_matchesGolden() {
         composeRule.setContent {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                StreamVaultTheme {
+                MegaStreamTheme {
                     AppScreenScaffold(
                         currentRoute = Routes.EPG,
                         onNavigate = {},

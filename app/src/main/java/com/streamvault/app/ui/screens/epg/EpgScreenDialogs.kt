@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.epg
+package com.MegaStream.app.ui.screens.epg
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -49,23 +49,23 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.time.LocalAppTimeFormat
-import com.streamvault.app.ui.time.createTimeFormat
-import com.streamvault.app.ui.theme.FocusBorder
-import com.streamvault.app.ui.theme.OnSurface
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
-import com.streamvault.app.ui.theme.SurfaceHighlight
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.EpgMatchType
-import com.streamvault.domain.model.EpgOverrideCandidate
-import com.streamvault.domain.model.EpgSourceType
-import com.streamvault.domain.model.Program
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.time.createTimeFormat
+import com.MegaStream.app.ui.theme.FocusBorder
+import com.MegaStream.app.ui.theme.OnSurface
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.ui.theme.SurfaceHighlight
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.EpgMatchType
+import com.MegaStream.domain.model.EpgOverrideCandidate
+import com.MegaStream.domain.model.EpgSourceType
+import com.MegaStream.domain.model.Program
 import java.util.Date
 
 @Composable
@@ -421,7 +421,7 @@ internal fun CompactGuideProgramDialog(
                             modifier = Modifier.fillMaxWidth(),
                             scale = ButtonDefaults.scale(focusedScale = 1f),
                             colors = ButtonDefaults.colors(
-                                containerColor = com.streamvault.app.ui.theme.AccentRed,
+                                containerColor = com.MegaStream.app.ui.theme.AccentRed,
                                 contentColor = Color.White
                             )
                         ) {

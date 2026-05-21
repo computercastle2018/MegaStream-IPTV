@@ -1,8 +1,8 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.data.local.dao.XtreamIndexJobDao
-import com.streamvault.domain.manager.ProviderSyncStateReader
-import com.streamvault.domain.model.SyncState
+import com.MegaStream.data.local.dao.XtreamIndexJobDao
+import com.MegaStream.domain.manager.ProviderSyncStateReader
+import com.MegaStream.domain.model.SyncState
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow

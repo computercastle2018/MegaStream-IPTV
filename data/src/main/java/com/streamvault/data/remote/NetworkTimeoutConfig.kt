@@ -1,4 +1,4 @@
-package com.streamvault.data.remote
+package com.MegaStream.data.remote
 
 object NetworkTimeoutConfig {
     const val CONNECT_TIMEOUT_SECONDS = 30L

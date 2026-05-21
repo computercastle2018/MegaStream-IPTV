@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -35,26 +35,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.tv.material3.*
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.TvEmptyState
-import com.streamvault.app.ui.components.dialogs.PremiumDialog
-import com.streamvault.app.ui.components.dialogs.PremiumDialogActionButton
-import com.streamvault.app.ui.components.dialogs.PremiumDialogFooterButton
-import com.streamvault.app.ui.design.FocusSpec
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.mouseClickable
-import com.streamvault.app.ui.theme.*
-import com.streamvault.app.ui.time.LocalAppTimeFormat
-import com.streamvault.app.ui.time.createDateTimeFormat
-import com.streamvault.domain.manager.BackupConflictStrategy
-import com.streamvault.domain.manager.BackupImportPlan
-import com.streamvault.domain.manager.BackupPreview
-import com.streamvault.domain.model.RecordingFailureCategory
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingRecurrence
-import com.streamvault.domain.model.RecordingSourceType
-import com.streamvault.domain.model.RecordingStatus
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.TvEmptyState
+import com.MegaStream.app.ui.components.dialogs.PremiumDialog
+import com.MegaStream.app.ui.components.dialogs.PremiumDialogActionButton
+import com.MegaStream.app.ui.components.dialogs.PremiumDialogFooterButton
+import com.MegaStream.app.ui.design.FocusSpec
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.theme.*
+import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.time.createDateTimeFormat
+import com.MegaStream.domain.manager.BackupConflictStrategy
+import com.MegaStream.domain.manager.BackupImportPlan
+import com.MegaStream.domain.manager.BackupPreview
+import com.MegaStream.domain.model.RecordingFailureCategory
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingRecurrence
+import com.MegaStream.domain.model.RecordingSourceType
+import com.MegaStream.domain.model.RecordingStatus
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 @Composable

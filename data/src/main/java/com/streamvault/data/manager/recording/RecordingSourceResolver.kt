@@ -1,11 +1,11 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.remote.xtream.ResolvedStreamUrl
-import com.streamvault.data.remote.xtream.XtreamStreamUrlResolver
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.RecordingFailureCategory
-import com.streamvault.domain.model.RecordingSourceType
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.remote.xtream.ResolvedStreamUrl
+import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.RecordingFailureCategory
+import com.MegaStream.domain.model.RecordingSourceType
 import java.io.IOException
 import java.util.Locale
 import javax.inject.Inject
@@ -49,9 +49,9 @@ class RecordingSourceResolver @Inject constructor(
 
         val providerLabel = providerDao.getById(providerId)?.let { provider ->
             when {
-                provider.type == com.streamvault.domain.model.ProviderType.XTREAM_CODES -> "${provider.name} • Xtream"
-                provider.type == com.streamvault.domain.model.ProviderType.M3U -> "${provider.name} • M3U"
-                provider.type == com.streamvault.domain.model.ProviderType.STALKER_PORTAL -> "${provider.name} • Stalker"
+                provider.type == com.MegaStream.domain.model.ProviderType.XTREAM_CODES -> "${provider.name} • Xtream"
+                provider.type == com.MegaStream.domain.model.ProviderType.M3U -> "${provider.name} • M3U"
+                provider.type == com.MegaStream.domain.model.ProviderType.STALKER_PORTAL -> "${provider.name} • Stalker"
                 else -> provider.name
             }
         }

@@ -1,4 +1,4 @@
-package com.streamvault.app.plugins
+package com.MegaStream.app.plugins
 
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -11,19 +11,19 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
-import com.streamvault.app.BuildConfig
-import com.streamvault.app.tvinput.TvInputChannelSyncManager
-import com.streamvault.domain.model.ActiveLiveSource
-import com.streamvault.domain.model.DrmInfo
-import com.streamvault.domain.model.DrmScheme
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderEpgSyncMode
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
-import com.streamvault.domain.repository.CombinedM3uRepository
-import com.streamvault.domain.repository.ProviderRepository
+import com.MegaStream.app.BuildConfig
+import com.MegaStream.app.tvinput.TvInputChannelSyncManager
+import com.MegaStream.domain.model.ActiveLiveSource
+import com.MegaStream.domain.model.DrmInfo
+import com.MegaStream.domain.model.DrmScheme
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderEpgSyncMode
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.domain.repository.CombinedM3uRepository
+import com.MegaStream.domain.repository.ProviderRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.net.URI
@@ -40,7 +40,7 @@ import okhttp3.Request
 import org.json.JSONObject
 
 @Singleton
-class StreamVaultPluginManager @Inject constructor(
+class MegaStreamPluginManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val messengerClient: PluginMessengerClient,
     private val providerRepository: ProviderRepository,
@@ -49,9 +49,9 @@ class StreamVaultPluginManager @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val json: Json
 ) {
-    private val prefs = context.getSharedPreferences("streamvault_plugins", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("MegaStream_plugins", Context.MODE_PRIVATE)
 
-    suspend fun discoverPlugins(): List<InstalledStreamVaultPlugin> = withContext(Dispatchers.IO) {
+    suspend fun discoverPlugins(): List<InstalledMegaStreamPlugin> = withContext(Dispatchers.IO) {
         queryPluginServices()
             .mapNotNull { resolveInfo -> resolvePlugin(resolveInfo) }
             .distinctBy { it.manifest.id }
@@ -59,18 +59,18 @@ class StreamVaultPluginManager @Inject constructor(
     }
 
     suspend fun setPluginEnabled(
-        plugin: InstalledStreamVaultPlugin,
+        plugin: InstalledMegaStreamPlugin,
         enabled: Boolean,
         onProgress: (String) -> Unit = {}
     ): PluginActionResult = withContext(Dispatchers.IO) {
         val command = Bundle().apply {
-            putBoolean(StreamVaultPluginContract.KEY_ENABLED, enabled)
+            putBoolean(MegaStreamPluginContract.KEY_ENABLED, enabled)
         }
         val response = runCatching {
             messengerClient.send(
                 packageName = plugin.packageName,
                 serviceClassName = plugin.serviceClassName,
-                what = StreamVaultPluginContract.MSG_SET_ENABLED,
+                what = MegaStreamPluginContract.MSG_SET_ENABLED,
                 data = command,
                 timeoutMillis = 120_000L
             )
@@ -78,16 +78,16 @@ class StreamVaultPluginManager @Inject constructor(
             return@withContext PluginActionResult(false, error.message ?: "Plugin did not respond")
         }
 
-        if (!response.getBoolean(StreamVaultPluginContract.KEY_SUCCESS, true)) {
+        if (!response.getBoolean(MegaStreamPluginContract.KEY_SUCCESS, true)) {
             return@withContext PluginActionResult(
                 success = false,
-                message = response.getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+                message = response.getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
                     .ifBlank { "Plugin rejected the request" }
             )
         }
 
         prefs.edit().putBoolean(enabledKey(plugin.manifest.id), enabled).apply()
-        if (enabled && plugin.manifest.hasCapability(StreamVaultPluginContract.CAPABILITY_PROVIDER_M3U)) {
+        if (enabled && plugin.manifest.hasCapability(MegaStreamPluginContract.CAPABILITY_PROVIDER_M3U)) {
             syncPluginProvider(plugin, onProgress)?.let { return@withContext it }
         } else if (!enabled) {
             removePluginProvider(plugin)?.let { return@withContext it }
@@ -95,7 +95,7 @@ class StreamVaultPluginManager @Inject constructor(
 
         PluginActionResult(
             success = true,
-            message = response.getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+            message = response.getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
                 .ifBlank { if (enabled) "Plugin activated" else "Plugin deactivated" }
         )
     }
@@ -135,7 +135,7 @@ class StreamVaultPluginManager @Inject constructor(
         launchPackageInstaller(target)
     }
 
-    fun openPluginConfiguration(plugin: InstalledStreamVaultPlugin): PluginActionResult {
+    fun openPluginConfiguration(plugin: InstalledMegaStreamPlugin): PluginActionResult {
         val action = plugin.manifest.configurationActivityAction?.takeIf { it.isNotBlank() }
             ?: return PluginActionResult(false, "This plugin has no configuration screen")
         val intent = Intent(action).apply {
@@ -150,31 +150,31 @@ class StreamVaultPluginManager @Inject constructor(
         }
     }
 
-    suspend fun loadPluginConfiguration(plugin: InstalledStreamVaultPlugin): Result<PluginConfigurationSnapshot> =
+    suspend fun loadPluginConfiguration(plugin: InstalledMegaStreamPlugin): Result<PluginConfigurationSnapshot> =
         withContext(Dispatchers.IO) {
             if (!plugin.manifest.supportsHostRenderedConfiguration) {
-                return@withContext Result.error("This plugin does not expose a StreamVault configuration schema")
+                return@withContext Result.error("This plugin does not expose a MegaStream configuration schema")
             }
 
             val schemaResponse = runCatching {
                 messengerClient.send(
                     packageName = plugin.packageName,
                     serviceClassName = plugin.serviceClassName,
-                    what = StreamVaultPluginContract.MSG_GET_CONFIGURATION_SCHEMA,
+                    what = MegaStreamPluginContract.MSG_GET_CONFIGURATION_SCHEMA,
                     timeoutMillis = 10_000L
                 )
             }.getOrElse { error ->
                 return@withContext Result.error(error.message ?: "Plugin configuration schema is unavailable")
             }
-            if (!schemaResponse.getBoolean(StreamVaultPluginContract.KEY_SUCCESS, false)) {
+            if (!schemaResponse.getBoolean(MegaStreamPluginContract.KEY_SUCCESS, false)) {
                 return@withContext Result.error(
-                    schemaResponse.getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+                    schemaResponse.getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
                         .ifBlank { "Plugin configuration schema is unavailable" }
                 )
             }
 
             val schemaJson = schemaResponse
-                .getString(StreamVaultPluginContract.KEY_CONFIGURATION_SCHEMA_JSON)
+                .getString(MegaStreamPluginContract.KEY_CONFIGURATION_SCHEMA_JSON)
                 .orEmpty()
             val schema = runCatching { json.decodeFromString<PluginConfigurationSchema>(schemaJson) }
                 .getOrElse { error ->
@@ -188,27 +188,27 @@ class StreamVaultPluginManager @Inject constructor(
             Result.success(PluginConfigurationSnapshot(plugin, schema, values))
         }
 
-    suspend fun loadPluginConfigurationValues(plugin: InstalledStreamVaultPlugin): Result<JsonObject> =
+    suspend fun loadPluginConfigurationValues(plugin: InstalledMegaStreamPlugin): Result<JsonObject> =
         withContext(Dispatchers.IO) {
             val valuesResponse = runCatching {
                 messengerClient.send(
                     packageName = plugin.packageName,
                     serviceClassName = plugin.serviceClassName,
-                    what = StreamVaultPluginContract.MSG_GET_CONFIGURATION_VALUES,
+                    what = MegaStreamPluginContract.MSG_GET_CONFIGURATION_VALUES,
                     timeoutMillis = 10_000L
                 )
             }.getOrElse { error ->
                 return@withContext Result.error(error.message ?: "Plugin configuration values are unavailable")
             }
-            if (!valuesResponse.getBoolean(StreamVaultPluginContract.KEY_SUCCESS, false)) {
+            if (!valuesResponse.getBoolean(MegaStreamPluginContract.KEY_SUCCESS, false)) {
                 return@withContext Result.error(
-                    valuesResponse.getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+                    valuesResponse.getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
                         .ifBlank { "Plugin configuration values are unavailable" }
                 )
             }
 
             val valuesJson = valuesResponse
-                .getString(StreamVaultPluginContract.KEY_CONFIGURATION_VALUES_JSON)
+                .getString(MegaStreamPluginContract.KEY_CONFIGURATION_VALUES_JSON)
                 .orEmpty()
             val values = if (valuesJson.isBlank()) {
                 JsonObject(emptyMap())
@@ -222,16 +222,16 @@ class StreamVaultPluginManager @Inject constructor(
         }
 
     suspend fun savePluginConfiguration(
-        plugin: InstalledStreamVaultPlugin,
+        plugin: InstalledMegaStreamPlugin,
         valuesJson: String
     ): PluginActionResult = withContext(Dispatchers.IO) {
         val response = runCatching {
             messengerClient.send(
                 packageName = plugin.packageName,
                 serviceClassName = plugin.serviceClassName,
-                what = StreamVaultPluginContract.MSG_SET_CONFIGURATION_VALUES,
+                what = MegaStreamPluginContract.MSG_SET_CONFIGURATION_VALUES,
                 data = Bundle().apply {
-                    putString(StreamVaultPluginContract.KEY_CONFIGURATION_VALUES_JSON, valuesJson)
+                    putString(MegaStreamPluginContract.KEY_CONFIGURATION_VALUES_JSON, valuesJson)
                 },
                 timeoutMillis = 60_000L
             )
@@ -242,16 +242,16 @@ class StreamVaultPluginManager @Inject constructor(
     }
 
     suspend fun runPluginConfigurationAction(
-        plugin: InstalledStreamVaultPlugin,
+        plugin: InstalledMegaStreamPlugin,
         actionId: String
     ): PluginActionResult = withContext(Dispatchers.IO) {
         val response = runCatching {
             messengerClient.send(
                 packageName = plugin.packageName,
                 serviceClassName = plugin.serviceClassName,
-                what = StreamVaultPluginContract.MSG_RUN_CONFIGURATION_ACTION,
+                what = MegaStreamPluginContract.MSG_RUN_CONFIGURATION_ACTION,
                 data = Bundle().apply {
-                    putString(StreamVaultPluginContract.KEY_CONFIGURATION_ACTION_ID, actionId)
+                    putString(MegaStreamPluginContract.KEY_CONFIGURATION_ACTION_ID, actionId)
                 },
                 timeoutMillis = 120_000L
             )
@@ -268,24 +268,24 @@ class StreamVaultPluginManager @Inject constructor(
         val url = streamInfo.url
         if (url.isBlank()) return@withContext Result.success(streamInfo)
         val plugins = discoverPlugins()
-            .filter { it.enabled && it.manifest.hasCapability(StreamVaultPluginContract.CAPABILITY_PLAYBACK_PREPARE) }
+            .filter { it.enabled && it.manifest.hasCapability(MegaStreamPluginContract.CAPABILITY_PLAYBACK_PREPARE) }
         for (plugin in plugins) {
             val response = runCatching {
                 messengerClient.send(
                     packageName = plugin.packageName,
                     serviceClassName = plugin.serviceClassName,
-                    what = StreamVaultPluginContract.MSG_PREPARE_PLAYBACK,
-                    data = Bundle().apply { putString(StreamVaultPluginContract.KEY_INPUT_URL, url) },
+                    what = MegaStreamPluginContract.MSG_PREPARE_PLAYBACK,
+                    data = Bundle().apply { putString(MegaStreamPluginContract.KEY_INPUT_URL, url) },
                     timeoutMillis = 120_000L
                 )
             }.getOrNull() ?: continue
 
-            if (!response.getBoolean(StreamVaultPluginContract.KEY_HANDLED, false)) continue
-            if (response.getBoolean(StreamVaultPluginContract.KEY_SUCCESS, false)) {
+            if (!response.getBoolean(MegaStreamPluginContract.KEY_HANDLED, false)) continue
+            if (response.getBoolean(MegaStreamPluginContract.KEY_SUCCESS, false)) {
                 return@withContext Result.success(applyPlaybackPreparationResponse(streamInfo, response))
             }
             return@withContext Result.error(
-                response.getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+                response.getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
                     .ifBlank { "${plugin.displayName} could not prepare playback" }
             )
         }
@@ -295,21 +295,21 @@ class StreamVaultPluginManager @Inject constructor(
     suspend fun rewriteCastUrl(url: String): String? = withContext(Dispatchers.IO) {
         if (url.isBlank()) return@withContext url
         val plugins = discoverPlugins()
-            .filter { it.enabled && it.manifest.hasCapability(StreamVaultPluginContract.CAPABILITY_CAST_REWRITE_URL) }
+            .filter { it.enabled && it.manifest.hasCapability(MegaStreamPluginContract.CAPABILITY_CAST_REWRITE_URL) }
         for (plugin in plugins) {
             val response = runCatching {
                 messengerClient.send(
                     packageName = plugin.packageName,
                     serviceClassName = plugin.serviceClassName,
-                    what = StreamVaultPluginContract.MSG_REWRITE_CAST_URL,
-                    data = Bundle().apply { putString(StreamVaultPluginContract.KEY_INPUT_URL, url) },
+                    what = MegaStreamPluginContract.MSG_REWRITE_CAST_URL,
+                    data = Bundle().apply { putString(MegaStreamPluginContract.KEY_INPUT_URL, url) },
                     timeoutMillis = 10_000L
                 )
             }.getOrNull() ?: continue
 
-            if (!response.getBoolean(StreamVaultPluginContract.KEY_HANDLED, false)) continue
-            if (!response.getBoolean(StreamVaultPluginContract.KEY_SUCCESS, false)) return@withContext null
-            return@withContext response.getString(StreamVaultPluginContract.KEY_OUTPUT_URL).orEmpty()
+            if (!response.getBoolean(MegaStreamPluginContract.KEY_HANDLED, false)) continue
+            if (!response.getBoolean(MegaStreamPluginContract.KEY_SUCCESS, false)) return@withContext null
+            return@withContext response.getString(MegaStreamPluginContract.KEY_OUTPUT_URL).orEmpty()
                 .ifBlank { url }
         }
         url
@@ -319,14 +319,14 @@ class StreamVaultPluginManager @Inject constructor(
         streamInfo: StreamInfo,
         response: Bundle
     ): StreamInfo {
-        val outputUrl = response.getString(StreamVaultPluginContract.KEY_OUTPUT_URL).orEmpty()
+        val outputUrl = response.getString(MegaStreamPluginContract.KEY_OUTPUT_URL).orEmpty()
             .ifBlank { streamInfo.url }
-        val responseHeaders = parseHeadersJson(response.getString(StreamVaultPluginContract.KEY_HEADERS_JSON).orEmpty())
-        val responseUserAgent = response.getString(StreamVaultPluginContract.KEY_USER_AGENT)
+        val responseHeaders = parseHeadersJson(response.getString(MegaStreamPluginContract.KEY_HEADERS_JSON).orEmpty())
+        val responseUserAgent = response.getString(MegaStreamPluginContract.KEY_USER_AGENT)
             ?.takeIf { it.isNotBlank() }
-        val streamType = parsePluginStreamType(response.getString(StreamVaultPluginContract.KEY_STREAM_TYPE))
+        val streamType = parsePluginStreamType(response.getString(MegaStreamPluginContract.KEY_STREAM_TYPE))
             ?: streamInfo.streamType
-        val drmInfo = parsePluginDrmInfo(response.getString(StreamVaultPluginContract.KEY_DRM_JSON))
+        val drmInfo = parsePluginDrmInfo(response.getString(MegaStreamPluginContract.KEY_DRM_JSON))
             ?: streamInfo.drmInfo
         return streamInfo.copy(
             url = outputUrl,
@@ -394,32 +394,32 @@ class StreamVaultPluginManager @Inject constructor(
     }
 
     private suspend fun syncPluginProvider(
-        plugin: InstalledStreamVaultPlugin,
+        plugin: InstalledMegaStreamPlugin,
         onProgress: (String) -> Unit
     ): PluginActionResult? {
         val providerResponse = runCatching {
             messengerClient.send(
                 packageName = plugin.packageName,
                 serviceClassName = plugin.serviceClassName,
-                what = StreamVaultPluginContract.MSG_GET_PROVIDER_URL,
+                what = MegaStreamPluginContract.MSG_GET_PROVIDER_URL,
                 timeoutMillis = 120_000L
             )
         }.getOrElse { error ->
             return PluginActionResult(false, error.message ?: "Plugin provider URL is unavailable")
         }
-        if (!providerResponse.getBoolean(StreamVaultPluginContract.KEY_SUCCESS, false)) {
+        if (!providerResponse.getBoolean(MegaStreamPluginContract.KEY_SUCCESS, false)) {
             return PluginActionResult(
                 false,
-                providerResponse.getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+                providerResponse.getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
                     .ifBlank { "Plugin provider URL is unavailable" }
             )
         }
 
-        val providerUrl = providerResponse.getString(StreamVaultPluginContract.KEY_URL).orEmpty()
+        val providerUrl = providerResponse.getString(MegaStreamPluginContract.KEY_URL).orEmpty()
         if (providerUrl.isBlank()) {
             return PluginActionResult(false, "Plugin did not return a provider URL")
         }
-        val providerName = providerResponse.getString(StreamVaultPluginContract.KEY_PROVIDER_NAME)
+        val providerName = providerResponse.getString(MegaStreamPluginContract.KEY_PROVIDER_NAME)
             ?.takeIf { it.isNotBlank() }
             ?: plugin.manifest.providerName?.takeIf { it.isNotBlank() }
             ?: "${plugin.displayName} Plugin"
@@ -473,7 +473,7 @@ class StreamVaultPluginManager @Inject constructor(
         return null
     }
 
-    private suspend fun removePluginProvider(plugin: InstalledStreamVaultPlugin): PluginActionResult? {
+    private suspend fun removePluginProvider(plugin: InstalledMegaStreamPlugin): PluginActionResult? {
         val providerId = prefs.getLong(providerKey(plugin.manifest.id), -1L).takeIf { it > 0L }
             ?: return null
         when (val result = providerRepository.deleteProvider(providerId)) {
@@ -501,7 +501,7 @@ class StreamVaultPluginManager @Inject constructor(
         }
     }
 
-    private suspend fun trackedProvider(plugin: InstalledStreamVaultPlugin): Provider? {
+    private suspend fun trackedProvider(plugin: InstalledMegaStreamPlugin): Provider? {
         val providerId = prefs.getLong(providerKey(plugin.manifest.id), -1L).takeIf { it > 0L }
             ?: return providerRepository.getProviders().first().firstOrNull {
                 it.type == ProviderType.M3U && it.m3uUrl.isNotBlank() && it.name == plugin.manifest.providerName
@@ -515,85 +515,85 @@ class StreamVaultPluginManager @Inject constructor(
         }
     }
 
-    private fun resolvePlugin(resolveInfo: ResolveInfo): InstalledStreamVaultPlugin? {
+    private fun resolvePlugin(resolveInfo: ResolveInfo): InstalledMegaStreamPlugin? {
         val serviceInfo = resolveInfo.serviceInfo ?: return null
         val packageName = serviceInfo.packageName ?: return null
         val serviceName = serviceInfo.name ?: return null
         val appLabel = serviceInfo.loadLabel(context.packageManager)?.toString().orEmpty()
         val manifest = readManifestFromService(packageName, serviceName)
             ?: readManifestFromMetadata(serviceInfo.metaData)
-            ?: StreamVaultPluginManifest(
+            ?: MegaStreamPluginManifest(
                 id = packageName,
                 name = appLabel.ifBlank { packageName },
-                description = "StreamVault plugin"
+                description = "MegaStream plugin"
             )
         val status = runCatching {
             kotlinx.coroutines.runBlocking(Dispatchers.IO) {
                 messengerClient.send(
                     packageName = packageName,
                     serviceClassName = serviceName,
-                    what = StreamVaultPluginContract.MSG_GET_STATUS,
+                    what = MegaStreamPluginContract.MSG_GET_STATUS,
                     timeoutMillis = 2_500L
                 )
             }
         }.getOrNull()
-        return InstalledStreamVaultPlugin(
+        return InstalledMegaStreamPlugin(
             packageName = packageName,
             serviceClassName = serviceName,
             appLabel = appLabel,
             manifest = manifest,
             enabled = prefs.getBoolean(enabledKey(manifest.id), false),
-            statusLabel = status?.getString(StreamVaultPluginContract.KEY_STATUS_LABEL).orEmpty(),
-            lastMessage = status?.getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+            statusLabel = status?.getString(MegaStreamPluginContract.KEY_STATUS_LABEL).orEmpty(),
+            lastMessage = status?.getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
         )
     }
 
-    private fun readManifestFromService(packageName: String, serviceName: String): StreamVaultPluginManifest? =
+    private fun readManifestFromService(packageName: String, serviceName: String): MegaStreamPluginManifest? =
         runCatching {
             val response = kotlinx.coroutines.runBlocking(Dispatchers.IO) {
                 messengerClient.send(
                     packageName = packageName,
                     serviceClassName = serviceName,
-                    what = StreamVaultPluginContract.MSG_GET_MANIFEST,
+                    what = MegaStreamPluginContract.MSG_GET_MANIFEST,
                     timeoutMillis = 3_000L
                 )
             }
-            val manifestJson = response.getString(StreamVaultPluginContract.KEY_MANIFEST_JSON).orEmpty()
-            json.decodeFromString<StreamVaultPluginManifest>(manifestJson)
+            val manifestJson = response.getString(MegaStreamPluginContract.KEY_MANIFEST_JSON).orEmpty()
+            json.decodeFromString<MegaStreamPluginManifest>(manifestJson)
         }.getOrNull()
 
-    private fun readManifestFromMetadata(metaData: Bundle?): StreamVaultPluginManifest? {
+    private fun readManifestFromMetadata(metaData: Bundle?): MegaStreamPluginManifest? {
         if (metaData == null) return null
 
-        val manifestJson = metaData.metaString(StreamVaultPluginContract.META_MANIFEST_JSON)
+        val manifestJson = metaData.metaString(MegaStreamPluginContract.META_MANIFEST_JSON)
         if (manifestJson.isNotBlank()) {
-            runCatching { json.decodeFromString<StreamVaultPluginManifest>(manifestJson) }
+            runCatching { json.decodeFromString<MegaStreamPluginManifest>(manifestJson) }
                 .getOrNull()
                 ?.let { return it }
         }
 
-        val id = metaData.metaString(StreamVaultPluginContract.META_ID).takeIf { it.isNotBlank() }
+        val id = metaData.metaString(MegaStreamPluginContract.META_ID).takeIf { it.isNotBlank() }
             ?: return null
-        val name = metaData.metaString(StreamVaultPluginContract.META_NAME).ifBlank { id }
-        return StreamVaultPluginManifest(
+        val name = metaData.metaString(MegaStreamPluginContract.META_NAME).ifBlank { id }
+        return MegaStreamPluginManifest(
             id = id,
             name = name,
-            versionName = metaData.metaString(StreamVaultPluginContract.META_VERSION_NAME),
-            versionCode = metaData.metaLong(StreamVaultPluginContract.META_VERSION_CODE),
-            description = metaData.metaString(StreamVaultPluginContract.META_DESCRIPTION),
-            capabilities = metaData.metaCsv(StreamVaultPluginContract.META_CAPABILITIES),
-            configurationMode = metaData.metaString(StreamVaultPluginContract.META_CONFIGURATION_MODE)
+            versionName = metaData.metaString(MegaStreamPluginContract.META_VERSION_NAME),
+            versionCode = metaData.metaLong(MegaStreamPluginContract.META_VERSION_CODE),
+            description = metaData.metaString(MegaStreamPluginContract.META_DESCRIPTION),
+            capabilities = metaData.metaCsv(MegaStreamPluginContract.META_CAPABILITIES),
+            configurationMode = metaData.metaString(MegaStreamPluginContract.META_CONFIGURATION_MODE)
                 .takeIf { it.isNotBlank() },
             configurationActivityAction = metaData
-                .metaString(StreamVaultPluginContract.META_CONFIGURATION_ACTIVITY_ACTION)
+                .metaString(MegaStreamPluginContract.META_CONFIGURATION_ACTIVITY_ACTION)
                 .takeIf { it.isNotBlank() },
-            providerName = metaData.metaString(StreamVaultPluginContract.META_PROVIDER_NAME)
+            providerName = metaData.metaString(MegaStreamPluginContract.META_PROVIDER_NAME)
                 .takeIf { it.isNotBlank() }
         )
     }
 
     private fun queryPluginServices(): List<ResolveInfo> {
-        val intent = Intent(StreamVaultPluginContract.ACTION_PLUGIN_SERVICE)
+        val intent = Intent(MegaStreamPluginContract.ACTION_PLUGIN_SERVICE)
         val packageManager = context.packageManager
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             packageManager.queryIntentServices(
@@ -613,7 +613,7 @@ class StreamVaultPluginManager @Inject constructor(
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(settingsIntent)
-            return Result.error("Allow installs from StreamVault, then choose the plugin APK again")
+            return Result.error("Allow installs from MegaStream, then choose the plugin APK again")
         }
 
         val apkUri = FileProvider.getUriForFile(
@@ -699,10 +699,10 @@ private fun Bundle.metaCsv(key: String): List<String> =
         .filter { it.isNotBlank() }
 
 private fun Bundle.toPluginActionResult(successMessage: String): PluginActionResult {
-    val success = getBoolean(StreamVaultPluginContract.KEY_SUCCESS, false)
+    val success = getBoolean(MegaStreamPluginContract.KEY_SUCCESS, false)
     return PluginActionResult(
         success = success,
-        message = getString(StreamVaultPluginContract.KEY_MESSAGE).orEmpty()
+        message = getString(MegaStreamPluginContract.KEY_MESSAGE).orEmpty()
             .ifBlank { if (success) successMessage else "Plugin operation failed" }
     )
 }

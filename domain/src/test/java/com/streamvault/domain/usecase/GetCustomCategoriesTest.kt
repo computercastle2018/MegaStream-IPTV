@@ -1,11 +1,11 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Favorite
-import com.streamvault.domain.model.VirtualCategoryIds
-import com.streamvault.domain.model.VirtualGroup
-import com.streamvault.domain.repository.FavoriteRepository
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Favorite
+import com.MegaStream.domain.model.VirtualCategoryIds
+import com.MegaStream.domain.model.VirtualGroup
+import com.MegaStream.domain.repository.FavoriteRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf

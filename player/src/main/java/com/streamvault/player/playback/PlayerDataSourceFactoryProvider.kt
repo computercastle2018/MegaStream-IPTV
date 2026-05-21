@@ -1,10 +1,10 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import android.content.Context
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamInfo
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient

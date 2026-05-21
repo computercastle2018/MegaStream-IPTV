@@ -1,9 +1,9 @@
-package com.streamvault.app.util
+package com.MegaStream.app.util
 
-import com.streamvault.domain.util.isPlaybackComplete as domainIsPlaybackComplete
+import com.MegaStream.domain.util.isPlaybackComplete as domainIsPlaybackComplete
 
 fun isPlaybackComplete(
     progressMs: Long,
     totalDurationMs: Long,
-    threshold: Float = com.streamvault.domain.util.DEFAULT_PLAYBACK_COMPLETION_THRESHOLD
+    threshold: Float = com.MegaStream.domain.util.DEFAULT_PLAYBACK_COMPLETION_THRESHOLD
 ): Boolean = domainIsPlaybackComplete(progressMs, totalDurationMs, threshold)

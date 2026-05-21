@@ -1,10 +1,10 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.PlaybackCompatibilityDao
-import com.streamvault.data.local.entity.PlaybackCompatibilityRecordEntity
-import com.streamvault.domain.model.PlaybackCompatibilityKey
-import com.streamvault.domain.repository.PlaybackCompatibilityRepository
+import com.MegaStream.data.local.dao.PlaybackCompatibilityDao
+import com.MegaStream.data.local.entity.PlaybackCompatibilityRecordEntity
+import com.MegaStream.domain.model.PlaybackCompatibilityKey
+import com.MegaStream.domain.repository.PlaybackCompatibilityRepository
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlinx.coroutines.test.runTest
@@ -137,8 +137,8 @@ class PlaybackCompatibilityRepositoryImplTest {
 
     private fun readDaoSource(): String {
         val candidates = listOf(
-            Paths.get("src", "main", "java", "com", "streamvault", "data", "local", "dao", "Daos.kt"),
-            Paths.get("data", "src", "main", "java", "com", "streamvault", "data", "local", "dao", "Daos.kt")
+            Paths.get("src", "main", "java", "com", "MegaStream", "data", "local", "dao", "Daos.kt"),
+            Paths.get("data", "src", "main", "java", "com", "MegaStream", "data", "local", "dao", "Daos.kt")
         )
         val path = candidates.firstOrNull { Files.exists(it) }
             ?: error("Could not locate Daos.kt from ${Paths.get("").toAbsolutePath()}")

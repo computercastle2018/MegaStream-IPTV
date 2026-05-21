@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.provider
+package com.MegaStream.app.ui.screens.provider
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
@@ -13,7 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import com.streamvault.app.ui.interaction.mouseClickable
+import com.MegaStream.app.ui.interaction.mouseClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,18 +61,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.*
-import com.streamvault.app.R
-import com.streamvault.app.device.rememberIsTelevisionDevice
-import com.streamvault.app.ui.components.dialogs.PremiumDialog
-import com.streamvault.app.ui.components.dialogs.PremiumDialogFooterButton
-import com.streamvault.app.ui.components.extractProgressFraction
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.components.shell.StatusPill
-import com.streamvault.app.ui.screens.settings.BackupImportPreviewDialog
-import com.streamvault.app.ui.theme.*
-import com.streamvault.data.util.ProviderInputSanitizer
-import com.streamvault.domain.model.ProviderEpgSyncMode
-import com.streamvault.domain.model.ProviderXtreamLiveSyncMode
+import com.MegaStream.app.R
+import com.MegaStream.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.ui.components.dialogs.PremiumDialog
+import com.MegaStream.app.ui.components.dialogs.PremiumDialogFooterButton
+import com.MegaStream.app.ui.components.extractProgressFraction
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.components.shell.StatusPill
+import com.MegaStream.app.ui.screens.settings.BackupImportPreviewDialog
+import com.MegaStream.app.ui.theme.*
+import com.MegaStream.data.util.ProviderInputSanitizer
+import com.MegaStream.domain.model.ProviderEpgSyncMode
+import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

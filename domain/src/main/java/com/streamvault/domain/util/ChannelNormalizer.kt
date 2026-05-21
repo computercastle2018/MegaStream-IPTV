@@ -1,6 +1,6 @@
-package com.streamvault.domain.util
+package com.MegaStream.domain.util
 
-import com.streamvault.domain.model.LiveChannelVariantAttributes
+import com.MegaStream.domain.model.LiveChannelVariantAttributes
 import java.text.Normalizer
 import java.util.Locale
 

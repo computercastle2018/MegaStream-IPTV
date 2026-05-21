@@ -1,4 +1,4 @@
-package com.streamvault.player
+package com.MegaStream.player
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext

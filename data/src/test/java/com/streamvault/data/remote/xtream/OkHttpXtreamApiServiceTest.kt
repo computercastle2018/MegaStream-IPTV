@@ -1,9 +1,9 @@
-package com.streamvault.data.remote.xtream
+package com.MegaStream.data.remote.xtream
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.remote.NetworkTimeoutConfig
-import com.streamvault.data.remote.http.HttpRequestProfile
-import com.streamvault.data.remote.dto.XtreamSeriesInfoResponse
+import com.MegaStream.data.remote.NetworkTimeoutConfig
+import com.MegaStream.data.remote.http.HttpRequestProfile
+import com.MegaStream.data.remote.dto.XtreamSeriesInfoResponse
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.util.concurrent.atomic.AtomicInteger
@@ -213,10 +213,10 @@ class OkHttpXtreamApiServiceTest {
 
         service.getLiveCategories(
             endpoint = "https://example.test/player_api.php",
-            requestProfile = HttpRequestProfile(userAgent = "StreamVaultTest/1.0", ownerTag = "provider:7/xtream")
+            requestProfile = HttpRequestProfile(userAgent = "MegaStreamTest/1.0", ownerTag = "provider:7/xtream")
         )
 
-        assertThat(seenUserAgent).isEqualTo("StreamVaultTest/1.0")
+        assertThat(seenUserAgent).isEqualTo("MegaStreamTest/1.0")
     }
 
     @Test

@@ -1,14 +1,14 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import android.graphics.Bitmap
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ChannelQualityOption
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Season
-import com.streamvault.domain.model.Series
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.player.timeshift.LiveTimeshiftState
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ChannelQualityOption
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Season
+import com.MegaStream.domain.model.Series
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.player.timeshift.LiveTimeshiftState
 import java.util.Locale
 
 data class ResumePromptState(
@@ -228,7 +228,7 @@ internal data class AudioVideoOffsetSnapshot(
     val channelOverrideMs: Int?,
     val previewOffsetMs: Int?,
     val effectiveOffsetMs: Int,
-    val engine: com.streamvault.player.PlayerEngine,
+    val engine: com.MegaStream.player.PlayerEngine,
     val enabled: Boolean
 )
 

@@ -1,4 +1,4 @@
-package com.streamvault.domain.model
+package com.MegaStream.domain.model
 
 object VirtualCategoryIds {
     const val RECENT = -998L

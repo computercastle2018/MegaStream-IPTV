@@ -1,6 +1,6 @@
-package com.streamvault.domain.provider
+package com.MegaStream.domain.provider
 
-import com.streamvault.domain.model.*
+import com.MegaStream.domain.model.*
 
 /**
  * Shared interface for all IPTV providers (Xtream Codes, M3U, etc.).

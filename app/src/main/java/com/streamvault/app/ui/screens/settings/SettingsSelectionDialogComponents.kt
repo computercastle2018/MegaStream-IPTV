@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -33,13 +33,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.streamvault.app.R
-import com.streamvault.app.ui.components.dialogs.rememberDialogOpenGestureBlocker
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.theme.OnBackground
-import com.streamvault.app.ui.theme.OnSurfaceDim
-import com.streamvault.app.ui.theme.Primary
-import com.streamvault.app.ui.theme.SurfaceElevated
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.dialogs.rememberDialogOpenGestureBlocker
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.theme.OnBackground
+import com.MegaStream.app.ui.theme.OnSurfaceDim
+import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.SurfaceElevated
 
 @Composable
 internal fun PremiumSelectionDialog(
@@ -47,7 +47,7 @@ internal fun PremiumSelectionDialog(
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val isTelevisionDevice = com.streamvault.app.device.rememberIsTelevisionDevice()
+    val isTelevisionDevice = com.MegaStream.app.device.rememberIsTelevisionDevice()
     var canInteract by remember { mutableStateOf(false) }
     val blockOpenGesture = rememberDialogOpenGestureBlocker(canInteract)
     LaunchedEffect(Unit) {

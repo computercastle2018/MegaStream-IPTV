@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 internal data class PlaybackProbeFailure(
     val message: String,

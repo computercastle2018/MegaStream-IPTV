@@ -1,7 +1,7 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.DecoderMode
+import com.MegaStream.domain.model.DecoderMode
 import org.junit.Test
 
 class DecoderPreferencePolicyTest {

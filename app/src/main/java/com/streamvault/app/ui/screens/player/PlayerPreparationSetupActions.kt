@@ -1,10 +1,10 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.PlayerSurfaceMode
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.PlayerSurfaceMode
 import kotlinx.coroutines.launch
 
 internal data class ResolvedSeriesEpisodeIdentity(

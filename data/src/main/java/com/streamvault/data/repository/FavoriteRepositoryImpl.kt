@@ -1,14 +1,14 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.dao.VirtualGroupDao
-import com.streamvault.data.local.entity.CategoryCount
-import com.streamvault.data.mapper.toDomain
-import com.streamvault.data.mapper.toEntity
-import com.streamvault.domain.model.*
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.dao.VirtualGroupDao
+import com.MegaStream.data.local.entity.CategoryCount
+import com.MegaStream.data.mapper.toDomain
+import com.MegaStream.data.mapper.toEntity
+import com.MegaStream.domain.model.*
 import kotlinx.coroutines.flow.first
-import com.streamvault.domain.repository.FavoriteRepository
+import com.MegaStream.domain.repository.FavoriteRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -197,7 +197,7 @@ class FavoriteRepositoryImpl @Inject constructor(
     override suspend fun createGroup(providerId: Long, name: String, iconEmoji: String?, contentType: ContentType): Result<VirtualGroup> = try {
         val position = (virtualGroupDao.getMaxPosition(providerId, contentType.name) ?: -POSITION_STEP) + POSITION_STEP
         val id = virtualGroupDao.insert(
-            com.streamvault.data.local.entity.VirtualGroupEntity(
+            com.MegaStream.data.local.entity.VirtualGroupEntity(
                 providerId = providerId,
                 name = name,
                 iconEmoji = iconEmoji,

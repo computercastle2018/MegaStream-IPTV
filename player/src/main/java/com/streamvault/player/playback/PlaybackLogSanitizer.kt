@@ -1,4 +1,4 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import java.net.URI
 

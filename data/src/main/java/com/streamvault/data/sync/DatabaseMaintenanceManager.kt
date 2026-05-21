@@ -1,15 +1,15 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import android.util.Log
 import androidx.annotation.WorkerThread
-import com.streamvault.data.local.StreamVaultDatabase
-import com.streamvault.data.local.dao.ChannelDao
-import com.streamvault.data.local.dao.EpgProgrammeDao
-import com.streamvault.data.local.dao.EpisodeDao
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.dao.ProgramDao
-import com.streamvault.data.local.dao.ProgramReminderDao
-import com.streamvault.data.local.dao.SearchHistoryDao
+import com.MegaStream.data.local.MegaStreamDatabase
+import com.MegaStream.data.local.dao.ChannelDao
+import com.MegaStream.data.local.dao.EpgProgrammeDao
+import com.MegaStream.data.local.dao.EpisodeDao
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.dao.ProgramDao
+import com.MegaStream.data.local.dao.ProgramReminderDao
+import com.MegaStream.data.local.dao.SearchHistoryDao
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 
 @Singleton
 class DatabaseMaintenanceManager @Inject constructor(
-    private val database: StreamVaultDatabase,
+    private val database: MegaStreamDatabase,
     private val channelDao: ChannelDao,
     private val programDao: ProgramDao,
     private val epgProgrammeDao: EpgProgrammeDao,

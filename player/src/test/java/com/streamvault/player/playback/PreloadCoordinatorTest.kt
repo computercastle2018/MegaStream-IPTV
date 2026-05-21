@@ -1,9 +1,9 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.DrmInfo
-import com.streamvault.domain.model.DrmScheme
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.domain.model.DrmInfo
+import com.MegaStream.domain.model.DrmScheme
+import com.MegaStream.domain.model.StreamInfo
 import java.lang.reflect.Proxy
 import androidx.media3.exoplayer.source.MediaSource
 import org.junit.Test

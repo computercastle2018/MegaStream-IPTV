@@ -1,7 +1,7 @@
-package com.streamvault.player
+package com.MegaStream.player
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.PlayerSurfaceMode
+import com.MegaStream.domain.model.PlayerSurfaceMode
 import org.junit.Test
 
 class TextureViewFallbackPolicyTest {

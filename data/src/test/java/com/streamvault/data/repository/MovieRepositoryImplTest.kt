@@ -1,47 +1,47 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import android.database.sqlite.SQLiteException
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.CategoryDao
-import com.streamvault.data.local.dao.FavoriteDao
-import com.streamvault.data.local.dao.MovieCategoryHydrationDao
-import com.streamvault.data.local.dao.MovieDao
-import com.streamvault.data.local.dao.PlaybackHistoryDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.XtreamContentIndexDao
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.entity.FavoriteEntity
-import com.streamvault.data.local.entity.MovieBrowseEntity
-import com.streamvault.data.local.entity.MovieEntity
-import com.streamvault.data.local.entity.PlaybackHistoryLiteEntity
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.remote.stalker.StalkerDeviceProfile
-import com.streamvault.data.remote.stalker.StalkerProviderProfile
-import com.streamvault.data.remote.stalker.StalkerSession
-import com.streamvault.data.remote.stalker.StalkerCategoryRecord
-import com.streamvault.data.remote.stalker.StalkerItemRecord
-import com.streamvault.data.remote.stalker.StalkerPagedItems
-import com.streamvault.data.remote.dto.XtreamCategory
-import com.streamvault.data.remote.dto.XtreamStream
-import com.streamvault.data.remote.stalker.StalkerApiService
-import com.streamvault.data.remote.xtream.XtreamApiService
-import com.streamvault.data.remote.xtream.XtreamStreamUrlResolver
-import com.streamvault.data.security.CredentialCrypto
-import com.streamvault.data.sync.SyncManager
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.LibraryBrowseQuery
-import com.streamvault.domain.model.LibraryFilterBy
-import com.streamvault.domain.model.LibraryFilterType
-import com.streamvault.domain.model.LibrarySortBy
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.model.ProviderStatus
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.SyncMetadata
-import com.streamvault.domain.model.VodSyncMode
-import com.streamvault.domain.repository.PlaybackHistoryRepository
-import com.streamvault.domain.repository.SyncMetadataRepository
+import com.MegaStream.data.local.dao.CategoryDao
+import com.MegaStream.data.local.dao.FavoriteDao
+import com.MegaStream.data.local.dao.MovieCategoryHydrationDao
+import com.MegaStream.data.local.dao.MovieDao
+import com.MegaStream.data.local.dao.PlaybackHistoryDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.XtreamContentIndexDao
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.entity.FavoriteEntity
+import com.MegaStream.data.local.entity.MovieBrowseEntity
+import com.MegaStream.data.local.entity.MovieEntity
+import com.MegaStream.data.local.entity.PlaybackHistoryLiteEntity
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.remote.stalker.StalkerDeviceProfile
+import com.MegaStream.data.remote.stalker.StalkerProviderProfile
+import com.MegaStream.data.remote.stalker.StalkerSession
+import com.MegaStream.data.remote.stalker.StalkerCategoryRecord
+import com.MegaStream.data.remote.stalker.StalkerItemRecord
+import com.MegaStream.data.remote.stalker.StalkerPagedItems
+import com.MegaStream.data.remote.dto.XtreamCategory
+import com.MegaStream.data.remote.dto.XtreamStream
+import com.MegaStream.data.remote.stalker.StalkerApiService
+import com.MegaStream.data.remote.xtream.XtreamApiService
+import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
+import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.LibraryBrowseQuery
+import com.MegaStream.domain.model.LibraryFilterBy
+import com.MegaStream.domain.model.LibraryFilterType
+import com.MegaStream.domain.model.LibrarySortBy
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.ProviderStatus
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.SyncMetadata
+import com.MegaStream.domain.model.VodSyncMode
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.repository.SyncMetadataRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -335,7 +335,7 @@ class MovieRepositoryImplTest {
         whenever(movieDao.getByCategoryPreview(7L, 42L, 18)).thenReturn(flowOf(emptyList()))
         whenever(movieCategoryHydrationDao.get(7L, 42L)).thenReturn(null)
         whenever(categoryDao.getByProviderAndType(7L, ContentType.MOVIE.name)).thenReturn(
-            flowOf(listOf(com.streamvault.data.local.entity.CategoryEntity(providerId = 7L, categoryId = 42L, name = "Action", type = ContentType.MOVIE)))
+            flowOf(listOf(com.MegaStream.data.local.entity.CategoryEntity(providerId = 7L, categoryId = 42L, name = "Action", type = ContentType.MOVIE)))
         )
         whenever(providerDao.getById(7L)).thenReturn(
             ProviderEntity(

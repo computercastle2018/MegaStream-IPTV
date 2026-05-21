@@ -1,16 +1,16 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import androidx.activity.result.ActivityResultLauncher
 import android.content.Intent
 import android.util.Log
-import com.streamvault.domain.manager.DriveAuthState
-import com.streamvault.domain.manager.DriveBackupSyncManager
-import com.streamvault.domain.manager.DriveSyncStatus
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.ProviderRepository
-import com.streamvault.domain.usecase.ImportBackup
-import com.streamvault.domain.usecase.InspectBackupCommand
-import com.streamvault.domain.usecase.InspectBackupResult
+import com.MegaStream.domain.manager.DriveAuthState
+import com.MegaStream.domain.manager.DriveBackupSyncManager
+import com.MegaStream.domain.manager.DriveSyncStatus
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.ProviderRepository
+import com.MegaStream.domain.usecase.ImportBackup
+import com.MegaStream.domain.usecase.InspectBackupCommand
+import com.MegaStream.domain.usecase.InspectBackupResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
  * [CoroutineScope] and run their body in `scope.launch { uiState.update { ... } }`.
  *
  * Pull deliberately goes through the [ImportBackup.inspect] usecase rather than
- * calling [com.streamvault.domain.manager.BackupManager.inspectBackup] directly,
+ * calling [com.MegaStream.domain.manager.BackupManager.inspectBackup] directly,
  * so the existing David SAF preview dialog is reused unchanged (decision D2).
  */
 internal class SettingsDriveBackupActions(

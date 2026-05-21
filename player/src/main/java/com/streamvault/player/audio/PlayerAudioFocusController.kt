@@ -1,4 +1,4 @@
-package com.streamvault.player.audio
+package com.MegaStream.player.audio
 
 import android.content.Context
 import android.media.AudioFocusRequest

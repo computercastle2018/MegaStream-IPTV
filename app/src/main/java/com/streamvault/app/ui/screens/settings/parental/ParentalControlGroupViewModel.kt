@@ -1,13 +1,13 @@
-package com.streamvault.app.ui.screens.settings.parental
+package com.MegaStream.app.ui.screens.settings.parental
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.Category
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.repository.CategoryRepository
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.Category
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

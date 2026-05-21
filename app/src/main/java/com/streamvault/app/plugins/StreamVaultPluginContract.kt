@@ -1,19 +1,19 @@
-package com.streamvault.app.plugins
+package com.MegaStream.app.plugins
 
-object StreamVaultPluginContract {
+object MegaStreamPluginContract {
     const val API_VERSION = 1
 
-    const val ACTION_PLUGIN_SERVICE = "com.streamvault.plugin.API"
-    const val META_MANIFEST_JSON = "com.streamvault.plugin.MANIFEST_JSON"
-    const val META_ID = "com.streamvault.plugin.ID"
-    const val META_NAME = "com.streamvault.plugin.NAME"
-    const val META_VERSION_NAME = "com.streamvault.plugin.VERSION_NAME"
-    const val META_VERSION_CODE = "com.streamvault.plugin.VERSION_CODE"
-    const val META_DESCRIPTION = "com.streamvault.plugin.DESCRIPTION"
-    const val META_CAPABILITIES = "com.streamvault.plugin.CAPABILITIES"
-    const val META_CONFIGURATION_MODE = "com.streamvault.plugin.CONFIGURATION_MODE"
-    const val META_CONFIGURATION_ACTIVITY_ACTION = "com.streamvault.plugin.CONFIGURATION_ACTIVITY_ACTION"
-    const val META_PROVIDER_NAME = "com.streamvault.plugin.PROVIDER_NAME"
+    const val ACTION_PLUGIN_SERVICE = "com.MegaStream.plugin.API"
+    const val META_MANIFEST_JSON = "com.MegaStream.plugin.MANIFEST_JSON"
+    const val META_ID = "com.MegaStream.plugin.ID"
+    const val META_NAME = "com.MegaStream.plugin.NAME"
+    const val META_VERSION_NAME = "com.MegaStream.plugin.VERSION_NAME"
+    const val META_VERSION_CODE = "com.MegaStream.plugin.VERSION_CODE"
+    const val META_DESCRIPTION = "com.MegaStream.plugin.DESCRIPTION"
+    const val META_CAPABILITIES = "com.MegaStream.plugin.CAPABILITIES"
+    const val META_CONFIGURATION_MODE = "com.MegaStream.plugin.CONFIGURATION_MODE"
+    const val META_CONFIGURATION_ACTIVITY_ACTION = "com.MegaStream.plugin.CONFIGURATION_ACTIVITY_ACTION"
+    const val META_PROVIDER_NAME = "com.MegaStream.plugin.PROVIDER_NAME"
 
     const val MSG_GET_MANIFEST = 1
     const val MSG_SET_ENABLED = 2

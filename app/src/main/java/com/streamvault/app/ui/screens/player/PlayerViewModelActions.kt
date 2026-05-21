@@ -1,15 +1,15 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.cast.CastMediaRequest
-import com.streamvault.app.cast.CastStartResult
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.RecordingRecurrence
-import com.streamvault.domain.model.RecordingRequest
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
-import com.streamvault.domain.usecase.ScheduleRecordingCommand
+import com.MegaStream.app.cast.CastMediaRequest
+import com.MegaStream.app.cast.CastStartResult
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.RecordingRecurrence
+import com.MegaStream.domain.model.RecordingRequest
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
+import com.MegaStream.domain.usecase.ScheduleRecordingCommand
 import kotlinx.coroutines.launch
 
 fun PlayerViewModel.castCurrentMedia(onRouteSelectionRequired: () -> Unit) {

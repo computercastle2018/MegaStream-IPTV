@@ -1,6 +1,6 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
-import com.streamvault.player.PlaybackState
+import com.MegaStream.player.PlaybackState
 
 class VideoStallDetector(
     private val nowMs: () -> Long = System::currentTimeMillis,

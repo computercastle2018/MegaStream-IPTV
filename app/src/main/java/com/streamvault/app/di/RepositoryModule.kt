@@ -1,18 +1,18 @@
-package com.streamvault.app.di
+package com.MegaStream.app.di
 
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.RoomDatabaseTransactionRunner
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.data.security.AndroidKeystoreCredentialCrypto
-import com.streamvault.data.security.CredentialCrypto
-import com.streamvault.data.sync.ProviderSyncStateReaderImpl
-import com.streamvault.data.validation.ProviderSetupInputValidatorImpl
-import com.streamvault.domain.manager.ParentalPinVerifier
-import com.streamvault.domain.manager.ProviderSetupInputValidator
-import com.streamvault.domain.manager.ProviderSyncStateReader
-import com.streamvault.data.repository.*
-import com.streamvault.domain.manager.ParentalControlSessionStore
-import com.streamvault.domain.repository.*
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.RoomDatabaseTransactionRunner
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.data.security.AndroidKeystoreCredentialCrypto
+import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.data.sync.ProviderSyncStateReaderImpl
+import com.MegaStream.data.validation.ProviderSetupInputValidatorImpl
+import com.MegaStream.domain.manager.ParentalPinVerifier
+import com.MegaStream.domain.manager.ProviderSetupInputValidator
+import com.MegaStream.domain.manager.ProviderSyncStateReader
+import com.MegaStream.data.repository.*
+import com.MegaStream.domain.manager.ParentalControlSessionStore
+import com.MegaStream.domain.repository.*
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -73,16 +73,16 @@ abstract class RepositoryModule {
     abstract fun bindDatabaseTransactionRunner(impl: RoomDatabaseTransactionRunner): DatabaseTransactionRunner
 
     @Binds @Singleton
-    abstract fun bindBackupManager(impl: com.streamvault.data.manager.BackupManagerImpl): com.streamvault.domain.manager.BackupManager
+    abstract fun bindBackupManager(impl: com.MegaStream.data.manager.BackupManagerImpl): com.MegaStream.domain.manager.BackupManager
 
     @Binds @Singleton
-    abstract fun bindDriveBackupSyncManager(impl: com.streamvault.data.manager.GoogleDriveBackupSyncManager): com.streamvault.domain.manager.DriveBackupSyncManager
+    abstract fun bindDriveBackupSyncManager(impl: com.MegaStream.data.manager.GoogleDriveBackupSyncManager): com.MegaStream.domain.manager.DriveBackupSyncManager
 
     @Binds @Singleton
-    abstract fun bindRecordingManager(impl: com.streamvault.data.manager.RecordingManagerImpl): com.streamvault.domain.manager.RecordingManager
+    abstract fun bindRecordingManager(impl: com.MegaStream.data.manager.RecordingManagerImpl): com.MegaStream.domain.manager.RecordingManager
 
     @Binds @Singleton
-    abstract fun bindProgramReminderManager(impl: com.streamvault.data.manager.ProgramReminderManagerImpl): com.streamvault.domain.manager.ProgramReminderManager
+    abstract fun bindProgramReminderManager(impl: com.MegaStream.data.manager.ProgramReminderManagerImpl): com.MegaStream.domain.manager.ProgramReminderManager
 
     @Binds @Singleton
     abstract fun bindParentalControlSessionStore(impl: PreferencesRepository): ParentalControlSessionStore
@@ -108,8 +108,8 @@ abstract class RepositoryModule {
 
         @Provides
         @Singleton
-        fun provideM3uParser(): com.streamvault.data.parser.M3uParser {
-            return com.streamvault.data.parser.M3uParser()
+        fun provideM3uParser(): com.MegaStream.data.parser.M3uParser {
+            return com.MegaStream.data.parser.M3uParser()
         }
     }
 }

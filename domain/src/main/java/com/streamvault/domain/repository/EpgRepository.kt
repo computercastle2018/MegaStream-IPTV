@@ -1,7 +1,7 @@
-package com.streamvault.domain.repository
+package com.MegaStream.domain.repository
 
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 
 interface EpgRepository {

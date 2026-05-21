@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components.shell
+package com.MegaStream.app.ui.components.shell
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.streamvault.app.device.rememberIsTelevisionDevice
+import com.MegaStream.app.device.rememberIsTelevisionDevice
 import androidx.tv.material3.Border
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
@@ -37,14 +37,14 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
-import com.streamvault.app.ui.components.SearchInput
-import com.streamvault.app.ui.components.rememberCrossfadeImageModel
-import com.streamvault.app.ui.design.AppColors
-import com.streamvault.app.ui.design.FocusSpec
-import com.streamvault.app.ui.design.LocalAppSpacing
-import com.streamvault.app.ui.interaction.TvClickableSurface
-import com.streamvault.app.ui.interaction.TvButton
-import com.streamvault.app.ui.interaction.TvIconButton
+import com.MegaStream.app.ui.components.SearchInput
+import com.MegaStream.app.ui.components.rememberCrossfadeImageModel
+import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.design.FocusSpec
+import com.MegaStream.app.ui.design.LocalAppSpacing
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.interaction.TvButton
+import com.MegaStream.app.ui.interaction.TvIconButton
 
 @Composable
 fun LibraryBrowseScaffold(

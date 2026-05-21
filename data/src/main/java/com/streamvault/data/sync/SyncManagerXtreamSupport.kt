@@ -1,13 +1,13 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import android.util.Log
-import com.streamvault.data.remote.dto.XtreamCategory
-import com.streamvault.data.remote.xtream.XtreamAuthenticationException
-import com.streamvault.data.remote.xtream.XtreamNetworkException
-import com.streamvault.data.remote.xtream.XtreamParsingException
-import com.streamvault.data.remote.xtream.XtreamRequestException
-import com.streamvault.data.remote.xtream.XtreamResponseTooLargeException
-import com.streamvault.domain.model.Provider
+import com.MegaStream.data.remote.dto.XtreamCategory
+import com.MegaStream.data.remote.xtream.XtreamAuthenticationException
+import com.MegaStream.data.remote.xtream.XtreamNetworkException
+import com.MegaStream.data.remote.xtream.XtreamParsingException
+import com.MegaStream.data.remote.xtream.XtreamRequestException
+import com.MegaStream.data.remote.xtream.XtreamResponseTooLargeException
+import com.MegaStream.domain.model.Provider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
@@ -342,12 +342,12 @@ internal class SyncManagerXtreamSupport(
     }
 }
 
-internal fun <T> com.streamvault.domain.model.Result<T>.getOrThrow(resourceName: String): T {
+internal fun <T> com.MegaStream.domain.model.Result<T>.getOrThrow(resourceName: String): T {
     return when (this) {
-        is com.streamvault.domain.model.Result.Success -> data
-        is com.streamvault.domain.model.Result.Error ->
+        is com.MegaStream.domain.model.Result.Success -> data
+        is com.MegaStream.domain.model.Result.Error ->
             throw exception ?: IllegalStateException("Failed to fetch $resourceName: $message")
-        is com.streamvault.domain.model.Result.Loading ->
+        is com.MegaStream.domain.model.Result.Loading ->
             throw Exception("Unexpected loading state for $resourceName")
     }
 }

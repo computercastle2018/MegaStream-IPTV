@@ -1,20 +1,20 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
-import com.streamvault.app.R
-import com.streamvault.app.localization.localeForLanguageTag
-import com.streamvault.app.localization.supportedAppLanguageTags
-import com.streamvault.app.ui.model.LiveTvChannelMode
-import com.streamvault.app.ui.model.LiveTvQuickFilterVisibilityMode
-import com.streamvault.app.ui.model.VodViewMode
-import com.streamvault.domain.model.CategorySortMode
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.AudioOutputPreference
-import com.streamvault.domain.model.GroupedChannelLabelMode
-import com.streamvault.domain.model.LiveChannelGroupingMode
-import com.streamvault.domain.model.LiveVariantPreferenceMode
-import com.streamvault.domain.model.PlayerSurfaceMode
+import com.MegaStream.app.R
+import com.MegaStream.app.localization.localeForLanguageTag
+import com.MegaStream.app.localization.supportedAppLanguageTags
+import com.MegaStream.app.ui.model.LiveTvChannelMode
+import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
+import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.domain.model.CategorySortMode
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.AudioOutputPreference
+import com.MegaStream.domain.model.GroupedChannelLabelMode
+import com.MegaStream.domain.model.LiveChannelGroupingMode
+import com.MegaStream.domain.model.LiveVariantPreferenceMode
+import com.MegaStream.domain.model.PlayerSurfaceMode
 import java.text.DateFormat
 import java.util.Locale
 

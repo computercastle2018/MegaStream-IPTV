@@ -1,7 +1,7 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.app.update.AppUpdateChannel
+import com.MegaStream.app.update.AppUpdateChannel
 import org.junit.Test
 
 class SettingsAppUpdateModelsTest {

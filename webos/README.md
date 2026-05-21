@@ -1,4 +1,4 @@
-# StreamVault — webOS (Live TV MVP)
+# MegaStream — webOS (Live TV MVP)
 
 A **standalone** webOS TV app for LG TVs. This is a separate codebase from the
 Android app (`../app`, `../data`, `../domain`, `../player`) — webOS runs web
@@ -48,7 +48,7 @@ Then:
 
 ```bash
 npm run build                     # produces dist/ (already contains appinfo.json + icon.png)
-npm run package                   # ares-package dist -o out  ->  out/com.streamvault.webos_0.1.0_all.ipk
+npm run package                   # ares-package dist -o out  ->  out/com.MegaStream.webos_0.1.0_all.ipk
 ares-setup-device                 # one-time: register your TV (Developer Mode app must be running)
 npm run install-tv                # ares-install the .ipk onto the TV named "tv"
 npm run launch-tv                 # ares-launch the app

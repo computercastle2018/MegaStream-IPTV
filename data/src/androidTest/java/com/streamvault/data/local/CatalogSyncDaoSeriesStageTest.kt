@@ -1,17 +1,17 @@
-package com.streamvault.data.local
+package com.MegaStream.data.local
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.dao.CatalogSyncDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.SeriesDao
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.local.entity.SeriesEntity
-import com.streamvault.data.local.entity.SeriesImportStageEntity
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.local.dao.CatalogSyncDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.SeriesDao
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.local.entity.SeriesEntity
+import com.MegaStream.data.local.entity.SeriesImportStageEntity
+import com.MegaStream.domain.model.ProviderType
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -21,7 +21,7 @@ import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 class CatalogSyncDaoSeriesStageTest {
-    private lateinit var db: StreamVaultDatabase
+    private lateinit var db: MegaStreamDatabase
     private lateinit var providerDao: ProviderDao
     private lateinit var seriesDao: SeriesDao
     private lateinit var catalogSyncDao: CatalogSyncDao
@@ -29,7 +29,7 @@ class CatalogSyncDaoSeriesStageTest {
     @Before
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, StreamVaultDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(context, MegaStreamDatabase::class.java).build()
         providerDao = db.providerDao()
         seriesDao = db.seriesDao()
         catalogSyncDao = db.catalogSyncDao()

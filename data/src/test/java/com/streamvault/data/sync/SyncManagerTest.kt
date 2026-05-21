@@ -1,48 +1,48 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
 import com.google.common.truth.Truth.assertThat
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.CatalogSyncDao
-import com.streamvault.data.local.dao.ChannelStageCategorySummary
-import com.streamvault.data.local.dao.CategoryDao
-import com.streamvault.data.local.dao.ChannelDao
-import com.streamvault.data.local.dao.MovieDao
-import com.streamvault.data.local.dao.ProgramDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.SeriesDao
-import com.streamvault.data.local.dao.TmdbIdentityDao
-import com.streamvault.data.local.dao.XtreamContentIndexDao
-import com.streamvault.data.local.dao.XtreamIndexJobDao
-import com.streamvault.data.local.dao.XtreamLiveOnboardingDao
-import com.streamvault.data.local.entity.CategoryEntity
-import com.streamvault.data.local.entity.ChannelEntity
-import com.streamvault.data.local.entity.ChannelGuideSyncEntity
-import com.streamvault.data.local.entity.MovieEntity
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.local.entity.XtreamIndexJobEntity
-import com.streamvault.data.local.entity.XtreamLiveOnboardingStateEntity
-import com.streamvault.data.parser.M3uParser
-import com.streamvault.data.security.CredentialCrypto
-import com.streamvault.domain.model.SyncState
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.ProviderEpgSyncMode
-import com.streamvault.domain.model.ProviderXtreamLiveSyncMode
-import com.streamvault.domain.model.ProviderType
-import com.streamvault.domain.model.SyncMetadata
-import com.streamvault.domain.repository.EpgRepository
-import com.streamvault.domain.repository.EpgSourceRepository
-import com.streamvault.data.remote.stalker.StalkerCategoryRecord
-import com.streamvault.data.remote.stalker.StalkerItemRecord
-import com.streamvault.data.remote.stalker.StalkerProgramRecord
-import com.streamvault.data.remote.stalker.StalkerProviderProfile
-import com.streamvault.data.remote.stalker.StalkerSession
-import com.streamvault.data.remote.stalker.StalkerApiService
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.ContentType
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.CatalogSyncDao
+import com.MegaStream.data.local.dao.ChannelStageCategorySummary
+import com.MegaStream.data.local.dao.CategoryDao
+import com.MegaStream.data.local.dao.ChannelDao
+import com.MegaStream.data.local.dao.MovieDao
+import com.MegaStream.data.local.dao.ProgramDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.SeriesDao
+import com.MegaStream.data.local.dao.TmdbIdentityDao
+import com.MegaStream.data.local.dao.XtreamContentIndexDao
+import com.MegaStream.data.local.dao.XtreamIndexJobDao
+import com.MegaStream.data.local.dao.XtreamLiveOnboardingDao
+import com.MegaStream.data.local.entity.CategoryEntity
+import com.MegaStream.data.local.entity.ChannelEntity
+import com.MegaStream.data.local.entity.ChannelGuideSyncEntity
+import com.MegaStream.data.local.entity.MovieEntity
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.local.entity.XtreamIndexJobEntity
+import com.MegaStream.data.local.entity.XtreamLiveOnboardingStateEntity
+import com.MegaStream.data.parser.M3uParser
+import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.domain.model.SyncState
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.ProviderEpgSyncMode
+import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
+import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.domain.model.SyncMetadata
+import com.MegaStream.domain.repository.EpgRepository
+import com.MegaStream.domain.repository.EpgSourceRepository
+import com.MegaStream.data.remote.stalker.StalkerCategoryRecord
+import com.MegaStream.data.remote.stalker.StalkerItemRecord
+import com.MegaStream.data.remote.stalker.StalkerProgramRecord
+import com.MegaStream.data.remote.stalker.StalkerProviderProfile
+import com.MegaStream.data.remote.stalker.StalkerSession
+import com.MegaStream.data.remote.stalker.StalkerApiService
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.ContentType
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -126,7 +126,7 @@ class SyncManagerTest {
         )
     }
 
-    private class FakeSyncMetadataRepository : com.streamvault.domain.repository.SyncMetadataRepository {
+    private class FakeSyncMetadataRepository : com.MegaStream.domain.repository.SyncMetadataRepository {
         private val values = mutableMapOf<Long, SyncMetadata>()
 
         override fun observeMetadata(providerId: Long): Flow<SyncMetadata?> = flowOf(values[providerId])
@@ -295,7 +295,7 @@ class SyncManagerTest {
             ).thenReturn(Result.success(0))
             org.mockito.kotlin.whenever(epgSourceRepo.refreshAllForProvider(any())).thenReturn(Result.success(Unit))
             org.mockito.kotlin.whenever(epgSourceRepo.resolveForProvider(any(), any()))
-                .thenReturn(com.streamvault.domain.model.EpgResolutionSummary())
+                .thenReturn(com.MegaStream.domain.model.EpgResolutionSummary())
         }
     }
 
@@ -539,7 +539,7 @@ class SyncManagerTest {
         org.mockito.kotlin.whenever(epgRepo.refreshEpg(eq(1L), any())).thenReturn(Result.success(Unit))
         org.mockito.kotlin.whenever(epgSourceRepo.refreshAllForProvider(1L)).thenReturn(Result.success(Unit))
         org.mockito.kotlin.whenever(epgSourceRepo.resolveForProvider(eq(1L), any()))
-            .thenReturn(com.streamvault.domain.model.EpgResolutionSummary())
+            .thenReturn(com.MegaStream.domain.model.EpgResolutionSummary())
         org.mockito.kotlin.whenever(programDao.countByProvider(1L)).thenReturn(7)
 
         val result = mgr.syncEpg(1L, force = true)
@@ -561,7 +561,7 @@ class SyncManagerTest {
             .thenReturn(Result.error("network down", java.io.IOException("network down")))
         org.mockito.kotlin.whenever(epgSourceRepo.refreshAllForProvider(1L)).thenReturn(Result.success(Unit))
         org.mockito.kotlin.whenever(epgSourceRepo.resolveForProvider(eq(1L), any()))
-            .thenReturn(com.streamvault.domain.model.EpgResolutionSummary())
+            .thenReturn(com.MegaStream.domain.model.EpgResolutionSummary())
         org.mockito.kotlin.whenever(programDao.countByProvider(1L)).thenReturn(0)
 
         val result = mgr.syncEpg(1L, force = true)
@@ -860,8 +860,8 @@ class SyncManagerTest {
         advanceUntilIdle()
 
         assertThat(result.isSuccess).isTrue()
-        val insertedCategories = argumentCaptor<List<com.streamvault.data.local.entity.CategoryImportStageEntity>>()
-        val insertedChannels = argumentCaptor<List<com.streamvault.data.local.entity.ChannelImportStageEntity>>()
+        val insertedCategories = argumentCaptor<List<com.MegaStream.data.local.entity.CategoryImportStageEntity>>()
+        val insertedChannels = argumentCaptor<List<com.MegaStream.data.local.entity.ChannelImportStageEntity>>()
         verify(catalogSyncDao, atLeastOnce()).insertCategoryStages(insertedCategories.capture())
         verify(catalogSyncDao, atLeastOnce()).insertChannelStages(insertedChannels.capture())
         val categoryIds = insertedCategories.allValues.flatten()
@@ -1036,7 +1036,7 @@ class SyncManagerTest {
         val metadata = syncMetadataRepo.getMetadata(1L)
         assertThat(metadata?.lastMovieAttempt ?: 0L).isGreaterThan(0L)
         assertThat(metadata?.movieCatalogStale).isTrue()
-        assertThat(metadata?.movieSyncMode).isEqualTo(com.streamvault.domain.model.VodSyncMode.UNKNOWN)
+        assertThat(metadata?.movieSyncMode).isEqualTo(com.MegaStream.domain.model.VodSyncMode.UNKNOWN)
         assertThat(xtreamBackend.requestedActions).contains("get_vod_categories")
         assertThat(xtreamBackend.requestedActions).doesNotContain("get_vod_streams")
         val jobs = argumentCaptor<XtreamIndexJobEntity>()
@@ -1251,7 +1251,7 @@ class SyncManagerTest {
 
         assertThat(result).isInstanceOf(Result.Success::class.java)
         val metadata = syncMetadataRepo.getMetadata(1L)
-        assertThat(metadata?.movieSyncMode).isEqualTo(com.streamvault.domain.model.VodSyncMode.LAZY_BY_CATEGORY)
+        assertThat(metadata?.movieSyncMode).isEqualTo(com.MegaStream.domain.model.VodSyncMode.LAZY_BY_CATEGORY)
         assertThat(metadata?.movieCount).isEqualTo(0)
         assertThat(metadata?.seriesCount).isEqualTo(0)
         verify(stalkerApiService).getVodCategories(any(), any())
@@ -1303,9 +1303,9 @@ class SyncManagerTest {
         val result = manager.sync(providerId = 1L, force = false)
 
         assertThat(result).isInstanceOf(Result.Success::class.java)
-        val categoryStagesCaptor = argumentCaptor<List<com.streamvault.data.local.entity.CategoryImportStageEntity>>()
+        val categoryStagesCaptor = argumentCaptor<List<com.MegaStream.data.local.entity.CategoryImportStageEntity>>()
         verify(catalogSyncDao, atLeastOnce()).insertCategoryStages(categoryStagesCaptor.capture())
-        assertThat(categoryStagesCaptor.allValues.flatten().any { it.type == com.streamvault.domain.model.ContentType.LIVE && it.name == "News" }).isTrue()
+        assertThat(categoryStagesCaptor.allValues.flatten().any { it.type == com.MegaStream.domain.model.ContentType.LIVE && it.name == "News" }).isTrue()
         verify(stalkerApiService).getLiveCategories(any(), any())
         verify(stalkerApiService).streamLiveStreams(any(), any(), any())
     }
@@ -1410,7 +1410,7 @@ class SyncManagerTest {
         val result = manager.sync(providerId = 1L, force = true)
 
         assertThat(result).isInstanceOf(Result.Success::class.java)
-        val insertedProgramsCaptor = argumentCaptor<List<com.streamvault.data.local.entity.ProgramEntity>>()
+        val insertedProgramsCaptor = argumentCaptor<List<com.MegaStream.data.local.entity.ProgramEntity>>()
         verify(programDao).insertAll(insertedProgramsCaptor.capture())
         assertThat(insertedProgramsCaptor.firstValue).hasSize(1)
         assertThat(insertedProgramsCaptor.firstValue.first().channelId).isEqualTo("100")
@@ -1485,7 +1485,7 @@ class SyncManagerTest {
         val result = manager.sync(providerId = 1L, force = true)
 
         assertThat(result).isInstanceOf(Result.Success::class.java)
-        val insertedProgramsCaptor = argumentCaptor<List<com.streamvault.data.local.entity.ProgramEntity>>()
+        val insertedProgramsCaptor = argumentCaptor<List<com.MegaStream.data.local.entity.ProgramEntity>>()
         verify(programDao, atLeast(2)).insertAll(insertedProgramsCaptor.capture())
         assertThat(insertedProgramsCaptor.allValues.flatten()).hasSize(505)
     }
@@ -1825,7 +1825,7 @@ class SyncManagerTest {
         assertThat(result.isSuccess).isTrue()
         val state = mgr.currentSyncState(1L)
         assertThat(state).isInstanceOf(SyncState.Success::class.java)
-        val insertedChannels = argumentCaptor<List<com.streamvault.data.local.entity.ChannelImportStageEntity>>()
+        val insertedChannels = argumentCaptor<List<com.MegaStream.data.local.entity.ChannelImportStageEntity>>()
         verify(catalogSyncDao, atLeastOnce()).insertChannelStages(insertedChannels.capture())
         assertThat(insertedChannels.allValues.flatten()).hasSize(1)
     }
@@ -2021,8 +2021,8 @@ class SyncManagerTest {
  * back as the [Result.success] payload, mirroring the production [streamBulkEpg]
  * contract. Use this helper instead of mocking the legacy buffered [getBulkEpg].
  */
-private suspend fun com.streamvault.data.remote.stalker.StalkerApiService.stubStreamBulkEpg(
-    programs: List<com.streamvault.data.remote.stalker.StalkerProgramRecord>,
+private suspend fun com.MegaStream.data.remote.stalker.StalkerApiService.stubStreamBulkEpg(
+    programs: List<com.MegaStream.data.remote.stalker.StalkerProgramRecord>,
     periodHours: Int = 6
 ) {
     org.mockito.kotlin.whenever(
@@ -2034,15 +2034,15 @@ private suspend fun com.streamvault.data.remote.stalker.StalkerApiService.stubSt
         )
     ).doSuspendableAnswer { invocation ->
         @Suppress("UNCHECKED_CAST")
-        val cb = invocation.arguments[3] as suspend (com.streamvault.data.remote.stalker.StalkerProgramRecord) -> Unit
+        val cb = invocation.arguments[3] as suspend (com.MegaStream.data.remote.stalker.StalkerProgramRecord) -> Unit
         programs.forEach { cb(it) }
-        com.streamvault.domain.model.Result.success(programs.size)
+        com.MegaStream.domain.model.Result.success(programs.size)
     }
 }
 
 /** Stubs the streaming live-channel path. Emits [items] through the captured callback. */
-private suspend fun com.streamvault.data.remote.stalker.StalkerApiService.stubStreamLiveStreams(
-    items: List<com.streamvault.data.remote.stalker.StalkerItemRecord>
+private suspend fun com.MegaStream.data.remote.stalker.StalkerApiService.stubStreamLiveStreams(
+    items: List<com.MegaStream.data.remote.stalker.StalkerItemRecord>
 ) {
     org.mockito.kotlin.whenever(
         streamLiveStreams(
@@ -2052,27 +2052,27 @@ private suspend fun com.streamvault.data.remote.stalker.StalkerApiService.stubSt
         )
     ).doSuspendableAnswer { invocation ->
         @Suppress("UNCHECKED_CAST")
-        val cb = invocation.arguments[2] as suspend (com.streamvault.data.remote.stalker.StalkerItemRecord) -> Unit
+        val cb = invocation.arguments[2] as suspend (com.MegaStream.data.remote.stalker.StalkerItemRecord) -> Unit
         items.forEach { cb(it) }
-        com.streamvault.domain.model.Result.success(items.size)
+        com.MegaStream.domain.model.Result.success(items.size)
     }
 }
 
 /** Stubs the streaming live-channel path to return an error result without emitting items. */
-private suspend fun com.streamvault.data.remote.stalker.StalkerApiService.stubStreamLiveStreamsError(message: String) {
+private suspend fun com.MegaStream.data.remote.stalker.StalkerApiService.stubStreamLiveStreamsError(message: String) {
     org.mockito.kotlin.whenever(
         streamLiveStreams(
             org.mockito.kotlin.any(),
             org.mockito.kotlin.any(),
             org.mockito.kotlin.any()
         )
-    ).doSuspendableAnswer { com.streamvault.domain.model.Result.error(message) }
+    ).doSuspendableAnswer { com.MegaStream.domain.model.Result.error(message) }
 }
 
 /** Counterpart to [stubStreamBulkEpg] for the per-channel streamed EPG path. */
-private suspend fun com.streamvault.data.remote.stalker.StalkerApiService.stubStreamEpg(
+private suspend fun com.MegaStream.data.remote.stalker.StalkerApiService.stubStreamEpg(
     channelId: String,
-    programs: List<com.streamvault.data.remote.stalker.StalkerProgramRecord>,
+    programs: List<com.MegaStream.data.remote.stalker.StalkerProgramRecord>,
     periodHours: Int = 6
 ) {
     org.mockito.kotlin.whenever(
@@ -2085,8 +2085,8 @@ private suspend fun com.streamvault.data.remote.stalker.StalkerApiService.stubSt
         )
     ).doSuspendableAnswer { invocation ->
         @Suppress("UNCHECKED_CAST")
-        val cb = invocation.arguments[4] as suspend (com.streamvault.data.remote.stalker.StalkerProgramRecord) -> Unit
+        val cb = invocation.arguments[4] as suspend (com.MegaStream.data.remote.stalker.StalkerProgramRecord) -> Unit
         programs.forEach { cb(it) }
-        com.streamvault.domain.model.Result.success(programs.size)
+        com.MegaStream.domain.model.Result.success(programs.size)
     }
 }

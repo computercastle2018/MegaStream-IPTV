@@ -1,6 +1,6 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamInfo
 
 internal data class PlaybackPreparationPlan(
     val resolvedStreamType: ResolvedStreamType,

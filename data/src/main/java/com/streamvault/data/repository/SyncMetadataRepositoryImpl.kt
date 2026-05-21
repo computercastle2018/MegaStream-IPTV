@@ -1,10 +1,10 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
-import com.streamvault.data.local.dao.SyncMetadataDao
-import com.streamvault.data.mapper.toDomain
-import com.streamvault.data.mapper.toEntity
-import com.streamvault.domain.model.SyncMetadata
-import com.streamvault.domain.repository.SyncMetadataRepository
+import com.MegaStream.data.local.dao.SyncMetadataDao
+import com.MegaStream.data.mapper.toDomain
+import com.MegaStream.data.mapper.toEntity
+import com.MegaStream.domain.model.SyncMetadata
+import com.MegaStream.domain.repository.SyncMetadataRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

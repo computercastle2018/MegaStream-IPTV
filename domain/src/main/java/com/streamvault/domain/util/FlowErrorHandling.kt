@@ -1,4 +1,4 @@
-package com.streamvault.domain.util
+package com.MegaStream.domain.util
 
 import java.io.IOException
 import kotlinx.coroutines.CancellationException

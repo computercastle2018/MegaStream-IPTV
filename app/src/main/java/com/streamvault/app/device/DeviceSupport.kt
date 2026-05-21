@@ -1,4 +1,4 @@
-package com.streamvault.app.device
+package com.MegaStream.app.device
 
 import android.app.UiModeManager
 import android.content.Context

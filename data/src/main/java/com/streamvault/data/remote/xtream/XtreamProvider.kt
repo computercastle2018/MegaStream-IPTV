@@ -1,12 +1,12 @@
-package com.streamvault.data.remote.xtream
+package com.MegaStream.data.remote.xtream
 
 import android.util.Log
-import com.streamvault.data.remote.http.HttpRequestProfile
-import com.streamvault.data.remote.dto.*
-import com.streamvault.data.util.AdultContentClassifier
-import com.streamvault.domain.model.*
-import com.streamvault.domain.provider.IptvProvider
-import com.streamvault.domain.util.ChannelNormalizer
+import com.MegaStream.data.remote.http.HttpRequestProfile
+import com.MegaStream.data.remote.dto.*
+import com.MegaStream.data.util.AdultContentClassifier
+import com.MegaStream.domain.model.*
+import com.MegaStream.domain.provider.IptvProvider
+import com.MegaStream.domain.util.ChannelNormalizer
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime

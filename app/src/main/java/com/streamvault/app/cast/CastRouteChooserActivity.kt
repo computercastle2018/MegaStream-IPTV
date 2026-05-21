@@ -1,4 +1,4 @@
-package com.streamvault.app.cast
+package com.MegaStream.app.cast
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

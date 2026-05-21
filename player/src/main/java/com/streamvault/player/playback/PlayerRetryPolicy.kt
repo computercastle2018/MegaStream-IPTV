@@ -1,4 +1,4 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import androidx.media3.common.C
 import androidx.media3.common.PlaybackException

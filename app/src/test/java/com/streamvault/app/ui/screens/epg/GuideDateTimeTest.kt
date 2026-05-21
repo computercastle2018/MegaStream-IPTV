@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.screens.epg
+package com.MegaStream.app.ui.screens.epg
 
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant

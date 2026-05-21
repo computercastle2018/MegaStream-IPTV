@@ -1,4 +1,4 @@
-package com.streamvault.player.timeshift
+package com.MegaStream.player.timeshift
 
 data class TimeshiftConfig(
     val enabled: Boolean = false,

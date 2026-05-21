@@ -1,8 +1,8 @@
-package com.streamvault.data.sync
+package com.MegaStream.data.sync
 
-import com.streamvault.data.local.dao.ChannelDao
-import com.streamvault.domain.repository.SyncMetadataRepository
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.local.dao.ChannelDao
+import com.MegaStream.domain.repository.SyncMetadataRepository
+import com.MegaStream.domain.model.ProviderType
 import kotlinx.coroutines.flow.first
 
 internal suspend fun hasUsableLiveCatalogForActivation(

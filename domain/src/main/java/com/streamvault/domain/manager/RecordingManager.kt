@@ -1,10 +1,10 @@
-package com.streamvault.domain.manager
+package com.MegaStream.domain.manager
 
-import com.streamvault.domain.model.RecordingItem
-import com.streamvault.domain.model.RecordingRequest
-import com.streamvault.domain.model.RecordingStorageConfig
-import com.streamvault.domain.model.RecordingStorageState
-import com.streamvault.domain.model.Result
+import com.MegaStream.domain.model.RecordingItem
+import com.MegaStream.domain.model.RecordingRequest
+import com.MegaStream.domain.model.RecordingStorageConfig
+import com.MegaStream.domain.model.RecordingStorageState
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -12,7 +12,7 @@ interface RecordingManager {
     fun observeRecordingItems(): Flow<List<RecordingItem>>
     fun observeStorageState(): Flow<RecordingStorageState>
     fun observeActiveRecordingCount(): Flow<Int> = observeRecordingItems().map { items ->
-        items.count { it.status == com.streamvault.domain.model.RecordingStatus.RECORDING }
+        items.count { it.status == com.MegaStream.domain.model.RecordingStatus.RECORDING }
     }
 
     suspend fun startManualRecording(request: RecordingRequest): Result<RecordingItem>

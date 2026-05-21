@@ -1,4 +1,4 @@
-package com.streamvault.player
+package com.MegaStream.player
 
 data class PlayerTrack(
     val id: String,

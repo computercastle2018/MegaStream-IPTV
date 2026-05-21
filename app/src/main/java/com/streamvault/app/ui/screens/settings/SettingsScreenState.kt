@@ -1,15 +1,15 @@
-package com.streamvault.app.ui.screens.settings
+package com.MegaStream.app.ui.screens.settings
 
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.streamvault.app.MainActivity
-import com.streamvault.app.R
-import com.streamvault.app.ui.time.createDateTimeFormat
-import com.streamvault.app.util.OfficialBuildStatus
-import com.streamvault.domain.model.AppTimeFormat
-import com.streamvault.domain.model.AudioOutputPreference
+import com.MegaStream.app.MainActivity
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.time.createDateTimeFormat
+import com.MegaStream.app.util.OfficialBuildStatus
+import com.MegaStream.domain.model.AppTimeFormat
+import com.MegaStream.domain.model.AudioOutputPreference
 
 internal data class SettingsScreenLabels(
     val buildVerificationLabel: String,

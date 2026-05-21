@@ -1,4 +1,4 @@
-package com.streamvault.player.playback
+package com.MegaStream.player.playback
 
 import android.net.Uri
 import android.util.Log
@@ -17,10 +17,10 @@ import androidx.media3.exoplayer.smoothstreaming.SsMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import com.streamvault.domain.model.DrmInfo
-import com.streamvault.domain.model.DrmScheme
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.StreamType
+import com.MegaStream.domain.model.DrmInfo
+import com.MegaStream.domain.model.DrmScheme
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.StreamType
 import java.util.UUID
 
 @UnstableApi

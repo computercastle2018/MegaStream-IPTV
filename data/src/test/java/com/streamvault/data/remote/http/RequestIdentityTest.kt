@@ -1,8 +1,8 @@
-package com.streamvault.data.remote.http
+package com.MegaStream.data.remote.http
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Provider
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
 import okhttp3.Request
 import org.junit.Test
 
@@ -23,7 +23,7 @@ class RequestIdentityTest {
     fun `safeRequestIdentitySummary redacts sensitive headers`() {
         val request = Request.Builder()
             .url("https://example.test/epg.xml")
-            .header(USER_AGENT_HEADER, "StreamVault/1.0")
+            .header(USER_AGENT_HEADER, "MegaStream/1.0")
             .header("Authorization", "Bearer secret")
             .header("Cookie", "session=secret")
             .header("Referer", "https://portal.example.test")
@@ -34,7 +34,7 @@ class RequestIdentityTest {
         )
 
         assertThat(summary).contains("owner=provider:7/epg")
-        assertThat(summary).contains("userAgent=StreamVault/1.0")
+        assertThat(summary).contains("userAgent=MegaStream/1.0")
         assertThat(summary).contains("Referer")
         assertThat(summary).doesNotContain("Authorization")
         assertThat(summary).doesNotContain("Cookie")

@@ -1,13 +1,13 @@
-package com.streamvault.data.manager
+package com.MegaStream.data.manager
 
-import com.streamvault.data.local.dao.ProgramReminderDao
-import com.streamvault.data.local.entity.ProgramReminderEntity
-import com.streamvault.data.manager.reminder.ProgramReminderAlarmScheduler
-import com.streamvault.data.manager.reminder.ProgramReminderNotifier
-import com.streamvault.domain.manager.ProgramReminderManager
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.ProgramReminder
-import com.streamvault.domain.model.Result
+import com.MegaStream.data.local.dao.ProgramReminderDao
+import com.MegaStream.data.local.entity.ProgramReminderEntity
+import com.MegaStream.data.manager.reminder.ProgramReminderAlarmScheduler
+import com.MegaStream.data.manager.reminder.ProgramReminderNotifier
+import com.MegaStream.domain.manager.ProgramReminderManager
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.ProgramReminder
+import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine

@@ -1,11 +1,11 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
-import com.streamvault.app.ui.model.isArchivePlayable
-import com.streamvault.data.security.CredentialDecryptionException
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.StreamInfo
+import com.MegaStream.app.ui.model.isArchivePlayable
+import com.MegaStream.data.security.CredentialDecryptionException
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.StreamInfo
 import kotlinx.coroutines.launch
 
 internal suspend fun resolveCatchUpStreamInfo(

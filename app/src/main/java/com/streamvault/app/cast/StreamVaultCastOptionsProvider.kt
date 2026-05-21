@@ -1,4 +1,4 @@
-package com.streamvault.app.cast
+package com.MegaStream.app.cast
 
 import android.content.Context
 import com.google.android.gms.cast.CastMediaControlIntent
@@ -10,7 +10,7 @@ import com.google.android.gms.cast.framework.media.CastMediaOptions
 import com.google.android.gms.cast.framework.media.NotificationOptions
 import com.google.android.gms.cast.framework.media.widget.ExpandedControllerActivity
 
-class StreamVaultCastOptionsProvider : OptionsProvider {
+class MegaStreamCastOptionsProvider : OptionsProvider {
     override fun getCastOptions(context: Context): CastOptions {
         val notificationOptions = NotificationOptions.Builder().build()
         val mediaOptions = CastMediaOptions.Builder()

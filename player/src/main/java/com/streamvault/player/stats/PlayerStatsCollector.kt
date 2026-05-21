@@ -1,10 +1,10 @@
-package com.streamvault.player.stats
+package com.MegaStream.player.stats
 
 import androidx.media3.common.Format
 import androidx.media3.exoplayer.ExoPlayer
-import com.streamvault.domain.model.VideoFormat
-import com.streamvault.player.PlaybackState
-import com.streamvault.player.PlayerStats
+import com.MegaStream.domain.model.VideoFormat
+import com.MegaStream.player.PlaybackState
+import com.MegaStream.player.PlayerStats
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

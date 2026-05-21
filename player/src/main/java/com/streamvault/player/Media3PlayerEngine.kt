@@ -1,4 +1,4 @@
-package com.streamvault.player
+package com.MegaStream.player
 
 import android.content.Context
 import android.os.Build
@@ -27,49 +27,49 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
 import androidx.media3.exoplayer.video.VideoRendererEventListener
 import androidx.media3.session.MediaSession
-import com.streamvault.domain.model.AudioOutputPreference
-import com.streamvault.domain.model.DecoderMode
-import com.streamvault.domain.model.PlaybackCompatibilityKey
-import com.streamvault.domain.model.PlaybackCompatibilityRecord
-import com.streamvault.domain.model.PlayerSurfaceMode
-import com.streamvault.domain.model.StreamInfo
-import com.streamvault.domain.model.VideoFormat
-import com.streamvault.domain.repository.PlaybackCompatibilityRepository
-import com.streamvault.player.audio.PlayerAudioFocusController
-import com.streamvault.player.playback.ActiveDecoderPolicy
-import com.streamvault.player.playback.DefaultDecoderPreferencePolicy
-import com.streamvault.player.playback.DefaultPlaybackCompatibilityProfile
-import com.streamvault.player.playback.AudioVideoOffsetAudioSink
-import com.streamvault.player.playback.PlaybackCodecSelector
-import com.streamvault.player.playback.PlaybackCompatibilityProfile
-import com.streamvault.player.playback.PlaybackBufferPolicies
-import com.streamvault.player.playback.PlaybackErrorCategory
-import com.streamvault.player.playback.FfmpegAudioFallbackRequest
-import com.streamvault.player.playback.FfmpegExtensionSupport
-import com.streamvault.player.playback.PlaybackLogSanitizer
-import com.streamvault.player.playback.PlaybackPreparationPlan
-import com.streamvault.player.playback.PlaybackRendererPlan
-import com.streamvault.player.playback.PlaybackRetryContext
-import com.streamvault.player.playback.PlayerDataSourceFactoryProvider
-import com.streamvault.player.playback.PlayerErrorClassifier
-import com.streamvault.player.playback.PlayerMediaSourceFactory
-import com.streamvault.player.playback.PlayerRetryPolicy
-import com.streamvault.player.playback.PlayerTimeoutProfile
-import com.streamvault.player.playback.PreloadCoordinator
-import com.streamvault.player.playback.ResolvedStreamType
-import com.streamvault.player.playback.resolveRetryAttemptAfterReady
-import com.streamvault.player.playback.resolveRetrySeekPositionMs
-import com.streamvault.player.playback.StreamTypeResolver
-import com.streamvault.player.playback.VideoStallDetector
-import com.streamvault.player.stats.PlayerStatsCollector
-import com.streamvault.player.timeshift.DefaultLiveTimeshiftManager
-import com.streamvault.player.timeshift.LiveTimeshiftBackend
-import com.streamvault.player.timeshift.LiveTimeshiftState
-import com.streamvault.player.timeshift.LiveTimeshiftStatus
-import com.streamvault.player.timeshift.TimeshiftConfig
-import com.streamvault.player.tracks.PlayerTrackController
-import com.streamvault.player.ui.PlayerViewBinder
-import com.streamvault.player.ui.SubtitleStyleController
+import com.MegaStream.domain.model.AudioOutputPreference
+import com.MegaStream.domain.model.DecoderMode
+import com.MegaStream.domain.model.PlaybackCompatibilityKey
+import com.MegaStream.domain.model.PlaybackCompatibilityRecord
+import com.MegaStream.domain.model.PlayerSurfaceMode
+import com.MegaStream.domain.model.StreamInfo
+import com.MegaStream.domain.model.VideoFormat
+import com.MegaStream.domain.repository.PlaybackCompatibilityRepository
+import com.MegaStream.player.audio.PlayerAudioFocusController
+import com.MegaStream.player.playback.ActiveDecoderPolicy
+import com.MegaStream.player.playback.DefaultDecoderPreferencePolicy
+import com.MegaStream.player.playback.DefaultPlaybackCompatibilityProfile
+import com.MegaStream.player.playback.AudioVideoOffsetAudioSink
+import com.MegaStream.player.playback.PlaybackCodecSelector
+import com.MegaStream.player.playback.PlaybackCompatibilityProfile
+import com.MegaStream.player.playback.PlaybackBufferPolicies
+import com.MegaStream.player.playback.PlaybackErrorCategory
+import com.MegaStream.player.playback.FfmpegAudioFallbackRequest
+import com.MegaStream.player.playback.FfmpegExtensionSupport
+import com.MegaStream.player.playback.PlaybackLogSanitizer
+import com.MegaStream.player.playback.PlaybackPreparationPlan
+import com.MegaStream.player.playback.PlaybackRendererPlan
+import com.MegaStream.player.playback.PlaybackRetryContext
+import com.MegaStream.player.playback.PlayerDataSourceFactoryProvider
+import com.MegaStream.player.playback.PlayerErrorClassifier
+import com.MegaStream.player.playback.PlayerMediaSourceFactory
+import com.MegaStream.player.playback.PlayerRetryPolicy
+import com.MegaStream.player.playback.PlayerTimeoutProfile
+import com.MegaStream.player.playback.PreloadCoordinator
+import com.MegaStream.player.playback.ResolvedStreamType
+import com.MegaStream.player.playback.resolveRetryAttemptAfterReady
+import com.MegaStream.player.playback.resolveRetrySeekPositionMs
+import com.MegaStream.player.playback.StreamTypeResolver
+import com.MegaStream.player.playback.VideoStallDetector
+import com.MegaStream.player.stats.PlayerStatsCollector
+import com.MegaStream.player.timeshift.DefaultLiveTimeshiftManager
+import com.MegaStream.player.timeshift.LiveTimeshiftBackend
+import com.MegaStream.player.timeshift.LiveTimeshiftState
+import com.MegaStream.player.timeshift.LiveTimeshiftStatus
+import com.MegaStream.player.timeshift.TimeshiftConfig
+import com.MegaStream.player.tracks.PlayerTrackController
+import com.MegaStream.player.ui.PlayerViewBinder
+import com.MegaStream.player.ui.SubtitleStyleController
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicLong
@@ -104,7 +104,7 @@ class Media3PlayerEngine @Inject constructor(
         private const val TEXTURE_VIEW_STARTUP_TIMEOUT_MS = 9_000L
         private const val TEXTURE_VIEW_BUFFERED_STARTUP_THRESHOLD_MS = 4_000L
         private const val KNOWN_BAD_FAILURE_THRESHOLD = 3
-        private const val MEDIA_SESSION_ID_PREFIX = "streamvault"
+        private const val MEDIA_SESSION_ID_PREFIX = "MegaStream"
         private val nextMediaSessionInstanceId = AtomicLong(1L)
     }
 
@@ -1325,8 +1325,8 @@ class Media3PlayerEngine @Inject constructor(
     }
 
     private fun inferSnapshotStreamType(url: String) = when {
-        url.lowercase().endsWith(".m3u8") -> com.streamvault.domain.model.StreamType.HLS
-        else -> com.streamvault.domain.model.StreamType.PROGRESSIVE
+        url.lowercase().endsWith(".m3u8") -> com.MegaStream.domain.model.StreamType.HLS
+        else -> com.MegaStream.domain.model.StreamType.PROGRESSIVE
     }
 
     private fun syncTimeshiftState(messageOverride: String? = null) {
@@ -1800,7 +1800,7 @@ class Media3PlayerEngine @Inject constructor(
     }
 
     private fun buildPlaybackSupportSnapshot(): String = buildString {
-        appendLine("StreamVault Playback Support Snapshot")
+        appendLine("MegaStream Playback Support Snapshot")
         appendLine("requestedDecoderMode=$requestedDecoderMode")
         appendLine("activeDecoderMode=$activeDecoderMode")
         appendLine("activeDecoderPolicy=$activeDecoderPolicy")

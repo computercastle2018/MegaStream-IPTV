@@ -1,6 +1,6 @@
-package com.streamvault.data.parser
+package com.MegaStream.data.parser
 
-import com.streamvault.domain.model.Program
+import com.MegaStream.domain.model.Program
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream

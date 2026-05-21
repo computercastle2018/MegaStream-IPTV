@@ -1,4 +1,4 @@
-package com.streamvault.data.parser
+package com.MegaStream.data.parser
 
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers

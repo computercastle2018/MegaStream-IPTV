@@ -1,4 +1,4 @@
-package com.streamvault.app.ui.components
+package com.MegaStream.app.ui.components
 
 private val progressRatioRegex = Regex("(\\d+)\\s*/\\s*(\\d+)")
 

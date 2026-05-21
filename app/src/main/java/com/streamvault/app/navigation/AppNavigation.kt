@@ -1,4 +1,4 @@
-package com.streamvault.app.navigation
+package com.MegaStream.app.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
@@ -15,22 +15,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.streamvault.app.ui.model.isArchivePlayable
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Episode
-import com.streamvault.domain.model.Movie
-import com.streamvault.domain.repository.ChannelRepository
-import com.streamvault.app.ui.screens.dashboard.DashboardScreen
-import com.streamvault.app.ui.screens.multiview.MultiViewScreen
-import com.streamvault.app.ui.screens.home.HomeScreen
-import com.streamvault.app.ui.screens.movies.MoviesScreen
-import com.streamvault.app.ui.screens.player.PlayerScreen
-import com.streamvault.app.ui.screens.plugins.PluginsScreen
-import com.streamvault.app.ui.screens.provider.ProviderSetupScreen
-import com.streamvault.app.ui.screens.series.SeriesScreen
-import com.streamvault.app.ui.screens.settings.SettingsScreen
-import com.streamvault.app.ui.screens.welcome.WelcomeScreen
-import com.streamvault.app.MainActivity
+import com.MegaStream.app.ui.model.isArchivePlayable
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Episode
+import com.MegaStream.domain.model.Movie
+import com.MegaStream.domain.repository.ChannelRepository
+import com.MegaStream.app.ui.screens.dashboard.DashboardScreen
+import com.MegaStream.app.ui.screens.multiview.MultiViewScreen
+import com.MegaStream.app.ui.screens.home.HomeScreen
+import com.MegaStream.app.ui.screens.movies.MoviesScreen
+import com.MegaStream.app.ui.screens.player.PlayerScreen
+import com.MegaStream.app.ui.screens.plugins.PluginsScreen
+import com.MegaStream.app.ui.screens.provider.ProviderSetupScreen
+import com.MegaStream.app.ui.screens.series.SeriesScreen
+import com.MegaStream.app.ui.screens.settings.SettingsScreen
+import com.MegaStream.app.ui.screens.welcome.WelcomeScreen
+import com.MegaStream.app.MainActivity
 import java.io.Serializable
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -365,7 +365,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                     navController.navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
-                            categoryId = com.streamvault.domain.model.VirtualCategoryIds.RECENT,
+                            categoryId = com.MegaStream.domain.model.VirtualCategoryIds.RECENT,
                             providerId = channel.providerId,
                             isVirtual = true,
                             combinedProfileId = combinedProfileId,
@@ -377,7 +377,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                     navController.navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
-                            categoryId = com.streamvault.domain.model.VirtualCategoryIds.FAVORITES,
+                            categoryId = com.MegaStream.domain.model.VirtualCategoryIds.FAVORITES,
                             providerId = channel.providerId,
                             isVirtual = true,
                             combinedProfileId = combinedProfileId,
@@ -393,7 +393,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                 },
                 onPlaybackHistoryClick = { history ->
                     val route = when (history.contentType) {
-                        com.streamvault.domain.model.ContentType.LIVE -> {
+                        com.MegaStream.domain.model.ContentType.LIVE -> {
                             Routes.player(
                                 streamUrl = history.streamUrl,
                                 title = history.title,
@@ -403,7 +403,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                                 returnRoute = Routes.HOME
                             )
                         }
-                        com.streamvault.domain.model.ContentType.MOVIE -> {
+                        com.MegaStream.domain.model.ContentType.MOVIE -> {
                             Routes.player(
                                 streamUrl = history.streamUrl,
                                 title = history.title,
@@ -413,10 +413,10 @@ fun AppNavigation(mainActivity: MainActivity) {
                                 returnRoute = Routes.HOME
                             )
                         }
-                        com.streamvault.domain.model.ContentType.SERIES -> {
+                        com.MegaStream.domain.model.ContentType.SERIES -> {
                             Routes.seriesDetail(history.contentId, Routes.HOME)
                         }
-                        com.streamvault.domain.model.ContentType.SERIES_EPISODE -> {
+                        com.MegaStream.domain.model.ContentType.SERIES_EPISODE -> {
                             Routes.player(
                                 streamUrl = history.streamUrl,
                                 title = history.title,
@@ -504,7 +504,7 @@ fun AppNavigation(mainActivity: MainActivity) {
             val epgCategoryId = backStackEntry.arguments?.getLong("categoryId")?.takeIf { it != -1L }
             val epgAnchorTime = backStackEntry.arguments?.getLong("anchorTime")?.takeIf { it != -1L }
             val epgFavoritesOnly = backStackEntry.arguments?.getBoolean("favoritesOnly") ?: false
-            com.streamvault.app.ui.screens.epg.FullEpgScreen(
+            com.MegaStream.app.ui.screens.epg.FullEpgScreen(
                 currentRoute = Routes.EPG,
                 initialCategoryId = epgCategoryId,
                 initialAnchorTime = epgAnchorTime,
@@ -583,7 +583,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                 navArgument("providerId") { type = NavType.LongType }
             )
         ) {
-            com.streamvault.app.ui.screens.settings.parental.ParentalControlGroupScreen(
+            com.MegaStream.app.ui.screens.settings.parental.ParentalControlGroupScreen(
                 currentRoute = Routes.SETTINGS,
                 onNavigate = { route -> tabNavigate(route) },
                 onBack = { navController.popBackStack() }
@@ -596,7 +596,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                 navArgument("query") { type = NavType.StringType; defaultValue = "" }
             )
         ) { backStackEntry ->
-            com.streamvault.app.ui.screens.search.SearchScreen(
+            com.MegaStream.app.ui.screens.search.SearchScreen(
                 initialQuery = backStackEntry.arguments?.getString("query").orEmpty(),
                 onChannelClick = { channel ->
                     navController.navigateToPlayer(
@@ -684,7 +684,7 @@ fun AppNavigation(mainActivity: MainActivity) {
         ) { backStackEntry ->
             val returnRoute = backStackEntry.arguments?.getString("returnRoute").orEmpty().takeIf { it.isNotBlank() }
             val movieId = backStackEntry.arguments?.getLong("movieId") ?: -1L
-            com.streamvault.app.ui.screens.movies.MovieDetailScreen(
+            com.MegaStream.app.ui.screens.movies.MovieDetailScreen(
                 onPlay = { movie ->
                     navController.navigateToPlayer(
                         Routes.moviePlayer(movie).copy(
@@ -717,7 +717,7 @@ fun AppNavigation(mainActivity: MainActivity) {
         ) { backStackEntry ->
             val returnRoute = backStackEntry.arguments?.getString("returnRoute").orEmpty().takeIf { it.isNotBlank() }
             val seriesId = backStackEntry.arguments?.getLong("seriesId") ?: -1L
-            com.streamvault.app.ui.screens.series.SeriesDetailScreen(
+            com.MegaStream.app.ui.screens.series.SeriesDetailScreen(
                 onEpisodeClick = { episode ->
                      navController.navigateToPlayer(
                          Routes.episodePlayer(episode).copy(

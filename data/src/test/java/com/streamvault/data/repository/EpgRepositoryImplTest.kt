@@ -1,15 +1,15 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.ProgramDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.local.entity.ProgramBrowseEntity
-import com.streamvault.data.local.entity.ProgramEntity
-import com.streamvault.data.parser.XmltvParser
-import com.streamvault.domain.model.Program
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.ProgramDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.local.entity.ProgramBrowseEntity
+import com.MegaStream.data.local.entity.ProgramEntity
+import com.MegaStream.data.parser.XmltvParser
+import com.MegaStream.domain.model.Program
+import com.MegaStream.domain.model.ProviderType
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -37,7 +37,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
-import com.streamvault.domain.repository.EpgSourceRepository
+import com.MegaStream.domain.repository.EpgSourceRepository
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.io.ByteArrayOutputStream

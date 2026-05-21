@@ -1,30 +1,30 @@
-package com.streamvault.data.repository
+package com.MegaStream.data.repository
 
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.data.epg.EpgResolutionEngine
-import com.streamvault.data.local.DatabaseTransactionRunner
-import com.streamvault.data.local.dao.ChannelEpgMappingDao
-import com.streamvault.data.local.dao.EpgChannelDao
-import com.streamvault.data.local.dao.EpgProgrammeDao
-import com.streamvault.data.local.dao.EpgSourceDao
-import com.streamvault.data.local.dao.ProviderDao
-import com.streamvault.data.local.dao.ProviderEpgSourceDao
-import com.streamvault.data.local.entity.ChannelEpgMappingEntity
-import com.streamvault.data.local.entity.EpgChannelEntity
-import com.streamvault.data.local.entity.EpgProgrammeEntity
-import com.streamvault.data.local.entity.EpgSourceEntity
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.data.local.entity.ProviderEpgSourceEntity
-import com.streamvault.data.parser.XmltvParser
-import com.streamvault.data.preferences.PreferencesRepository
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.EpgMatchType
-import com.streamvault.domain.model.EpgSourceType
-import com.streamvault.domain.model.Result
-import com.streamvault.domain.model.ProviderType
+import com.MegaStream.data.epg.EpgResolutionEngine
+import com.MegaStream.data.local.DatabaseTransactionRunner
+import com.MegaStream.data.local.dao.ChannelEpgMappingDao
+import com.MegaStream.data.local.dao.EpgChannelDao
+import com.MegaStream.data.local.dao.EpgProgrammeDao
+import com.MegaStream.data.local.dao.EpgSourceDao
+import com.MegaStream.data.local.dao.ProviderDao
+import com.MegaStream.data.local.dao.ProviderEpgSourceDao
+import com.MegaStream.data.local.entity.ChannelEpgMappingEntity
+import com.MegaStream.data.local.entity.EpgChannelEntity
+import com.MegaStream.data.local.entity.EpgProgrammeEntity
+import com.MegaStream.data.local.entity.EpgSourceEntity
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.data.local.entity.ProviderEpgSourceEntity
+import com.MegaStream.data.parser.XmltvParser
+import com.MegaStream.data.preferences.PreferencesRepository
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.EpgMatchType
+import com.MegaStream.domain.model.EpgSourceType
+import com.MegaStream.domain.model.Result
+import com.MegaStream.domain.model.ProviderType
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -326,7 +326,7 @@ class EpgSourceRepositoryImplTest {
         assertThat(programmeCaptor.firstValue.single().epgSourceId).isEqualTo(-10L)
         verify(epgSourceDao).insert(argThat {
             id == -10L &&
-                url == "streamvault://epg-source-staging/10" &&
+                url == "MegaStream://epg-source-staging/10" &&
                 !enabled
         })
         inOrder(epgProgrammeDao, epgChannelDao, epgSourceDao).apply {
@@ -335,7 +335,7 @@ class EpgSourceRepositoryImplTest {
             verify(epgSourceDao).delete(-10L)
             verify(epgSourceDao).insert(argThat {
                 id == -10L &&
-                    url == "streamvault://epg-source-staging/10" &&
+                    url == "MegaStream://epg-source-staging/10" &&
                     !enabled
             })
             verify(epgChannelDao).insertAll(any())

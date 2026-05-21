@@ -1,10 +1,10 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ChannelNumberingMode
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ChannelNumberingMode
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.filter
@@ -212,7 +212,7 @@ internal fun PlayerViewModel.changeChannel(index: Int, isAutoFallback: Boolean =
 
             playerEngine.playbackState
                 .filter {
-                    it == com.streamvault.player.PlaybackState.READY ||
+                    it == com.MegaStream.player.PlaybackState.READY ||
                         !isActivePlaybackSession(requestVersion, channel.streamUrl)
                 }
                 .first()
@@ -252,7 +252,7 @@ internal fun PlayerViewModel.preloadAdjacentChannel(currentIndex: Int) {
     }
 }
 
-internal fun PlayerViewModel.recordLivePlayback(channel: com.streamvault.domain.model.Channel) {
+internal fun PlayerViewModel.recordLivePlayback(channel: com.MegaStream.domain.model.Channel) {
     recordActiveLivePlayback(channel)
 }
 
@@ -286,19 +286,19 @@ internal fun PlayerViewModel.scheduleNumericChannelCommit() {
     }
 }
 
-internal fun PlayerViewModel.resolveChannelByNumber(number: Int?): com.streamvault.domain.model.Channel? {
+internal fun PlayerViewModel.resolveChannelByNumber(number: Int?): com.MegaStream.domain.model.Channel? {
     if (number == null) return null
     return channelNumberIndex[number]
 }
 
-internal fun PlayerViewModel.resolveChannelByPrefix(prefix: String): com.streamvault.domain.model.Channel? {
+internal fun PlayerViewModel.resolveChannelByPrefix(prefix: String): com.MegaStream.domain.model.Channel? {
     return channelNumberIndex.entries
         .firstOrNull { (key, _) -> key.toString().startsWith(prefix) }
         ?.value
 }
 
 internal fun PlayerViewModel.resolveChannelNumber(
-    channel: com.streamvault.domain.model.Channel,
+    channel: com.MegaStream.domain.model.Channel,
     index: Int
 ): Int = when (channelNumberingMode) {
     ChannelNumberingMode.GROUP -> if (index >= 0) index + 1 else channel.number.takeIf { it > 0 } ?: 0

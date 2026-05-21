@@ -1,9 +1,9 @@
-package com.streamvault.domain.usecase
+package com.MegaStream.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.PlaybackHistory
-import com.streamvault.domain.repository.PlaybackHistoryRepository
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.PlaybackHistory
+import com.MegaStream.domain.repository.PlaybackHistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -60,16 +60,16 @@ class MarkAsWatchedTest {
             seasonNumber: Int?,
             episodeNumber: Int?
         ): PlaybackHistory? = null
-        override suspend fun markAsWatched(history: PlaybackHistory): com.streamvault.domain.model.Result<Unit> {
+        override suspend fun markAsWatched(history: PlaybackHistory): com.MegaStream.domain.model.Result<Unit> {
             lastMarkedHistory = history
-            return com.streamvault.domain.model.Result.success(Unit)
+            return com.MegaStream.domain.model.Result.success(Unit)
         }
-        override suspend fun recordPlayback(history: PlaybackHistory) = com.streamvault.domain.model.Result.success(Unit)
-        override suspend fun updateResumePosition(history: PlaybackHistory) = com.streamvault.domain.model.Result.success(Unit)
-        override suspend fun flushPendingProgress() = com.streamvault.domain.model.Result.success(Unit)
-        override suspend fun removeFromHistory(contentId: Long, contentType: ContentType, providerId: Long) = com.streamvault.domain.model.Result.success(Unit)
-        override suspend fun clearAllHistory() = com.streamvault.domain.model.Result.success(Unit)
-        override suspend fun clearHistoryForProvider(providerId: Long) = com.streamvault.domain.model.Result.success(Unit)
-        override suspend fun clearLiveHistoryForProvider(providerId: Long) = com.streamvault.domain.model.Result.success(Unit)
+        override suspend fun recordPlayback(history: PlaybackHistory) = com.MegaStream.domain.model.Result.success(Unit)
+        override suspend fun updateResumePosition(history: PlaybackHistory) = com.MegaStream.domain.model.Result.success(Unit)
+        override suspend fun flushPendingProgress() = com.MegaStream.domain.model.Result.success(Unit)
+        override suspend fun removeFromHistory(contentId: Long, contentType: ContentType, providerId: Long) = com.MegaStream.domain.model.Result.success(Unit)
+        override suspend fun clearAllHistory() = com.MegaStream.domain.model.Result.success(Unit)
+        override suspend fun clearHistoryForProvider(providerId: Long) = com.MegaStream.domain.model.Result.success(Unit)
+        override suspend fun clearLiveHistoryForProvider(providerId: Long) = com.MegaStream.domain.model.Result.success(Unit)
     }
 }

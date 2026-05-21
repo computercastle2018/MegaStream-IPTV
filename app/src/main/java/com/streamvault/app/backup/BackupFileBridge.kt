@@ -1,11 +1,11 @@
-package com.streamvault.app.backup
+package com.MegaStream.app.backup
 
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import androidx.core.content.FileProvider
-import com.streamvault.app.BuildConfig
+import com.MegaStream.app.BuildConfig
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -19,7 +19,7 @@ object BackupFileBridge {
     fun createExportFile(context: Context): File {
         val documentsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) ?: context.filesDir
         val backupsDir = File(documentsDir, BACKUP_EXPORTS_DIR).apply { mkdirs() }
-        return File(backupsDir, "streamvault_backup_${LocalDateTime.now().format(exportNameFormatter)}.json")
+        return File(backupsDir, "MegaStream_backup_${LocalDateTime.now().format(exportNameFormatter)}.json")
             .also { file ->
                 file.parentFile?.mkdirs()
                 if (!file.exists()) file.createNewFile()
@@ -29,7 +29,7 @@ object BackupFileBridge {
     fun copyToImportInbox(context: Context, sourceUri: Uri): Uri? {
         pruneImportInbox(context)
         val inboxDir = File(context.cacheDir, BACKUP_IMPORTS_DIR).apply { mkdirs() }
-        val targetFile = File(inboxDir, "streamvault_import_${System.currentTimeMillis()}.json")
+        val targetFile = File(inboxDir, "MegaStream_import_${System.currentTimeMillis()}.json")
         return runCatching {
             context.contentResolver.openInputStream(sourceUri)?.use { input ->
                 targetFile.outputStream().use { output -> input.copyTo(output) }

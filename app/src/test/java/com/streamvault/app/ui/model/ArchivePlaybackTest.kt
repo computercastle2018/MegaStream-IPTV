@@ -1,8 +1,8 @@
-package com.streamvault.app.ui.model
+package com.MegaStream.app.ui.model
 
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.Program
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.Program
 import org.junit.Test
 
 class ArchivePlaybackTest {

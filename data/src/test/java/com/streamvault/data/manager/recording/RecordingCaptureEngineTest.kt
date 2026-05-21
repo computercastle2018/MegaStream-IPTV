@@ -1,8 +1,8 @@
-package com.streamvault.data.manager.recording
+package com.MegaStream.data.manager.recording
 
 import android.content.ContentResolver
 import com.google.common.truth.Truth.assertThat
-import com.streamvault.domain.model.RecordingSourceType
+import com.MegaStream.domain.model.RecordingSourceType
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.test.runTest

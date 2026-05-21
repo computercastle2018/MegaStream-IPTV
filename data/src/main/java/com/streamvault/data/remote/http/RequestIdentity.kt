@@ -1,7 +1,7 @@
-package com.streamvault.data.remote.http
+package com.MegaStream.data.remote.http
 
-import com.streamvault.data.local.entity.ProviderEntity
-import com.streamvault.domain.model.Provider
+import com.MegaStream.data.local.entity.ProviderEntity
+import com.MegaStream.domain.model.Provider
 import okhttp3.Interceptor
 import okhttp3.Request
 
@@ -77,7 +77,7 @@ class DefaultUserAgentInterceptor(
 
 fun buildAppUserAgent(versionName: String?): String {
     val normalizedVersion = versionName?.trim().orEmpty().ifBlank { "dev" }
-    return "StreamVault/$normalizedVersion (Android; Media3; OkHttp)"
+    return "MegaStream/$normalizedVersion (Android; Media3; OkHttp)"
 }
 
 fun buildAppRequestProfile(

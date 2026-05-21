@@ -1,9 +1,9 @@
-package com.streamvault.app.ui.screens.player
+package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
-import com.streamvault.domain.model.Channel
-import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.LiveChannelVariant
+import com.MegaStream.domain.model.Channel
+import com.MegaStream.domain.model.ContentType
+import com.MegaStream.domain.model.LiveChannelVariant
 import kotlinx.coroutines.launch
 
 fun PlayerViewModel.hasAlternateStream(): Boolean {
