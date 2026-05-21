@@ -1,6 +1,8 @@
-StreamVault Source-Available License (Non-Commercial)
+MegaStream Source-Available License (Non-Commercial)
 
-Copyright (c) 2026 David Nashash (Davidona)
+MegaStream is a derivative work based on StreamVault.
+
+Copyright (c) 2026 David Nashash (Davidona) — original StreamVault author
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to use,
@@ -32,7 +34,8 @@ copy, modify, and distribute the Software, subject to the following conditions:
 
 3. NAMING AND DERIVATIVE IDENTIFICATION
 
-   The software is named "StreamVault".
+   The original software is named "StreamVault". This distribution is named
+   "MegaStream" and is a derivative work based on StreamVault.
 
    Any modified or forked version of the Software must clearly state that it is:
    "Based on StreamVault" or "Derived from StreamVault" in:

@@ -198,6 +198,6 @@ Useful commands:
 ## License
 
 This project was originally released without an explicit license.  
-As of April 2026, all usage, modification, and distribution are governed by the StreamVault Source-Available License (Non-Commercial).
+As of April 2026, all usage, modification, and distribution are governed by the MegaStream Source-Available License (Non-Commercial), a derivative of the StreamVault Source-Available License.
 
 Any use of this project must comply with the terms defined in the LICENSE file.
