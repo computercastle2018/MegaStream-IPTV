@@ -1,0 +1,18 @@
+{
+  "id": "com.streamvault.webos",
+  "version": "0.1.0",
+  "vendor": "MegaStream",
+  "type": "web",
+  "main": "index.html",
+  "title": "MegaStream",
+  "icon": "icon.png",
+  "largeIcon": "icon.png",
+  "iconColor": "#0f766e",
+  "bgColor": "#0b0f14",
+  "uiRevision": 2,
+  "disableBackHistoryAPI": true,
+  "allowCrossDomain": true,
+  "requiredPermissions": [
+    "time.query"
+  ]
+}
