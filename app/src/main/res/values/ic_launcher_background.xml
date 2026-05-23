@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#212121</color>
+    <!-- Matches the dark navy of the MegaStream brand logo. -->
+    <color name="ic_launcher_background">#0E0E20</color>
+    <!-- Splash screen background — deeper than the icon bg to match the
+         brand splash design (body bg #060610). -->
+    <color name="megastream_splash_bg">#060610</color>
 </resources>

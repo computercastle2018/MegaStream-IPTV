@@ -4,7 +4,15 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowIsTranslucent">false</item>
-        <item name="android:windowBackground">@android:color/black</item>
+        <!-- Brand-deep-navy used everywhere we previously drew pure black so
+             the system splash, app start window and overscroll edges match
+             the new MegaStream logo background. -->
+        <item name="android:windowBackground">@color/megastream_splash_bg</item>
+        <!-- Android 12+ system splash attributes. On older platforms these
+             are silently ignored and Theme.NoTitleBar.Fullscreen still owns
+             the initial frame via windowBackground above. -->
+        <item name="android:windowSplashScreenBackground">@color/megastream_splash_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_vault</item>
     </style>
 
     <style name="Theme.MegaStream.CastChooser" parent="Theme.AppCompat.Dialog">
