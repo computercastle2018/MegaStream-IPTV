@@ -64,3 +64,6 @@ tmp/gha-artifact-inspect/
 .tmp-inspect/
 translations/
 releases/*.apk
+
+# Claude / agent session-local config — never commit
+.claude/
