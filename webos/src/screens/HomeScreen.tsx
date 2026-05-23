@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ContentType, Provider } from "../types";
 import { FocusButton, LanguageToggle } from "../components/Focusable";
+import LoadingOverlay from "../components/LoadingOverlay";
 import { getAccountInfo } from "../services/xtreamClient";
+import { refreshAllContent } from "../services/content";
 import { onBack } from "../remote/keys";
 import { useLang } from "../i18n/LanguageContext";
 
@@ -15,26 +17,49 @@ interface Props {
 export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onSettings }: Props) {
   const { t } = useLang();
   const [expiry, setExpiry] = useState<string>(t("home.unlimited"));
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => onBack(onChangePlaylist), [onChangePlaylist]);
 
-  useEffect(() => {
-    if (provider.type !== "xtream") {
-      setExpiry(t("home.unlimited"));
-      return;
-    }
-    const controller = new AbortController();
-    getAccountInfo(provider, controller.signal)
-      .then((info) => {
+  const refreshExpiry = useCallback(
+    async (signal?: AbortSignal) => {
+      if (provider.type !== "xtream") {
+        setExpiry(t("home.unlimited"));
+        return;
+      }
+      try {
+        const info = await getAccountInfo(provider, signal);
         setExpiry(
           info.expDate
             ? new Date(info.expDate * 1000).toLocaleDateString()
             : t("home.unlimited"),
         );
-      })
-      .catch(() => setExpiry(t("home.unlimited")));
+      } catch {
+        if (!signal?.aborted) setExpiry(t("home.unlimited"));
+      }
+    },
+    [provider, t],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void refreshExpiry(controller.signal);
     return () => controller.abort();
-  }, [provider, t]);
+  }, [refreshExpiry]);
+
+  // Reload: re-sync the whole library (live / movies / series) plus the
+  // account info, showing the animated loading overlay until it completes.
+  const handleReload = useCallback(async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      await Promise.all([refreshAllContent(provider), refreshExpiry()]);
+    } catch {
+      // Errors surface again when the user opens a section; keep the home calm.
+    } finally {
+      setSyncing(false);
+    }
+  }, [syncing, provider, refreshExpiry]);
 
   return (
     <div className="home-screen">
@@ -90,7 +115,7 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
             <IconGear />
             <span>{t("home.settings")}</span>
           </FocusButton>
-          <FocusButton className="side-btn" onEnter={() => window.location.reload()}>
+          <FocusButton className="side-btn" onEnter={handleReload}>
             <IconReload />
             <span>{t("home.reload")}</span>
           </FocusButton>
@@ -102,6 +127,8 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
       </div>
 
       <div className="home-version">v0.1.0</div>
+
+      {syncing && <LoadingOverlay message={t("home.syncing")} />}
     </div>
   );
 }

@@ -2,8 +2,63 @@ import type { ContentItem, ContentType, Provider, StreamFormat } from "../types"
 import { parseM3u, type M3uEntry } from "./m3uParser";
 import { getLiveStreams, getMovies, getSeries } from "./xtreamClient";
 
-/** Loads browsable items for a given provider + content type. */
+/**
+ * In-memory cache of fetched content keyed by `${providerId}:${type}`.
+ * Lets the dashboard "Reload" pre-sync the whole library so that opening a
+ * section is instant, and so a manual refresh can re-fetch everything at once.
+ */
+const contentCache = new Map<string, ContentItem[]>();
+
+function cacheKey(providerId: string, type: ContentType): string {
+  return `${providerId}:${type}`;
+}
+
+/** Drops cached content — for all providers, or just one when an id is given. */
+export function clearContentCache(providerId?: string): void {
+  if (!providerId) {
+    contentCache.clear();
+    return;
+  }
+  for (const key of [...contentCache.keys()]) {
+    if (key.startsWith(`${providerId}:`)) contentCache.delete(key);
+  }
+}
+
+/**
+ * Loads browsable items for a given provider + content type.
+ * Returns cached results when available unless `forceRefresh` is set.
+ */
 export async function loadContent(
+  provider: Provider,
+  type: ContentType,
+  signal?: AbortSignal,
+  forceRefresh = false,
+): Promise<ContentItem[]> {
+  const key = cacheKey(provider.id, type);
+  if (!forceRefresh) {
+    const cached = contentCache.get(key);
+    if (cached) return cached;
+  }
+  const items = await fetchContent(provider, type, signal);
+  contentCache.set(key, items);
+  return items;
+}
+
+/**
+ * Re-fetches every section this provider supports (live / movies / series),
+ * replacing the cache. Resolves once the whole library has been synced.
+ */
+export async function refreshAllContent(
+  provider: Provider,
+  signal?: AbortSignal,
+): Promise<void> {
+  clearContentCache(provider.id);
+  await Promise.all(
+    supportedTypes(provider).map((type) => loadContent(provider, type, signal, true)),
+  );
+}
+
+async function fetchContent(
   provider: Provider,
   type: ContentType,
   signal?: AbortSignal,

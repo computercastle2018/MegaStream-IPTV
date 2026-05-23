@@ -54,13 +54,13 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.MegaStream.app"
+        applicationId = "com.megastream.app"
         minSdk = 27
         targetSdk = 36
         versionCode = 13
         versionName = "1.0.12"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "OFFICIAL_APPLICATION_ID", "\"com.MegaStream.app\"")
+        buildConfigField("String", "OFFICIAL_APPLICATION_ID", "\"com.megastream.app\"")
         buildConfigField("String", "OFFICIAL_SIGNING_CERT_SHA256", "\"$officialSigningCertSha256\"")
         buildConfigField("String", "APP_UPDATE_CHANNEL", "\"stable\"")
         buildConfigField("long", "BUILD_TIMESTAMP_UTC", "0L")
@@ -77,6 +77,18 @@ android {
         buildConfigField("String", "XTREAM_DEV_NAME", "\"\"")
         buildConfigField("String", "M3U_DEV_URL", "\"\"")
         buildConfigField("String", "M3U_DEV_NAME", "\"\"")
+    }
+
+    // Produce per-ABI APKs (smaller per-device download) plus a universal APK
+    // for sideload / GitHub Releases. Each per-ABI APK is ~10 MB lighter than
+    // the universal because it omits native libs for other architectures.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = true
+        }
     }
 
     signingConfigs {

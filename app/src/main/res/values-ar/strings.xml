@@ -1443,5 +1443,15 @@
     <string name="settings_drive_last_pull">Pulled: %1$s</string>
     <string name="settings_drive_never_synced">Never synced yet</string>
     <string name="setup_import_from_drive">Import from Drive</string>
+
+    <!-- اختصارات شريط التشغيل (ضغطة طويلة على أيقونة التطبيق) -->
+    <string name="shortcut_live_short">البث المباشر</string>
+    <string name="shortcut_live_long">فتح البث المباشر</string>
+    <string name="shortcut_movies_short">الأفلام</string>
+    <string name="shortcut_movies_long">تصفح الأفلام</string>
+    <string name="shortcut_series_short">المسلسلات</string>
+    <string name="shortcut_series_long">تصفح المسلسلات</string>
+    <string name="shortcut_search_short">البحث</string>
+    <string name="shortcut_search_long">البحث عن محتوى</string>
 </resources>
 

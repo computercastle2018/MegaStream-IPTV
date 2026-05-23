@@ -9,8 +9,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "package": "npm run build && ares-package dist -o out",
-    "install-tv": "ares-install -d tv out/com.MegaStream.webos_0.1.0_all.ipk",
-    "launch-tv": "ares-launch -d tv com.MegaStream.webos"
+    "install-tv": "ares-install -d tv out/com.megastream.webos_0.1.0_all.ipk",
+    "launch-tv": "ares-launch -d tv com.megastream.webos"
   },
   "dependencies": {
     "@noriginmedia/norigin-spatial-navigation": "^3.1.0",

@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.ScrubbingModeParameters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.exoplayer.mediacodec.MediaCodecInfo
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
@@ -961,9 +962,24 @@ class Media3PlayerEngine @Inject constructor(
             .setFallbackMaxPlaybackSpeed(1.0f)
             .build()
 
+        // Hint the ABR algorithm with bandwidth estimates that match modern
+        // broadband (Mbps). Default Media3 estimates target conservative LTE
+        // numbers (~700-1400 kbps for WiFi), which makes initial chunks pick
+        // the lowest rendition for ~5-10 s before stepping up. Higher starting
+        // estimates let HLS/DASH start at near-HD quality immediately.
+        val bandwidthMeter = DefaultBandwidthMeter.Builder(context)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_WIFI, 8_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_ETHERNET, 15_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_NSA, 10_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_SA, 12_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_4G, 4_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_3G, 1_500_000L)
+            .build()
+
         return ExoPlayer.Builder(context, renderersFactory)
             .setLoadControl(loadControl)
             .setLivePlaybackSpeedControl(livePlaybackSpeedControl)
+            .setBandwidthMeter(bandwidthMeter)
             .setSeekBackIncrementMs(10_000)
             .setSeekForwardIncrementMs(10_000)
             .setAudioAttributes(

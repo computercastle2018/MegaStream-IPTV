@@ -45,18 +45,31 @@ class MegaStreamApp : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
+        // Crash reporting must install before anything else can throw.
         CrashReportStore.install(this)
         runtimeDiagnosticsManager.start()
+
+        // Everything below is non-essential for first-frame rendering and is
+        // deferred off the main thread to keep cold-start TTI low. The earlier
+        // implementation built WorkManager Constraints + enqueued five periodic
+        // jobs synchronously inside onCreate, which delayed first frame by tens
+        // of milliseconds on cold boots and disk-stalled launches.
         applicationScope.launch {
-            // Clean up any timeshift temp directories left behind by crashes, OOM kills, or
-            // force-stops from the previous run. activeSessionDir = null means wipe everything.
+            // Clean up any timeshift temp directories left behind by crashes,
+            // OOM kills, or force-stops from the previous run.
             TimeshiftDiskManager(applicationContext).cleanupStaleDirectories(activeSessionDir = null)
         }
         applicationScope.launch {
             refreshCachedAppUpdateIfNeeded()
         }
-        
-        // Schedule daily data maintenance: EPG pruning, stale-favorite cleanup, and DB compaction checks.
+        applicationScope.launch {
+            scheduleBackgroundWork()
+        }
+    }
+
+    /** Enqueues periodic + one-shot workers off the main thread. Idempotent. */
+    private fun scheduleBackgroundWork() {
+        // Daily data maintenance: EPG pruning, stale-favorite cleanup, DB compaction.
         // BLD-H02: Require network + device idle so the worker doesn't drain battery.
         val gcConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -67,7 +80,7 @@ class MegaStreamApp : Application(), SingletonImageLoader.Factory {
         val gcWorkRequest = PeriodicWorkRequestBuilder<com.MegaStream.data.sync.SyncWorker>(24, java.util.concurrent.TimeUnit.HOURS)
             .setConstraints(gcConstraints)
             .build()
-            
+
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "DataMaintenanceWorker",
             ExistingPeriodicWorkPolicy.KEEP,

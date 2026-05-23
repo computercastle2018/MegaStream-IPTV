@@ -1548,4 +1548,14 @@
     <string name="settings_drive_last_pull">Pulled: %1$s</string>
     <string name="settings_drive_never_synced">Never synced yet</string>
     <string name="setup_import_from_drive">Import from Drive</string>
+
+    <!-- Launcher shortcuts (long-press launcher icon) -->
+    <string name="shortcut_live_short">Live TV</string>
+    <string name="shortcut_live_long">Open Live TV</string>
+    <string name="shortcut_movies_short">Movies</string>
+    <string name="shortcut_movies_long">Browse Movies</string>
+    <string name="shortcut_series_short">Series</string>
+    <string name="shortcut_series_long">Browse Series</string>
+    <string name="shortcut_search_short">Search</string>
+    <string name="shortcut_search_long">Search content</string>
 </resources>

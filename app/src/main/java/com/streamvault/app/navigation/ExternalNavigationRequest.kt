@@ -7,6 +7,11 @@ import java.nio.charset.StandardCharsets
 sealed class ExternalDestination : Serializable {
     data object Home : ExternalDestination()
     data object Plugins : ExternalDestination()
+    // Top-level section shortcuts used by launcher icons / app shortcuts.
+    data object LiveTv : ExternalDestination()
+    data object Movies : ExternalDestination()
+    data object Series : ExternalDestination()
+    data object Search : ExternalDestination()
 
     data class ProviderSetup(
         val providerId: Long? = null,
@@ -26,6 +31,10 @@ sealed class ExternalDestination : Serializable {
     fun toRoute(): String = when (this) {
         Home -> Routes.HOME
         Plugins -> Routes.PLUGINS
+        LiveTv -> Routes.LIVE_TV
+        Movies -> Routes.MOVIES
+        Series -> Routes.SERIES
+        Search -> Routes.SEARCH
         is ProviderSetup -> Routes.providerSetup(providerId = providerId, importUri = importUri)
         is MovieDetail -> Routes.movieDetail(movieId = movieId, returnRoute = returnRoute)
         is SeriesDetail -> Routes.seriesDetail(seriesId = seriesId, returnRoute = returnRoute)
@@ -39,6 +48,10 @@ sealed class ExternalDestination : Serializable {
             return when {
                 normalizedRoute == Routes.HOME -> Home
                 normalizedRoute == Routes.PLUGINS -> Plugins
+                normalizedRoute == Routes.LIVE_TV -> LiveTv
+                normalizedRoute == Routes.MOVIES -> Movies
+                normalizedRoute == Routes.SERIES -> Series
+                normalizedRoute == Routes.SEARCH -> Search
                 normalizedRoute.startsWith(Routes.PROVIDER_SETUP.substringBefore('?')) -> {
                     val queryParameters = normalizedRoute.queryParameters()
                     val providerId = queryParameters["providerId"]

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Static launcher shortcuts shown on long-press of the launcher icon.
+  Each targets MainActivity with EXTRA_EXTERNAL_ROUTE = "<route>", which
+  ExternalDestination.fromLegacyRoute parses into a top-level destination.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="live_tv"
+        android:enabled="true"
+        android:icon="@drawable/ic_live_tv_24"
+        android:shortcutShortLabel="@string/shortcut_live_short"
+        android:shortcutLongLabel="@string/shortcut_live_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.megastream.app"
+            android:targetClass="com.MegaStream.app.MainActivity">
+            <extra android:name="com.MegaStream.app.extra.EXTERNAL_ROUTE" android:value="live_tv" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="movies"
+        android:enabled="true"
+        android:icon="@drawable/ic_movie_24"
+        android:shortcutShortLabel="@string/shortcut_movies_short"
+        android:shortcutLongLabel="@string/shortcut_movies_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.megastream.app"
+            android:targetClass="com.MegaStream.app.MainActivity">
+            <extra android:name="com.MegaStream.app.extra.EXTERNAL_ROUTE" android:value="movies" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="series"
+        android:enabled="true"
+        android:icon="@drawable/ic_series_24"
+        android:shortcutShortLabel="@string/shortcut_series_short"
+        android:shortcutLongLabel="@string/shortcut_series_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.megastream.app"
+            android:targetClass="com.MegaStream.app.MainActivity">
+            <extra android:name="com.MegaStream.app.extra.EXTERNAL_ROUTE" android:value="series" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@drawable/ic_search_24"
+        android:shortcutShortLabel="@string/shortcut_search_short"
+        android:shortcutLongLabel="@string/shortcut_search_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.megastream.app"
+            android:targetClass="com.MegaStream.app.MainActivity">
+            <extra android:name="com.MegaStream.app.extra.EXTERNAL_ROUTE" android:value="search" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+</shortcuts>
