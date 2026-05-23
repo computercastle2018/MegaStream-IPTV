@@ -18,9 +18,11 @@ private const val GITHUB_RELEASES_LATEST_URL = "https://api.github.com/repos/com
 private const val GITHUB_RELEASES_LIST_URL = "https://api.github.com/repos/computercastle2018/MegaStream-IPTV/releases?per_page=20"
 
 /**
- * Optional Google-Drive-hosted update manifest (preferred when set). When this
- * URL points to a publicly shared JSON file with the schema below, the checker
- * uses it first and only falls back to the GitHub Releases API on failure.
+ * Optional Google-Drive-hosted update manifest used as a **fallback** when
+ * the GitHub Releases API fails (network down, GitHub blocked, rate-limited,
+ * 404, etc.). When this URL points to a publicly shared JSON file with the
+ * schema below, the checker tries GitHub first and only consults Drive when
+ * GitHub returns an error.
  *
  *   {
  *     "versionName": "1.0.12",
@@ -57,18 +59,26 @@ class GitHubReleaseChecker @Inject constructor(
     }
 
     suspend fun fetchLatestRelease(): Result<GitHubReleaseInfo> = withContext(Dispatchers.IO) {
-        // Prefer the Drive-hosted manifest when an URL has been configured. The
-        // GitHub Releases API stays as the fallback so existing deployments
-        // keep working — and so the channel switches automatically if Drive
-        // sharing is revoked or the manifest disappears.
+        // GitHub Releases is the primary source. If it fails (network down,
+        // 404, rate-limited, etc.) and a Drive manifest URL is configured,
+        // fall back to the Drive-hosted manifest so users behind GitHub-blocked
+        // networks or during outages can still receive updates.
+        val githubResult = fetchFromGithub()
+        if (githubResult is Result.Success) {
+            return@withContext githubResult
+        }
         if (DRIVE_UPDATE_MANIFEST_URL.isNotBlank()) {
             val driveResult = fetchFromDriveManifest()
             if (driveResult is Result.Success) {
                 return@withContext driveResult
             }
-            // Drive miss/failure — fall through to GitHub.
         }
-        try {
+        // Return the original GitHub error (more informative than Drive's).
+        return@withContext githubResult
+    }
+
+    private fun fetchFromGithub(): Result<GitHubReleaseInfo> {
+        return try {
             val updateChannel = AppUpdateChannel.fromCurrentBuild()
             val request = Request.Builder()
                 .url(updateChannel.releaseApiUrl)
@@ -78,21 +88,21 @@ class GitHubReleaseChecker @Inject constructor(
 
             okHttpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    return@withContext Result.error("Update check failed: HTTP ${response.code}")
+                    return Result.error("Update check failed: HTTP ${response.code}")
                 }
 
                 val body = when (val bodyResult = response.body?.let(::readResponseBodyCapped)) {
                     is Result.Success -> bodyResult.data
-                    is Result.Error -> return@withContext Result.error(bodyResult.message, bodyResult.exception)
+                    is Result.Error -> return Result.error(bodyResult.message, bodyResult.exception)
                     null,
                     Result.Loading -> ""
                 }
                 if (body.isBlank()) {
-                    return@withContext Result.error("Update check failed: empty GitHub release response")
+                    return Result.error("Update check failed: empty GitHub release response")
                 }
 
                 val json = selectReleaseJson(body, updateChannel)
-                    ?: return@withContext Result.error(
+                    ?: return Result.error(
                         if (updateChannel == AppUpdateChannel.Beta) {
                             "Update check failed: no beta release found"
                         } else {
@@ -101,18 +111,18 @@ class GitHubReleaseChecker @Inject constructor(
                     )
                 val parsedTag = parseTagVersionInfo(json.optString("tag_name"))
                 if (parsedTag.versionName.isBlank()) {
-                    return@withContext Result.error("Update check failed: latest release tag is missing")
+                    return Result.error("Update check failed: latest release tag is missing")
                 }
 
                 val notes = json.optString("body").trim()
                 val assets = json.optJSONArray("assets")
                 val releaseUrl = json.optString("html_url").takeIf(::isHttpsUrl).orEmpty()
                 if (releaseUrl.isBlank()) {
-                    return@withContext Result.error("Update check failed: latest release URL is not HTTPS")
+                    return Result.error("Update check failed: latest release URL is not HTTPS")
                 }
                 val downloadUrl = findApkAssetUrl(assets, updateChannel)
 
-                return@withContext Result.success(
+                Result.success(
                     GitHubReleaseInfo(
                         versionName = parsedTag.versionName,
                         versionCode = parsedTag.versionCode,
