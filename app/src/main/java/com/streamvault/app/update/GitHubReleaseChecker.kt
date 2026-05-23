@@ -17,6 +17,27 @@ import javax.inject.Singleton
 private const val GITHUB_RELEASES_LATEST_URL = "https://api.github.com/repos/computercastle2018/MegaStream-IPTV/releases/latest"
 private const val GITHUB_RELEASES_LIST_URL = "https://api.github.com/repos/computercastle2018/MegaStream-IPTV/releases?per_page=20"
 
+/**
+ * Optional Google-Drive-hosted update manifest (preferred when set). When this
+ * URL points to a publicly shared JSON file with the schema below, the checker
+ * uses it first and only falls back to the GitHub Releases API on failure.
+ *
+ *   {
+ *     "versionName": "1.0.12",
+ *     "versionCode": 13,
+ *     "downloadUrl": "https://drive.google.com/uc?export=download&id=APK_FILE_ID",
+ *     "releaseUrl":  "https://drive.google.com/file/d/APK_FILE_ID/view",
+ *     "releaseNotes": "Release notes here...",
+ *     "publishedAt": "2026-05-23T12:00:00Z"
+ *   }
+ *
+ * To enable: upload `MegaStream.apk` to Drive (share = Anyone with link),
+ * fill the manifest JSON with the APK's file id, upload the manifest to
+ * Drive (share = Anyone with link), and paste its direct-download URL here.
+ * URL form: https://drive.google.com/uc?export=download&id=MANIFEST_FILE_ID
+ */
+private const val DRIVE_UPDATE_MANIFEST_URL = ""
+
 data class GitHubReleaseInfo(
     val versionName: String,
     val versionCode: Int?,
@@ -36,6 +57,17 @@ class GitHubReleaseChecker @Inject constructor(
     }
 
     suspend fun fetchLatestRelease(): Result<GitHubReleaseInfo> = withContext(Dispatchers.IO) {
+        // Prefer the Drive-hosted manifest when an URL has been configured. The
+        // GitHub Releases API stays as the fallback so existing deployments
+        // keep working — and so the channel switches automatically if Drive
+        // sharing is revoked or the manifest disappears.
+        if (DRIVE_UPDATE_MANIFEST_URL.isNotBlank()) {
+            val driveResult = fetchFromDriveManifest()
+            if (driveResult is Result.Success) {
+                return@withContext driveResult
+            }
+            // Drive miss/failure — fall through to GitHub.
+        }
         try {
             val updateChannel = AppUpdateChannel.fromCurrentBuild()
             val request = Request.Builder()
@@ -95,6 +127,58 @@ class GitHubReleaseChecker @Inject constructor(
             Result.error("Update check failed: network error", error)
         } catch (error: Exception) {
             Result.error("Update check failed: ${error.message}", error)
+        }
+    }
+
+    /**
+     * Fetches the simple Drive-hosted manifest and maps it into the same
+     * GitHubReleaseInfo shape the rest of the app already understands.
+     */
+    private fun fetchFromDriveManifest(): Result<GitHubReleaseInfo> {
+        return try {
+            val request = Request.Builder()
+                .url(DRIVE_UPDATE_MANIFEST_URL)
+                .header("Accept", "application/json")
+                .header("User-Agent", "MegaStream-Update-Checker")
+                .build()
+            okHttpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    return Result.error("Drive manifest fetch failed: HTTP ${response.code}")
+                }
+                val body = when (val bodyResult = response.body?.let(::readResponseBodyCapped)) {
+                    is Result.Success -> bodyResult.data
+                    is Result.Error -> return Result.error(bodyResult.message, bodyResult.exception)
+                    null,
+                    Result.Loading -> ""
+                }
+                if (body.isBlank()) {
+                    return Result.error("Drive manifest fetch failed: empty body")
+                }
+                val json = JSONObject(body)
+                val versionName = json.optString("versionName").trim()
+                if (versionName.isBlank()) {
+                    return Result.error("Drive manifest missing versionName")
+                }
+                val releaseUrl = json.optString("releaseUrl").takeIf(::isHttpsUrl).orEmpty()
+                if (releaseUrl.isBlank()) {
+                    return Result.error("Drive manifest releaseUrl must be HTTPS")
+                }
+                val downloadUrl = json.optString("downloadUrl").takeIf { isHttpsUrl(it) }
+                Result.success(
+                    GitHubReleaseInfo(
+                        versionName = versionName,
+                        versionCode = json.optInt("versionCode").takeIf { it > 0 },
+                        releaseUrl = releaseUrl,
+                        downloadUrl = downloadUrl,
+                        releaseNotes = json.optString("releaseNotes").trim(),
+                        publishedAt = json.optString("publishedAt").takeIf { it.isNotBlank() }
+                    )
+                )
+            }
+        } catch (error: IOException) {
+            Result.error("Drive manifest network error", error)
+        } catch (error: Exception) {
+            Result.error("Drive manifest parse failed: ${error.message}", error)
         }
     }
 
