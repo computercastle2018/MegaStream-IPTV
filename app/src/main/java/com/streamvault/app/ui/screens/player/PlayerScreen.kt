@@ -887,8 +887,21 @@ fun PlayerScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Buffering indicator
-        if (playbackState == PlaybackState.BUFFERING) {
+        // Buffering indicator — shown only if buffering persists past a short
+        // grace period, so quick start-up loads (the common case) never flash
+        // the indicator. If buffering clears within the delay, the
+        // LaunchedEffect is cancelled and nothing is shown.
+        var showBufferingIndicator by remember { mutableStateOf(false) }
+        LaunchedEffect(playbackState) {
+            if (playbackState == PlaybackState.BUFFERING) {
+                showBufferingIndicator = false
+                delay(700)
+                showBufferingIndicator = true
+            } else {
+                showBufferingIndicator = false
+            }
+        }
+        if (showBufferingIndicator) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -912,6 +925,42 @@ fun PlayerScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White
                     )
+                }
+            }
+        }
+
+        // Skip Intro — heuristic button shown only during the opening of a
+        // series episode (5 s – 85 s). Tapping/selecting it jumps to 1:30,
+        // a typical end-of-intro mark. Hidden while transport controls or the
+        // loading indicator are visible to avoid overlap.
+        if (contentType == "SERIES_EPISODE" && !showControls && !showBufferingIndicator) {
+            val introPositionMs by playerEngine.currentPosition.collectAsStateWithLifecycle()
+            if (introPositionMs in 5_000L..85_000L) {
+                var skipFocused by remember { mutableStateOf(false) }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(40.dp),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .background(
+                                if (skipFocused) Primary else Color.Black.copy(alpha = 0.78f),
+                                RoundedCornerShape(10.dp)
+                            )
+                            .onFocusChanged { skipFocused = it.isFocused }
+                            .focusable()
+                            .clickable { viewModel.seekTo(90_000L) }
+                            .padding(horizontal = 22.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.player_skip_intro),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (skipFocused) Color.Black else Color.White
+                        )
+                    }
                 }
             }
         }

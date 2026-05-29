@@ -983,7 +983,8 @@
     <string name="setup_add">Add Playlist</string>
 
     
-    <string name="player_buffering">Buffering...</string>
+    <string name="player_buffering">Loading…</string>
+    <string name="player_skip_intro">Skip Intro</string>
     <string name="player_error_title">Playback Error</string>
     <string name="player_error_network">Stream unavailable — check your internet connection</string>
     <string name="player_error_source">Stream not found or access denied</string>

@@ -759,7 +759,8 @@
     <string name="setup_file_import_storage_full">التخزين ممتلئ. أفرغ مساحة وحاول الاستيراد مرة أخرى.</string>
     <string name="setup_validating">جارٍ التحقق...</string>
     <string name="setup_add">إضافة قائمة التشغيل</string>
-    <string name="player_buffering">جارٍ التخزين المؤقت...</string>
+    <string name="player_buffering">جارٍ التحميل…</string>
+    <string name="player_skip_intro">تخطّي المقدمة</string>
     <string name="player_error_title">خطأ في التشغيل</string>
     <string name="player_error_network">البث غير متاح — تحقق من اتصال الإنترنت</string>
     <string name="player_error_source">البث غير موجود أو تم رفض الوصول</string>
