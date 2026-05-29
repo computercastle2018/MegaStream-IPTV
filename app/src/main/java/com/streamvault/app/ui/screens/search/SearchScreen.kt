@@ -867,6 +867,7 @@ private fun SearchHeroPanel(
                 placeholder = stringResource(R.string.search_hint),
                 focusRequester = focusRequester,
                 onSearch = onSearch,
+                autoFocus = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)

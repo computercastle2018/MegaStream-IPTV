@@ -73,6 +73,7 @@ fun SearchInput(
     focusRequester: FocusRequester = remember { FocusRequester() },
     imeAction: ImeAction = ImeAction.Search,
     onSearch: () -> Unit = {},
+    autoFocus: Boolean = false,
     enabled: Boolean = true
 ) {
     val isTelevisionDevice = rememberIsTelevisionDevice()
@@ -145,6 +146,22 @@ fun SearchInput(
         keyboardController?.show()
         requestBringIntoView(120)
         pendingInputActivation = false
+    }
+
+    // On phones/tablets, when the caller asks for auto-focus (e.g. the dedicated
+    // Search screen), put the cursor in the text field and raise the soft
+    // keyboard as soon as the field appears — so the user can type immediately
+    // without first tapping the field. TVs are excluded: there the field stays
+    // in D-pad mode until the user explicitly selects it.
+    LaunchedEffect(autoFocus, enabled, isTelevisionDevice) {
+        if (autoFocus && enabled && !isTelevisionDevice) {
+            acceptsInput = true
+            // Wait one frame so the BasicTextField is attached before focusing.
+            delay(80)
+            runCatching { inputFocusRequester.requestFocus() }
+            keyboardController?.show()
+            requestBringIntoView(120)
+        }
     }
 
     val borderColor = if (isFocused) FocusBorder else OnSurfaceDim.copy(alpha = 0.5f)
