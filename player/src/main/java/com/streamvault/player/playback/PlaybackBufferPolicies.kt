@@ -15,8 +15,12 @@ internal object PlaybackBufferPolicies {
     private const val COMPAT_LIVE_MAX_BUFFER_MS = 45_000
     private const val VOD_MIN_BUFFER_MS = 50_000
     private const val VOD_MAX_BUFFER_MS = 120_000
-    private const val PLAYBACK_BUFFER_MS = 1_500
-    private const val REBUFFER_MS = 5_000
+    // How much media must buffer before playback (re)starts. Lower = faster
+    // start / less time on the buffering spinner. 800 ms is enough to begin a
+    // typical HLS/TS segment smoothly while shaving ~700 ms off first-frame.
+    private const val PLAYBACK_BUFFER_MS = 800
+    // Buffer required to resume after a stall. Lower = quicker recovery.
+    private const val REBUFFER_MS = 2_500
 
     fun forPlayback(isLive: Boolean, compatibilityMode: Boolean): PlaybackBufferPolicy = when {
         compatibilityMode && isLive ->

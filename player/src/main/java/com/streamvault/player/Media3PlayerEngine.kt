@@ -962,18 +962,20 @@ class Media3PlayerEngine @Inject constructor(
             .setFallbackMaxPlaybackSpeed(1.0f)
             .build()
 
-        // Hint the ABR algorithm with bandwidth estimates that match modern
-        // broadband (Mbps). Default Media3 estimates target conservative LTE
-        // numbers (~700-1400 kbps for WiFi), which makes initial chunks pick
-        // the lowest rendition for ~5-10 s before stepping up. Higher starting
-        // estimates let HLS/DASH start at near-HD quality immediately.
+        // Seed the ABR algorithm with a *moderate* initial bandwidth estimate
+        // so the very first segment is a fast-loading mid-quality rendition
+        // (~720p), which starts playback quickly and shortens the buffering
+        // spinner. ExoPlayer then measures real throughput and ramps up to the
+        // highest sustainable rendition within the next couple of segments.
+        // (An over-high seed — e.g. 8 Mbps on WiFi — forced a heavy 1080p first
+        // segment and caused a long buffering pause before playback began.)
         val bandwidthMeter = DefaultBandwidthMeter.Builder(context)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_WIFI, 8_000_000L)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_ETHERNET, 15_000_000L)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_NSA, 10_000_000L)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_SA, 12_000_000L)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_4G, 4_000_000L)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_3G, 1_500_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_WIFI, 3_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_ETHERNET, 6_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_NSA, 4_500_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_SA, 5_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_4G, 2_500_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_3G, 1_000_000L)
             .build()
 
         return ExoPlayer.Builder(context, renderersFactory)
