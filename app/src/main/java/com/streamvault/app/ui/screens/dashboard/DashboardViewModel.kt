@@ -2,11 +2,11 @@ package com.MegaStream.app.ui.screens.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.MegaStream.app.BuildConfig
 import com.MegaStream.app.ui.model.orderedByRequestedRawIds
 import com.MegaStream.data.preferences.PreferencesRepository
 import com.MegaStream.data.sync.SyncManager
 import com.MegaStream.app.update.AppUpdateInstaller
+import com.MegaStream.app.update.isRemoteAppVersionNewer
 import com.MegaStream.domain.model.ActiveLiveSource
 import com.MegaStream.domain.model.Category
 import com.MegaStream.domain.model.Channel
@@ -423,11 +423,7 @@ class DashboardViewModel @Inject constructor(
             return@combine null
         }
 
-        val updateAvailable = if (latestVersionCode != null && latestVersionCode > BuildConfig.VERSION_CODE) {
-            true
-        } else {
-            compareVersionNames(latestVersionName, BuildConfig.VERSION_NAME) > 0
-        }
+        val updateAvailable = isRemoteAppVersionNewer(latestVersionCode, latestVersionName)
 
         if (!updateAvailable) {
             return@combine null
@@ -560,20 +556,6 @@ class DashboardViewModel @Inject constructor(
             ?: runCatching {
                 Year.parse(raw, DateTimeFormatter.ofPattern("yyyy")).atDay(1).toEpochDay()
             }.getOrNull()
-    }
-
-    private fun compareVersionNames(left: String, right: String): Int {
-        val leftParts = left.removePrefix("v").split('.')
-        val rightParts = right.removePrefix("v").split('.')
-        val length = maxOf(leftParts.size, rightParts.size)
-        for (index in 0 until length) {
-            val leftValue = leftParts.getOrNull(index)?.toIntOrNull() ?: 0
-            val rightValue = rightParts.getOrNull(index)?.toIntOrNull() ?: 0
-            if (leftValue != rightValue) {
-                return leftValue.compareTo(rightValue)
-            }
-        }
-        return 0
     }
 
     fun installDownloadedUpdate() {

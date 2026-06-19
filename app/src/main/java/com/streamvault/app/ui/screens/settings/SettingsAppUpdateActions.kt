@@ -59,18 +59,29 @@ internal class SettingsAppUpdateActions(
                 }
                 is Result.Success -> {
                     val release = result.data
-                    preferencesRepository.setCachedAppUpdateRelease(
-                        versionName = release.versionName,
-                        versionCode = release.versionCode,
-                        releaseUrl = release.releaseUrl,
-                        downloadUrl = release.downloadUrl,
-                        releaseNotes = release.releaseNotes,
-                        publishedAt = release.publishedAt
-                    )
                     val updateAvailable = isRemoteVersionNewer(
                         release.versionCode,
                         release.versionName
                     )
+                    if (updateAvailable) {
+                        preferencesRepository.setCachedAppUpdateRelease(
+                            versionName = release.versionName,
+                            versionCode = release.versionCode,
+                            releaseUrl = release.releaseUrl,
+                            downloadUrl = release.downloadUrl,
+                            releaseNotes = release.releaseNotes,
+                            publishedAt = release.publishedAt
+                        )
+                    } else {
+                        preferencesRepository.setCachedAppUpdateRelease(
+                            versionName = null,
+                            versionCode = null,
+                            releaseUrl = null,
+                            downloadUrl = null,
+                            releaseNotes = "",
+                            publishedAt = null
+                        )
+                    }
                     uiState.update {
                         it.copy(
                             isCheckingForUpdates = false,

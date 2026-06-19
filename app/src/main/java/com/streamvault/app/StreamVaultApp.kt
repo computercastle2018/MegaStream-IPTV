@@ -10,6 +10,7 @@ import coil3.request.crossfade
 import com.MegaStream.app.diagnostics.CrashReportStore
 import com.MegaStream.app.diagnostics.RuntimeDiagnosticsManager
 import com.MegaStream.app.update.GitHubReleaseChecker
+import com.MegaStream.app.update.isRemoteAppVersionNewer
 import com.MegaStream.app.ui.accessibility.isReducedMotionEnabled
 import com.MegaStream.data.preferences.PreferencesRepository
 import com.MegaStream.domain.model.Result
@@ -116,14 +117,26 @@ class MegaStreamApp : Application(), SingletonImageLoader.Factory {
         preferencesRepository.setLastAppUpdateCheckTimestamp(now)
         when (val result = gitHubReleaseChecker.fetchLatestRelease()) {
             is Result.Success -> {
-                preferencesRepository.setCachedAppUpdateRelease(
-                    versionName = result.data.versionName,
-                    versionCode = result.data.versionCode,
-                    releaseUrl = result.data.releaseUrl,
-                    downloadUrl = result.data.downloadUrl,
-                    releaseNotes = result.data.releaseNotes,
-                    publishedAt = result.data.publishedAt
-                )
+                val release = result.data
+                if (isRemoteAppVersionNewer(release.versionCode, release.versionName, release.publishedAt)) {
+                    preferencesRepository.setCachedAppUpdateRelease(
+                        versionName = release.versionName,
+                        versionCode = release.versionCode,
+                        releaseUrl = release.releaseUrl,
+                        downloadUrl = release.downloadUrl,
+                        releaseNotes = release.releaseNotes,
+                        publishedAt = release.publishedAt
+                    )
+                } else {
+                    preferencesRepository.setCachedAppUpdateRelease(
+                        versionName = null,
+                        versionCode = null,
+                        releaseUrl = null,
+                        downloadUrl = null,
+                        releaseNotes = "",
+                        publishedAt = null
+                    )
+                }
             }
             else -> Unit
         }

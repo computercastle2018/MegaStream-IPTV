@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Build
 import android.os.StrictMode
 import android.util.Rational
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
@@ -26,6 +27,7 @@ import com.MegaStream.app.tvinput.TvInputChannelSyncManager
 import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.app.ui.theme.MegaStreamTheme
 import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.update.isRemoteAppVersionNewer
 import dagger.hilt.android.AndroidEntryPoint
 
 import javax.inject.Inject
@@ -36,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.LayoutDirection
 import android.content.res.Configuration
 import android.text.TextUtils
@@ -95,6 +98,7 @@ class MainActivity : ComponentActivity() {
         _externalNavigationRequestFlow.asStateFlow()
 
     private var playerPictureInPictureState = PlayerPictureInPictureState()
+    private var startupUpdateNoticeShown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if (BuildConfig.DEBUG) {
@@ -124,6 +128,9 @@ class MainActivity : ComponentActivity() {
             val appLanguage by preferencesRepository.appLanguage.collectAsState(initial = "system")
             val appTimeFormat by preferencesRepository.appTimeFormat.collectAsState(initial = com.MegaStream.domain.model.AppTimeFormat.SYSTEM)
             val appUiStyleValue by preferencesRepository.appUiStyle.collectAsState(initial = "classic")
+            val cachedAppUpdateVersionName by preferencesRepository.cachedAppUpdateVersionName.collectAsState(initial = null)
+            val cachedAppUpdateVersionCode by preferencesRepository.cachedAppUpdateVersionCode.collectAsState(initial = null)
+            val cachedAppUpdatePublishedAt by preferencesRepository.cachedAppUpdatePublishedAt.collectAsState(initial = null)
             val currentContext = LocalContext.current
             
             val configuration = remember(appLanguage) {
@@ -157,6 +164,33 @@ class MainActivity : ComponentActivity() {
                     LayoutDirection.Rtl
                 } else {
                     LayoutDirection.Ltr
+                }
+            }
+
+            LaunchedEffect(
+                cachedAppUpdateVersionName,
+                cachedAppUpdateVersionCode,
+                cachedAppUpdatePublishedAt,
+                localizedContext
+            ) {
+                val latestVersionName = cachedAppUpdateVersionName
+                if (!startupUpdateNoticeShown &&
+                    !latestVersionName.isNullOrBlank() &&
+                    isRemoteAppVersionNewer(
+                        cachedAppUpdateVersionCode,
+                        latestVersionName,
+                        cachedAppUpdatePublishedAt
+                    )
+                ) {
+                    startupUpdateNoticeShown = true
+                    Toast.makeText(
+                        localizedContext,
+                        localizedContext.getString(
+                            R.string.app_update_available_startup_message,
+                            latestVersionName
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
 

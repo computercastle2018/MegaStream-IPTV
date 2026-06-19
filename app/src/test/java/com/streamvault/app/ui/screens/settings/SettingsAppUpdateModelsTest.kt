@@ -80,4 +80,19 @@ class SettingsAppUpdateModelsTest {
 
         assertThat(result).isFalse()
     }
+
+    @Test
+    fun stableBuildRejectsOlderVersionCodeEvenWhenVersionNameLooksNewer() {
+        val result = isRemoteVersionNewerForBuild(
+            remoteVersionCode = 19,
+            remoteVersionName = "9.9.9",
+            remotePublishedAt = "2026-05-14T10:00:00Z",
+            currentVersionCode = 20,
+            currentVersionName = "1.0.19",
+            currentBuildTimestampUtc = 1_747_216_000_000L,
+            currentChannel = AppUpdateChannel.Stable
+        )
+
+        assertThat(result).isFalse()
+    }
 }

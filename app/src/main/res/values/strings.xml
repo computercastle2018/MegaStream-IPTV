@@ -581,6 +581,7 @@
     <string name="settings_update_status_downloading">Downloading update</string>
     <string name="settings_update_status_ready_to_install">Ready to install</string>
     <string name="settings_update_available_message">MegaStream %1$s is available.</string>
+    <string name="app_update_available_startup_message">MegaStream %1$s is available. Download the latest version from Settings.</string>
     <string name="settings_update_current_message">You already have the latest MegaStream release.</string>
     <string name="settings_syncing">Syncing data, please wait...</string>
     <string name="settings_syncing_title">Syncing data...</string>

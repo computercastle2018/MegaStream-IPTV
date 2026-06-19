@@ -81,9 +81,29 @@ class AppUpdateInstaller @Inject constructor(
         val downloadedVersionName = preferencesRepository.downloadedAppUpdateVersionName.first()
         val apkFile = downloadedVersionName?.let(::apkFileForVersion)
 
+        if (downloadedVersionName != null && !isRemoteAppVersionNewer(null, downloadedVersionName)) {
+            apkFile?.delete()
+            preferencesRepository.setDownloadedAppUpdateVersionName(null)
+        }
+
+        if (downloadId != null &&
+            downloadingVersionName != null &&
+            !isRemoteAppVersionNewer(null, downloadingVersionName)
+        ) {
+            runCatching { downloadManager.remove(downloadId) }
+            preferencesRepository.setAppUpdateDownloadId(null)
+            preferencesRepository.setAppUpdateDownloadVersionName(null)
+            val clearedState = AppUpdateDownloadState()
+            _downloadState.value = clearedState
+            return@withContext clearedState
+        }
+
         if (downloadId == null) {
             preferencesRepository.setAppUpdateDownloadVersionName(null)
-            val restoredState = if (downloadedVersionName != null && apkFile?.exists() == true) {
+            val restoredState = if (downloadedVersionName != null &&
+                isRemoteAppVersionNewer(null, downloadedVersionName) &&
+                apkFile?.exists() == true
+            ) {
                 AppUpdateDownloadState(
                     status = AppUpdateDownloadStatus.Downloaded,
                     versionName = downloadedVersionName,
@@ -170,6 +190,22 @@ class AppUpdateInstaller @Inject constructor(
     }
 
     suspend fun startDownload(releaseInfo: GitHubReleaseInfo): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isRemoteAppVersionNewer(releaseInfo.versionCode, releaseInfo.versionName, releaseInfo.publishedAt)) {
+            preferencesRepository.setAppUpdateDownloadId(null)
+            preferencesRepository.setAppUpdateDownloadVersionName(null)
+            preferencesRepository.setDownloadedAppUpdateVersionName(null)
+            _downloadState.value = AppUpdateDownloadState()
+            return@withContext Result.error("You already have this MegaStream version or a newer one")
+        }
+
+        val currentState = refreshState()
+        if (currentState.versionName == releaseInfo.versionName &&
+            (currentState.status == AppUpdateDownloadStatus.Downloading ||
+                currentState.status == AppUpdateDownloadStatus.Downloaded)
+        ) {
+            return@withContext Result.success(Unit)
+        }
+
         val downloadUrl = releaseInfo.downloadUrl
             ?: return@withContext Result.error("Update download is unavailable for this release")
         if (!isHttpsUrl(downloadUrl)) {
