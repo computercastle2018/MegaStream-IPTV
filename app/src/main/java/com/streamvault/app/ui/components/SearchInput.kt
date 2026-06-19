@@ -6,6 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
+import com.MegaStream.app.R
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -197,6 +200,17 @@ fun SearchInput(
         contentAlignment = Alignment.CenterStart
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Leading keyboard button: forces the IME to open for typing, a
+            // reliable fallback when focus-based showing doesn't trigger it.
+            Icon(
+                painter = painterResource(R.drawable.ic_keyboard_24),
+                contentDescription = null,
+                tint = if (isFocused) Primary else OnSurfaceDim,
+                modifier = Modifier
+                    .padding(end = 10.dp)
+                    .size(22.dp)
+                    .clickable(enabled = enabled) { activateInput() }
+            )
             Box(modifier = Modifier.weight(1f)) {
                 if (value.isEmpty() && !isFocused) {
                     Text(

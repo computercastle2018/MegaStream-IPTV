@@ -7,6 +7,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -1577,6 +1580,23 @@ private fun ProviderTextField(
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Leading keyboard button: forces the IME open for typing —
+                    // a reliable fallback when focus alone doesn't raise it.
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .size(24.dp)
+                            .clickable(onClick = ::activateInput)
+                            .mouseClickable(focusRequester = containerFocusRequester, onClick = ::activateInput),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_keyboard_24),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(if (isFocused) Primary else OnSurfaceDim),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                     Box(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.CenterStart
