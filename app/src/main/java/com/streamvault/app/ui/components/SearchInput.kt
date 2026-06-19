@@ -227,6 +227,11 @@ fun SearchInput(
                         .onFocusChanged {
                             hasInputFocus = enabled && it.hasFocus
                             if (it.hasFocus) {
+                                // Raise the IME the moment the field actually
+                                // gains focus — calling show() earlier (before
+                                // focus lands) is a no-op on many devices and
+                                // left the keyboard hidden on phones and TVs.
+                                keyboardController?.show()
                                 requestBringIntoView(120)
                             } else {
                                 if (isTelevisionDevice) {

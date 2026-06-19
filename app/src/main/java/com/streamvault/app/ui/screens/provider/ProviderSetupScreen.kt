@@ -1546,6 +1546,11 @@ private fun ProviderTextField(
                 .onFocusEvent {
                     hasInputFocus = it.hasFocus
                     if (it.hasFocus) {
+                        // Raise the IME exactly when the field actually gains
+                        // focus. Calling show() earlier (in activateInput, before
+                        // focus lands) is a no-op on many devices, which left the
+                        // keyboard hidden on both phones and TVs.
+                        keyboardController?.show()
                         coroutineScope.launch {
                             delay(120)
                             runCatching { bringIntoViewRequester.bringIntoView() }
