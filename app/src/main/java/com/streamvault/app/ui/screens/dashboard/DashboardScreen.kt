@@ -31,6 +31,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import kotlinx.coroutines.delay
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -255,6 +258,16 @@ private fun DashboardHero(
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
+    // Default the D-pad focus to the Live TV action when the dashboard opens,
+    // so a single OK press starts watching. Only on TV, where focus drives
+    // navigation; on touch devices it's a no-op.
+    val liveTvFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        if (isTelevisionDevice) {
+            delay(150)
+            runCatching { liveTvFocusRequester.requestFocus() }
+        }
+    }
     val heroHeight = when {
         screenWidth < 700.dp -> 176.dp
         !isTelevisionDevice && screenWidth < 1280.dp -> 196.dp
@@ -310,7 +323,11 @@ private fun DashboardHero(
                 }
             },
             actions = {
-                DashboardActionButton(label = stringResource(R.string.nav_live_tv), onClick = onOpenLiveTv)
+                DashboardActionButton(
+                    label = stringResource(R.string.nav_live_tv),
+                    onClick = onOpenLiveTv,
+                    modifier = Modifier.focusRequester(liveTvFocusRequester)
+                )
                 DashboardActionButton(label = stringResource(R.string.nav_epg), onClick = onOpenGuide)
                 DashboardActionButton(label = stringResource(R.string.dashboard_search_library), onClick = onOpenSearch)
                 DashboardActionButton(label = stringResource(R.string.favorites_title), onClick = onOpenSavedLibrary)
@@ -477,10 +494,12 @@ private fun DashboardShortcutCard(
 @Composable
 private fun DashboardActionButton(
     label: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     TvButton(
         onClick = onClick,
+        modifier = modifier,
         colors = ButtonDefaults.colors(
             containerColor = Primary.copy(alpha = 0.18f),
             focusedContainerColor = Primary.copy(alpha = 0.32f),
