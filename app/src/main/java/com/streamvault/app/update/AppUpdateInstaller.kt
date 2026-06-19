@@ -6,12 +6,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.content.pm.Signature
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import com.MegaStream.app.BuildConfig
+import com.MegaStream.app.R
 import com.MegaStream.data.preferences.PreferencesRepository
 import com.MegaStream.domain.model.Result
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -282,6 +285,22 @@ class AppUpdateInstaller @Inject constructor(
             return@withContext Result.error("Downloaded update file is missing")
         }
 
+        // The #1 cause of "App not installed" on an in-app update is a signing
+        // certificate mismatch between the currently-installed build (e.g. an
+        // old debug or pre-rebrand build) and the new release APK. Android
+        // silently rejects such installs. Detect it up-front and tell the user
+        // exactly what to do — uninstall first, then install from this path —
+        // instead of handing them an opaque system failure.
+        if (installedAndApkSignaturesMatch(apkFile) == false) {
+            android.util.Log.w(
+                "AppUpdateInstaller",
+                "Signing certificate mismatch between installed app and ${apkFile.name}; install would fail."
+            )
+            return@withContext Result.error(
+                context.getString(R.string.settings_update_signature_mismatch, apkFile.absolutePath)
+            )
+        }
+
         // SEC-L02: Verify SHA-256 integrity before handing the APK to the package manager.
         // This guards against a truncated download, a network MITM, or a tampered file in
         // the external storage directory (which is world-readable on unencrypted devices).
@@ -351,6 +370,62 @@ class AppUpdateInstaller @Inject constructor(
         val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
             ?: File(context.cacheDir, "downloads")
         return File(downloadsDir, "MegaStream-$sanitizedVersion.apk")
+    }
+
+    /**
+     * Absolute path of the currently downloaded update APK, or null if no
+     * completed download is present. Surfaced to the UI so the user can locate
+     * (and, if needed, manually install) the file after a download finishes.
+     */
+    fun downloadedApkPath(): String? {
+        val state = _downloadState.value
+        if (state.status != AppUpdateDownloadStatus.Downloaded) return null
+        val versionName = state.versionName ?: return null
+        val file = apkFileForVersion(versionName)
+        return if (file.exists()) file.absolutePath else null
+    }
+
+    /**
+     * Returns true if the installed app and the downloaded APK share at least
+     * one signing certificate, false if they definitively differ, or null when
+     * it can't be determined (in which case the caller should not block).
+     */
+    private fun installedAndApkSignaturesMatch(apkFile: File): Boolean? {
+        val pm = context.packageManager
+        @Suppress("DEPRECATION")
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            PackageManager.GET_SIGNING_CERTIFICATES
+        } else {
+            PackageManager.GET_SIGNATURES
+        }
+        val installed = signatureSha256Set { pm.getPackageInfo(context.packageName, flags) }
+        val candidate = signatureSha256Set { pm.getPackageArchiveInfo(apkFile.absolutePath, flags) }
+        if (installed.isEmpty() || candidate.isEmpty()) return null
+        return installed.intersect(candidate).isNotEmpty()
+    }
+
+    private fun signatureSha256Set(
+        packageInfoProvider: () -> android.content.pm.PackageInfo?
+    ): Set<String> {
+        val info = runCatching { packageInfoProvider() }.getOrNull() ?: return emptySet()
+        @Suppress("DEPRECATION")
+        val signatures: Array<Signature> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val signingInfo = info.signingInfo ?: return emptySet()
+            if (signingInfo.hasMultipleSigners()) {
+                signingInfo.apkContentsSigners
+            } else {
+                signingInfo.signingCertificateHistory
+            }
+        } else {
+            info.signatures
+        } ?: return emptySet()
+        return signatures.mapNotNull { signature ->
+            runCatching {
+                java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(signature.toByteArray())
+                    .joinToString("") { "%02x".format(it) }
+            }.getOrNull()
+        }.toSet()
     }
 
     private fun registerDownloadReceiver() {

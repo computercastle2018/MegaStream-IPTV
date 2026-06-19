@@ -155,4 +155,14 @@ internal class SettingsAppUpdateActions(
             }
         }
     }
+
+    /**
+     * Localized "Update downloaded to: <path>" message, or null if no completed
+     * download is present. Shown once a download finishes so the user can find
+     * (and manually install) the APK if the in-app install is ever blocked.
+     */
+    fun downloadedPathMessage(): String? {
+        val path = appUpdateInstaller.downloadedApkPath() ?: return null
+        return appContext.getString(R.string.settings_update_saved_path, path)
+    }
 }

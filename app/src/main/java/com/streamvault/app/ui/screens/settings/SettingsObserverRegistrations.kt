@@ -49,9 +49,19 @@ internal fun registerSettingsAppUpdateObservers(
     }
 
     scope.launch {
+        var lastStatus: com.MegaStream.app.update.AppUpdateDownloadStatus? = null
         appUpdateInstaller.downloadState.collect { downloadState ->
+            // Surface the saved file path once, right after a download finishes,
+            // so the user can locate (or manually install) the APK.
+            val justCompleted = lastStatus != com.MegaStream.app.update.AppUpdateDownloadStatus.Downloaded &&
+                downloadState.status == com.MegaStream.app.update.AppUpdateDownloadStatus.Downloaded
+            lastStatus = downloadState.status
+            val pathMessage = if (justCompleted) appUpdateActions.downloadedPathMessage() else null
             uiState.update {
-                it.copy(appUpdate = it.appUpdate.withDownloadState(downloadState))
+                it.copy(
+                    appUpdate = it.appUpdate.withDownloadState(downloadState),
+                    userMessage = pathMessage ?: it.userMessage
+                )
             }
         }
     }

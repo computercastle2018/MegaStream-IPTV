@@ -440,6 +440,8 @@
     <string name="settings_update_status_check_failed">فشل آخر فحص</string>
     <string name="settings_update_status_downloading">جارٍ تنزيل التحديث</string>
     <string name="settings_update_status_ready_to_install">جاهز للتثبيت</string>
+    <string name="settings_update_signature_mismatch">هذا التحديث موقّع بمفتاح مختلف عن النسخة المثبّتة لديك، لذا يرفض أندرويد تثبيته. من فضلك احذف MegaStream أولاً، ثم ثبّت هذا الملف يدوياً:\n%1$s</string>
+    <string name="settings_update_saved_path">تم تنزيل التحديث إلى:\n%1$s</string>
     <string name="settings_update_available_message">يتوفر MegaStream %1$s.</string>
     <string name="settings_update_current_message">لديك بالفعل أحدث إصدار من MegaStream.</string>
     <string name="settings_syncing">جارٍ مزامنة البيانات، يُرجى الانتظار...</string>
