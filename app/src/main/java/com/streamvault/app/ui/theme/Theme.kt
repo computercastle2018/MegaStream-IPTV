@@ -9,6 +9,7 @@ import com.MegaStream.app.ui.design.AppShapes
 import com.MegaStream.app.ui.design.LocalAppShapes
 import com.MegaStream.app.ui.design.LocalAppSpacing
 import com.MegaStream.app.ui.design.rememberAppTypography
+import com.MegaStream.app.ui.model.AppUiStyle
 
 private val DarkColorScheme = darkColorScheme(
     primary = AppColors.Brand,
@@ -23,15 +24,38 @@ private val DarkColorScheme = darkColorScheme(
     onError = OnPrimary
 )
 
+private val ModernColorScheme = darkColorScheme(
+    primary = androidx.compose.ui.graphics.Color(0xFF64D2FF),
+    onPrimary = androidx.compose.ui.graphics.Color(0xFF02131B),
+    surface = androidx.compose.ui.graphics.Color(0xFF111822),
+    onSurface = androidx.compose.ui.graphics.Color(0xFFF3F7FA),
+    surfaceVariant = androidx.compose.ui.graphics.Color(0xFF1A2532),
+    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFB8C8D6),
+    background = androidx.compose.ui.graphics.Color(0xFF070B10),
+    onBackground = androidx.compose.ui.graphics.Color(0xFFF3F7FA),
+    secondary = androidx.compose.ui.graphics.Color(0xFF7BE4B6),
+    onSecondary = androidx.compose.ui.graphics.Color(0xFF02130D),
+    tertiary = androidx.compose.ui.graphics.Color(0xFFFFCF6E),
+    onTertiary = androidx.compose.ui.graphics.Color(0xFF1E1300),
+    error = androidx.compose.ui.graphics.Color(0xFFFF6B7A),
+    onError = androidx.compose.ui.graphics.Color(0xFFFFFFFF)
+)
+
 @Composable
-fun MegaStreamTheme(content: @Composable () -> Unit) {
+fun MegaStreamTheme(
+    uiStyle: AppUiStyle = AppUiStyle.CLASSIC,
+    content: @Composable () -> Unit
+) {
     val typography = rememberAppTypography()
     CompositionLocalProvider(
         LocalAppSpacing provides com.MegaStream.app.ui.design.AppSpacing(),
         LocalAppShapes provides AppShapes()
     ) {
         MaterialTheme(
-            colorScheme = DarkColorScheme,
+            colorScheme = when (uiStyle) {
+                AppUiStyle.CLASSIC -> DarkColorScheme
+                AppUiStyle.MODERN -> ModernColorScheme
+            },
             typography = typography,
             content = content
         )

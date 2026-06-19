@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.MegaStream.domain.model.Provider
+import com.MegaStream.domain.model.ProviderType
 
 @Composable
 internal fun SettingsContentPane(
@@ -105,6 +106,22 @@ internal fun SettingsContentPane(
                 guideDefaultCategoryLabel = screenLabels.guideDefaultCategoryLabel,
                 timeFormatLabel = screenLabels.timeFormatLabel,
                 appLanguageLabel = screenLabels.appLanguageLabel,
+                onShowAppUiStyleDialogChange = { dialogState.showAppUiStyleDialog = it },
+                onRefreshCurrentLists = {
+                    val provider = uiState.providers.firstOrNull { it.id == uiState.activeProviderId }
+                    if (provider != null) {
+                        providerState.pendingSyncProviderId = provider.id
+                        providerState.customSyncSelections = buildSet {
+                            add(ProviderSyncSelection.TV)
+                            add(ProviderSyncSelection.MOVIES)
+                            add(ProviderSyncSelection.EPG)
+                            if (provider.type == ProviderType.XTREAM_CODES) {
+                                add(ProviderSyncSelection.SERIES)
+                            }
+                        }
+                        providerState.showProviderSyncDialog = true
+                    }
+                },
                 onShowLiveTvModeDialogChange = { dialogState.showLiveTvModeDialog = it },
                 onShowLiveTvFiltersDialogChange = { dialogState.showLiveTvFiltersDialog = it },
                 onShowLiveTvQuickFilterVisibilityDialogChange = { dialogState.showLiveTvQuickFilterVisibilityDialog = it },

@@ -3,6 +3,7 @@ package com.MegaStream.app.ui.screens.settings
 import com.MegaStream.app.ui.model.LiveTvChannelMode
 import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
 import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.domain.manager.BackupImportPlan
 import com.MegaStream.domain.manager.BackupPreview
 import com.MegaStream.domain.manager.DriveAuthState
@@ -56,6 +57,7 @@ data class SettingsUiState(
     val parentalControlLevel: Int = 0,
     val hasParentalPin: Boolean = false,
     val appLanguage: String = "system",
+    val appUiStyle: AppUiStyle = AppUiStyle.CLASSIC,
     val appTimeFormat: AppTimeFormat = AppTimeFormat.SYSTEM,
     val preferredAudioLanguage: String = "auto",
     val playerMediaSessionEnabled: Boolean = true,

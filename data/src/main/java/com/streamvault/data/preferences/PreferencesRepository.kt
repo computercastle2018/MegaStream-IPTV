@@ -81,6 +81,7 @@ class PreferencesRepository @Inject constructor(
         val ACTIVE_LIVE_SOURCE_TYPE = stringPreferencesKey("active_live_source_type")
         val ACTIVE_LIVE_SOURCE_ID = longPreferencesKey("active_live_source_id")
         val DEFAULT_VIEW_MODE = stringPreferencesKey("default_view_mode")
+        val APP_UI_STYLE = stringPreferencesKey("app_ui_style")
         val PARENTAL_CONTROL_LEVEL = intPreferencesKey("parental_control_level")
         val PARENTAL_V2_MIGRATED = booleanPreferencesKey("parental_v2_migrated")
         val LEGACY_PARENTAL_PIN = stringPreferencesKey("parental_pin")
@@ -239,6 +240,10 @@ class PreferencesRepository @Inject constructor(
 
     val defaultViewMode: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.DEFAULT_VIEW_MODE]
+    }
+
+    val appUiStyle: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.APP_UI_STYLE] ?: "classic"
     }
 
     val isIncognitoMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -433,6 +438,15 @@ class PreferencesRepository @Inject constructor(
     suspend fun setDefaultViewMode(viewMode: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DEFAULT_VIEW_MODE] = viewMode
+        }
+    }
+
+    suspend fun setAppUiStyle(style: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.APP_UI_STYLE] = when (style.lowercase()) {
+                "modern" -> "modern"
+                else -> "classic"
+            }
         }
     }
 

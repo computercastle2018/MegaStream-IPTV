@@ -16,6 +16,7 @@ import com.MegaStream.app.R
 import com.MegaStream.app.ui.components.dialogs.PremiumDialog
 import com.MegaStream.app.ui.components.dialogs.PremiumDialogFooterButton
 import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.app.ui.model.VodViewMode
 import com.MegaStream.app.ui.theme.OnBackground
 import com.MegaStream.app.ui.theme.OnSurfaceDim
@@ -25,6 +26,57 @@ import com.MegaStream.domain.model.ChannelNumberingMode
 import com.MegaStream.domain.model.GroupedChannelLabelMode
 import com.MegaStream.domain.model.LiveChannelGroupingMode
 import com.MegaStream.domain.model.LiveVariantPreferenceMode
+
+@Composable
+internal fun AppUiStyleDialog(
+    selectedStyle: AppUiStyle,
+    onDismiss: () -> Unit,
+    onStyleSelected: (AppUiStyle) -> Unit
+) {
+    PremiumDialog(
+        title = stringResource(R.string.settings_app_ui_style),
+        subtitle = stringResource(R.string.settings_app_ui_style_subtitle),
+        onDismissRequest = onDismiss,
+        widthFraction = 0.52f,
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                AppUiStyle.entries.forEach { style ->
+                    TvClickableSurface(
+                        onClick = { onStyleSelected(style) },
+                        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
+                        colors = ClickableSurfaceDefaults.colors(
+                            containerColor = if (style == selectedStyle) Primary.copy(alpha = 0.18f) else SurfaceElevated,
+                            focusedContainerColor = Primary.copy(alpha = 0.28f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = stringResource(style.labelResId),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = if (style == selectedStyle) Primary else OnBackground
+                            )
+                            Text(
+                                text = stringResource(style.descriptionResId),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = OnSurfaceDim
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        footer = {
+            PremiumDialogFooterButton(
+                label = stringResource(R.string.settings_cancel),
+                onClick = onDismiss
+            )
+        }
+    )
+}
 
 @Composable
 internal fun VodViewModeDialog(

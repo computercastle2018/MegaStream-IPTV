@@ -6,14 +6,14 @@ import org.junit.Test
 class PlaybackBufferPoliciesTest {
 
     @Test
-    fun `normal live uses production live buffer baseline`() {
+    fun `normal live uses fast live startup buffer`() {
         val policy = PlaybackBufferPolicies.forPlayback(isLive = true, compatibilityMode = false)
 
-        assertThat(policy.label).isEqualTo("stable-live")
-        assertThat(policy.minBufferMs).isEqualTo(8_000)
-        assertThat(policy.maxBufferMs).isEqualTo(30_000)
-        assertThat(policy.playbackBufferMs).isEqualTo(1_500)
-        assertThat(policy.rebufferMs).isEqualTo(5_000)
+        assertThat(policy.label).isEqualTo("fast-live")
+        assertThat(policy.minBufferMs).isEqualTo(5_000)
+        assertThat(policy.maxBufferMs).isEqualTo(24_000)
+        assertThat(policy.playbackBufferMs).isEqualTo(500)
+        assertThat(policy.rebufferMs).isEqualTo(1_800)
     }
 
     @Test
@@ -23,8 +23,8 @@ class PlaybackBufferPoliciesTest {
         assertThat(policy.label).isEqualTo("compat-live")
         assertThat(policy.minBufferMs).isEqualTo(15_000)
         assertThat(policy.maxBufferMs).isEqualTo(45_000)
-        assertThat(policy.playbackBufferMs).isEqualTo(1_500)
-        assertThat(policy.rebufferMs).isEqualTo(5_000)
+        assertThat(policy.playbackBufferMs).isEqualTo(800)
+        assertThat(policy.rebufferMs).isEqualTo(2_500)
     }
 
     @Test
@@ -34,7 +34,7 @@ class PlaybackBufferPoliciesTest {
         assertThat(policy.label).isEqualTo("stable-vod")
         assertThat(policy.minBufferMs).isEqualTo(50_000)
         assertThat(policy.maxBufferMs).isEqualTo(120_000)
-        assertThat(policy.playbackBufferMs).isEqualTo(1_500)
-        assertThat(policy.rebufferMs).isEqualTo(5_000)
+        assertThat(policy.playbackBufferMs).isEqualTo(800)
+        assertThat(policy.rebufferMs).isEqualTo(2_500)
     }
 }

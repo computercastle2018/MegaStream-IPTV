@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 internal class SettingsScreenDialogState(
     private val showPinDialogState: MutableState<Boolean>,
     private val showLevelDialogState: MutableState<Boolean>,
+    private val showAppUiStyleDialogState: MutableState<Boolean>,
     private val showLanguageDialogState: MutableState<Boolean>,
     private val showTimeFormatDialogState: MutableState<Boolean>,
     private val showLiveTvModeDialogState: MutableState<Boolean>,
@@ -64,6 +65,7 @@ internal class SettingsScreenDialogState(
 ) {
     var showPinDialog by showPinDialogState
     var showLevelDialog by showLevelDialogState
+    var showAppUiStyleDialog by showAppUiStyleDialogState
     var showLanguageDialog by showLanguageDialogState
     var showTimeFormatDialog by showTimeFormatDialogState
     var showLiveTvModeDialog by showLiveTvModeDialogState
@@ -185,6 +187,7 @@ internal fun rememberSettingsProviderSectionState(
 internal fun rememberSettingsScreenDialogState(): SettingsScreenDialogState {
     val showPinDialogState = rememberSaveable { mutableStateOf(false) }
     val showLevelDialogState = rememberSaveable { mutableStateOf(false) }
+    val showAppUiStyleDialogState = rememberSaveable { mutableStateOf(false) }
     val showLanguageDialogState = rememberSaveable { mutableStateOf(false) }
     val showTimeFormatDialogState = rememberSaveable { mutableStateOf(false) }
     val showLiveTvModeDialogState = rememberSaveable { mutableStateOf(false) }
@@ -247,6 +250,7 @@ internal fun rememberSettingsScreenDialogState(): SettingsScreenDialogState {
     return SettingsScreenDialogState(
         showPinDialogState = showPinDialogState,
         showLevelDialogState = showLevelDialogState,
+        showAppUiStyleDialogState = showAppUiStyleDialogState,
         showLanguageDialogState = showLanguageDialogState,
         showTimeFormatDialogState = showTimeFormatDialogState,
         showLiveTvModeDialogState = showLiveTvModeDialogState,

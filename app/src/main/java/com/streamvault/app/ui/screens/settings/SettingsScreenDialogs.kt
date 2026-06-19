@@ -45,6 +45,17 @@ internal fun SettingsScreenDialogs(
         )
     }
 
+    if (dialogState.showAppUiStyleDialog) {
+        AppUiStyleDialog(
+            selectedStyle = uiState.appUiStyle,
+            onDismiss = { dialogState.showAppUiStyleDialog = false },
+            onStyleSelected = { style ->
+                viewModel.setAppUiStyle(style)
+                dialogState.showAppUiStyleDialog = false
+            }
+        )
+    }
+
     if (dialogState.showLiveTvQuickFilterVisibilityDialog) {
         LiveTvQuickFilterVisibilityDialog(
             selectedMode = uiState.liveTvQuickFilterVisibilityMode,

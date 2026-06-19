@@ -34,6 +34,8 @@ internal fun LazyListScope.settingsBrowsingSection(
     guideDefaultCategoryLabel: String,
     timeFormatLabel: String,
     appLanguageLabel: String,
+    onShowAppUiStyleDialogChange: (Boolean) -> Unit,
+    onRefreshCurrentLists: () -> Unit,
     onShowLiveTvModeDialogChange: (Boolean) -> Unit,
     onShowLiveTvFiltersDialogChange: (Boolean) -> Unit,
     onShowLiveTvQuickFilterVisibilityDialogChange: (Boolean) -> Unit,
@@ -48,6 +50,19 @@ internal fun LazyListScope.settingsBrowsingSection(
     onShowLanguageDialogChange: (Boolean) -> Unit
 ) {
     item {
+        ClickableSettingsRow(
+            label = stringResource(R.string.settings_app_ui_style),
+            value = stringResource(uiState.appUiStyle.labelResId),
+            onClick = { onShowAppUiStyleDialogChange(true) }
+        )
+        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        ClickableSettingsRow(
+            label = stringResource(R.string.settings_refresh_current_lists),
+            value = stringResource(R.string.settings_refresh_current_lists_value),
+            onClick = onRefreshCurrentLists,
+            enabled = uiState.activeProviderId != null
+        )
+        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
         ClickableSettingsRow(
             label = stringResource(R.string.settings_live_tv_channel_mode),
             value = stringResource(uiState.liveTvChannelMode.labelResId()),

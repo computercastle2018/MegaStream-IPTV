@@ -5,6 +5,7 @@ import com.MegaStream.app.R
 import com.MegaStream.app.ui.model.LiveTvChannelMode
 import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
 import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.domain.model.AppTimeFormat
 import com.MegaStream.domain.model.AudioOutputPreference
 import com.MegaStream.domain.model.Category
@@ -37,6 +38,7 @@ internal data class SettingsPreferenceSnapshot(
     val parentalControlLevel: Int,
     val hasParentalPin: Boolean,
     val appLanguage: String,
+    val appUiStyle: AppUiStyle,
     val appTimeFormat: AppTimeFormat,
     val preferredAudioLanguage: String,
     val playerMediaSessionEnabled: Boolean,

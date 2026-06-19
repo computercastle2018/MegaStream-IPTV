@@ -23,6 +23,7 @@ import com.MegaStream.app.navigation.PlayerNavigationRequest
 import com.MegaStream.app.tv.LauncherRecommendationsManager
 import com.MegaStream.app.tv.WatchNextManager
 import com.MegaStream.app.tvinput.TvInputChannelSyncManager
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.app.ui.theme.MegaStreamTheme
 import com.MegaStream.app.ui.time.LocalAppTimeFormat
 import dagger.hilt.android.AndroidEntryPoint
@@ -122,6 +123,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val appLanguage by preferencesRepository.appLanguage.collectAsState(initial = "system")
             val appTimeFormat by preferencesRepository.appTimeFormat.collectAsState(initial = com.MegaStream.domain.model.AppTimeFormat.SYSTEM)
+            val appUiStyleValue by preferencesRepository.appUiStyle.collectAsState(initial = "classic")
             val currentContext = LocalContext.current
             
             val configuration = remember(appLanguage) {
@@ -163,7 +165,7 @@ class MainActivity : ComponentActivity() {
                 LocalLayoutDirection provides layoutDirection,
                 LocalAppTimeFormat provides appTimeFormat
             ) {
-                MegaStreamTheme {
+                MegaStreamTheme(uiStyle = AppUiStyle.fromStorage(appUiStyleValue)) {
                     AppNavigation(mainActivity = this@MainActivity)
                 }
             }

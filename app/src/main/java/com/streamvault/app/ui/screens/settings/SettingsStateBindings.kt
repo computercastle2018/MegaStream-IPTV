@@ -5,6 +5,7 @@ package com.MegaStream.app.ui.screens.settings
 import com.MegaStream.app.ui.model.LiveTvChannelMode
 import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
 import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.data.preferences.PreferencesRepository
 import com.MegaStream.domain.model.AppTimeFormat
 import com.MegaStream.domain.model.AudioOutputPreference
@@ -36,6 +37,7 @@ internal fun observeSettingsPreferenceSnapshot(
             parentalControlLevel = level,
             hasParentalPin = hasParentalPin,
             appLanguage = "system",
+            appUiStyle = AppUiStyle.CLASSIC,
             appTimeFormat = AppTimeFormat.SYSTEM,
             preferredAudioLanguage = "auto",
             playerMediaSessionEnabled = true,
@@ -97,6 +99,8 @@ internal fun observeSettingsPreferenceSnapshot(
         )
     }.combine(preferencesRepository.appLanguage) { snapshot, language ->
         snapshot.copy(appLanguage = language)
+    }.combine(preferencesRepository.appUiStyle) { snapshot, appUiStyle ->
+        snapshot.copy(appUiStyle = AppUiStyle.fromStorage(appUiStyle))
     }.combine(preferencesRepository.appTimeFormat) { snapshot, timeFormat ->
         snapshot.copy(appTimeFormat = timeFormat)
     }.combine(preferencesRepository.preferredAudioLanguage) { snapshot, preferredAudioLanguage ->

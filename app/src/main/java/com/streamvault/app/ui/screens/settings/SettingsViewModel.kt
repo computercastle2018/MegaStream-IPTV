@@ -14,6 +14,7 @@ import com.MegaStream.app.tvinput.TvInputChannelSyncManager
 import com.MegaStream.app.ui.model.LiveTvChannelMode
 import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
 import com.MegaStream.app.ui.model.VodViewMode
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.app.update.AppUpdateDownloadState
 import com.MegaStream.app.update.AppUpdateDownloadStatus
 import com.MegaStream.app.update.AppUpdateInstaller
@@ -411,6 +412,12 @@ class SettingsViewModel @Inject constructor(
     fun setAppLanguage(language: String) {
         viewModelScope.launch {
             preferencesRepository.setAppLanguage(language)
+        }
+    }
+
+    fun setAppUiStyle(style: AppUiStyle) {
+        viewModelScope.launch {
+            preferencesRepository.setAppUiStyle(style.storageValue)
         }
     }
 

@@ -356,6 +356,14 @@
     <string name="settings_playback">Playback</string>
     <string name="settings_playback_subtitle">Tune decoder and buffering behavior for smoother playback.</string>
     <string name="settings_browsing">Browsing</string>
+    <string name="settings_app_ui_style">App Style</string>
+    <string name="settings_app_ui_style_subtitle">Switch between the original MegaStream look and the refreshed modern style.</string>
+    <string name="settings_app_ui_style_classic">Classic</string>
+    <string name="settings_app_ui_style_classic_desc">Preserves the current visual design and color treatment.</string>
+    <string name="settings_app_ui_style_modern">Modern</string>
+    <string name="settings_app_ui_style_modern_desc">A cleaner high-contrast TV style with brighter focus colors.</string>
+    <string name="settings_refresh_current_lists">Refresh Current Lists</string>
+    <string name="settings_refresh_current_lists_value">Choose sections</string>
     <string name="settings_live_tv_channel_mode">Live TV Channel Mode</string>
     <string name="settings_live_tv_channel_mode_subtitle">Choose how the Live TV browser should present channels and whether it should preview before playback.</string>
     <string name="settings_live_tv_quick_filters">Live TV Quick Filters</string>
