@@ -1,5 +1,6 @@
 package com.MegaStream.app.update
 
+import android.os.Build
 import com.MegaStream.app.BuildConfig
 import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +57,8 @@ class GitHubReleaseChecker @Inject constructor(
     private companion object {
         private const val MAX_RESPONSE_BYTES = 512 * 1024L
         private val STRUCTURED_TAG_REGEX = Regex("""^v?(.+?)\+(\d+)$""", RegexOption.IGNORE_CASE)
+        /** ABI markers that may appear in a per-architecture APK asset name. */
+        private val KNOWN_ABI_NAMES = listOf("arm64-v8a", "armeabi-v7a", "armeabi", "x86_64", "x86")
     }
 
     suspend fun fetchLatestRelease(): Result<GitHubReleaseInfo> = withContext(Dispatchers.IO) {
@@ -241,40 +244,58 @@ class GitHubReleaseChecker @Inject constructor(
         return Result.success(output.toString(charset.name()))
     }
 
+    /**
+     * Picks the APK asset to download for this device.
+     *
+     * Preference order:
+     *  1. the canonical name (MegaStream.apk / MegaStream-beta.apk),
+     *  2. an explicitly universal build,
+     *  3. an ABI-specific build matching one of this device's supported ABIs,
+     *  4. any APK that doesn't advertise an ABI in its name.
+     *
+     * Crucially it never falls back to an APK built for a *foreign* ABI: doing
+     * so downloads fine and then fails to install, which looks to the user like
+     * the update silently breaks. Returning null instead surfaces a proper
+     * "download unavailable" error.
+     */
     private fun findApkAssetUrl(assets: org.json.JSONArray?, updateChannel: AppUpdateChannel): String? {
         if (assets == null) return null
-        var fallback: String? = null
+
+        val candidates = mutableListOf<Pair<String, String>>() // name to url
         for (index in 0 until assets.length()) {
             val asset = assets.optJSONObject(index) ?: continue
             val name = asset.optString("name")
             val url = asset.optString("browser_download_url").takeIf { it.isNotBlank() } ?: continue
             if (!isHttpsUrl(url)) continue
-            when (updateChannel) {
-                AppUpdateChannel.Stable -> {
-                    if (name.equals("MegaStream.apk", ignoreCase = true)) {
-                        return url
-                    }
-                    if (fallback == null &&
-                        name.endsWith(".apk", ignoreCase = true) &&
-                        !name.contains("beta", ignoreCase = true)
-                    ) {
-                        fallback = url
-                    }
-                }
-                AppUpdateChannel.Beta -> {
-                    if (name.equals("MegaStream-beta.apk", ignoreCase = true)) {
-                        return url
-                    }
-                    if (fallback == null &&
-                        name.endsWith(".apk", ignoreCase = true) &&
-                        name.contains("beta", ignoreCase = true)
-                    ) {
-                        fallback = url
-                    }
-                }
+            if (!name.endsWith(".apk", ignoreCase = true)) continue
+            val isBetaAsset = name.contains("beta", ignoreCase = true)
+            val matchesChannel = when (updateChannel) {
+                AppUpdateChannel.Stable -> !isBetaAsset
+                AppUpdateChannel.Beta -> isBetaAsset
             }
+            if (!matchesChannel) continue
+            candidates += name to url
         }
-        return fallback
+        if (candidates.isEmpty()) return null
+
+        val canonicalName = when (updateChannel) {
+            AppUpdateChannel.Stable -> "MegaStream.apk"
+            AppUpdateChannel.Beta -> "MegaStream-beta.apk"
+        }
+        candidates.firstOrNull { (name, _) -> name.equals(canonicalName, ignoreCase = true) }
+            ?.let { return it.second }
+
+        candidates.firstOrNull { (name, _) -> name.contains("universal", ignoreCase = true) }
+            ?.let { return it.second }
+
+        for (abi in Build.SUPPORTED_ABIS.orEmpty()) {
+            candidates.firstOrNull { (name, _) -> name.contains(abi, ignoreCase = true) }
+                ?.let { return it.second }
+        }
+
+        return candidates.firstOrNull { (name, _) ->
+            KNOWN_ABI_NAMES.none { abi -> name.contains(abi, ignoreCase = true) }
+        }?.second
     }
 
     private fun parseTagVersionInfo(rawTagName: String): ParsedTagVersion {
