@@ -164,6 +164,7 @@ fun PlayerScreen(
     val playbackState by playerEngine.playbackState.collectAsStateWithLifecycle()
     val isPlaying by playerEngine.isPlaying.collectAsStateWithLifecycle()
     val renderSurfaceType by playerEngine.renderSurfaceType.collectAsStateWithLifecycle()
+    val playerStats by viewModel.playerStats.collectAsStateWithLifecycle()
     val showControls by viewModel.showControls.collectAsStateWithLifecycle()
     val videoFormat by viewModel.videoFormat.collectAsStateWithLifecycle()
     val playerError by viewModel.playerError.collectAsStateWithLifecycle()
@@ -1244,7 +1245,6 @@ fun PlayerScreen(
 
         // --- Overlays ---
         if (!isInPictureInPictureMode && showDiagnostics) {
-            val playerStats by viewModel.playerStats.collectAsStateWithLifecycle()
             DiagnosticsOverlay(
                 stats = playerStats,
                 diagnostics = playerDiagnostics,
@@ -1405,7 +1405,8 @@ fun PlayerScreen(
                     onStopCasting = viewModel::stopCasting,
                     timeshiftUiState = timeshiftUiState,
                     onTransientPanelVisibilityChanged = { channelInfoSubPanelOpen = it },
-                    resolutionLabel = videoFormat.resolutionLabel.takeIf { it.isNotBlank() && !videoFormat.isEmpty }
+                    resolutionLabel = videoFormat.resolutionLabel.takeIf { it.isNotBlank() && !videoFormat.isEmpty },
+                    playbackStats = playerStats
                 )
             }
         }

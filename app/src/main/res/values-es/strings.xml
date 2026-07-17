@@ -11,7 +11,7 @@
     <string name="welcome_manage_providers">Administrar proveedores</string>
     <string name="welcome_setup_provider">Configurar proveedor</string>
     <string name="welcome_setup_later">Configurar más adelante</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Preparando tu biblioteca</string>
     
     <string name="sync_section_live">Live</string>

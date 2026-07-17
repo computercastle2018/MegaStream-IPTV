@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Gå in i appen</string>
     <string name="welcome_manage_providers">Hantera leverantörer</string>
     <string name="welcome_setup_provider">Konfigurera leverantör</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Förbereder ditt bibliotek</string>
     
     <string name="sync_section_live">Live</string>

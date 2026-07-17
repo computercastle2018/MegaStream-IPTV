@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Intrați în aplicație</string>
     <string name="welcome_manage_providers">Gestionați furnizorii</string>
     <string name="welcome_setup_provider">Furnizor de configurare</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Pregătirea bibliotecii</string>
     
     <string name="sync_section_live">Live</string>

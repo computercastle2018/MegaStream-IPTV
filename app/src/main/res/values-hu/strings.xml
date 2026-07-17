@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Belépés az appba</string>
     <string name="welcome_manage_providers">Szolgáltatók kezelése</string>
     <string name="welcome_setup_provider">Szolgáltató beállítása</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Könyvtár előkészítése</string>
     
     <string name="sync_section_live">Live</string>

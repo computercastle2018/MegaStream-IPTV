@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Uygulamaya Girin</string>
     <string name="welcome_manage_providers">Sağlayıcıları Yönet</string>
     <string name="welcome_setup_provider">Sağlayıcı Kur</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Kitaplığınız hazırlanıyor</string>
     
     <string name="sync_section_live">Live</string>

@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">进入应用</string>
     <string name="welcome_manage_providers">管理提供商</string>
     <string name="welcome_setup_provider">设置提供商</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">正在准备您的媒体库</string>
     
     <string name="sync_section_live">Live</string>

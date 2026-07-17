@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Entrez dans l’application</string>
     <string name="welcome_manage_providers">Gérer les fournisseurs</string>
     <string name="welcome_setup_provider">Fournisseur d’installation</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Préparation de votre bibliothèque</string>
     <string name="welcome_loading_subtitle">Ouverture du bon écran pour cet appareil.</string>
     <string name="sync_section_live">Live</string>

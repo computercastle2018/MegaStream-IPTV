@@ -10,10 +10,10 @@ class PlaybackBufferPoliciesTest {
         val policy = PlaybackBufferPolicies.forPlayback(isLive = true, compatibilityMode = false)
 
         assertThat(policy.label).isEqualTo("fast-live")
-        assertThat(policy.minBufferMs).isEqualTo(5_000)
-        assertThat(policy.maxBufferMs).isEqualTo(24_000)
-        assertThat(policy.playbackBufferMs).isEqualTo(500)
-        assertThat(policy.rebufferMs).isEqualTo(1_800)
+        assertThat(policy.minBufferMs).isEqualTo(3_000)
+        assertThat(policy.maxBufferMs).isEqualTo(18_000)
+        assertThat(policy.playbackBufferMs).isEqualTo(350)
+        assertThat(policy.rebufferMs).isEqualTo(1_200)
     }
 
     @Test

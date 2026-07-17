@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Masuk ke Aplikasi</string>
     <string name="welcome_manage_providers">Kelola Penyedia</string>
     <string name="welcome_setup_provider">Penyedia Pengaturan</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Mempersiapkan perpustakaan Anda</string>
     
     <string name="sync_section_live">Live</string>

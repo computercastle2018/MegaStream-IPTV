@@ -256,7 +256,7 @@ class EpgViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        const val MAX_CHANNELS = 60
+        const val MAX_CHANNELS = 40
         private const val MAX_XTREAM_GUIDE_FALLBACK_CHANNELS = 10
         private const val MAX_XTREAM_GUIDE_FALLBACK_PROGRAMS = 6
         const val LOOKBACK_MS = 60 * 60 * 1000L

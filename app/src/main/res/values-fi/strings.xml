@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Anna App</string>
     <string name="welcome_manage_providers">Hallinnoi palveluntarjoajia</string>
     <string name="welcome_setup_provider">Asennustarjoaja</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Valmistelee kirjastoasi</string>
     
     <string name="sync_section_live">Live</string>

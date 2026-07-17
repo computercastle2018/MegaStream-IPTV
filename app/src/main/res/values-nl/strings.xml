@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Voer app in</string>
     <string name="welcome_manage_providers">Beheer aanbieders</string>
     <string name="welcome_setup_provider">Installatieprovider</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Uw bibliotheek voorbereiden</string>
     
     <string name="sync_section_live">Live</string>

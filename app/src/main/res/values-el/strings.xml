@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Είσοδος στην εφαρμογή</string>
     <string name="welcome_manage_providers">Διαχείριση παρόχων</string>
     <string name="welcome_setup_provider">Ρύθμιση παρόχου</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Προετοιμασία της βιβλιοθήκης σας</string>
     
     <string name="sync_section_live">Live</string>

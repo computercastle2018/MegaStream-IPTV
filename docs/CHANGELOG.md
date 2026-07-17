@@ -2,6 +2,17 @@
 
 All notable product changes are recorded in this document.
 
+## [2.1.0] - 2026-07-17
+
+### Changed
+
+- Refreshed the live player channel info overlay with signal badges for resolution, codec, bitrate, and buffered time.
+- Reduced the first EPG channel page size so live guide screens show useful content sooner while continuing to prefetch later pages.
+- Tuned live playback buffers for faster first frame and quicker channel zapping while keeping compatibility mode conservative.
+- Synced the welcome-screen version label with the packaged app version.
+
+---
+
 ## [1.0.11] - 2026-05-13
 
 ### Added

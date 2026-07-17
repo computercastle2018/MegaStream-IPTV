@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Wejdź do aplikacji</string>
     <string name="welcome_manage_providers">Zarządzaj dostawcami</string>
     <string name="welcome_setup_provider">Dostawca konfiguracji</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Przygotowanie biblioteki</string>
     
     <string name="sync_section_live">Live</string>

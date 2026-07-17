@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">Indtast App</string>
     <string name="welcome_manage_providers">Administrer udbydere</string>
     <string name="welcome_setup_provider">Opsæt udbyder</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">Forberedelse af dit bibliotek</string>
     
     <string name="sync_section_live">Live</string>

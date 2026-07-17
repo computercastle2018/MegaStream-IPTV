@@ -10,7 +10,7 @@
     <string name="welcome_enter_app">أدخل التطبيق</string>
     <string name="welcome_manage_providers">إدارة مقدمي الخدمة</string>
     <string name="welcome_setup_provider">موفر الإعداد</string>
-    <string name="welcome_version">v1.0.3</string>
+    <string name="welcome_version">v2.1.0</string>
     <string name="welcome_loading_title">تحضير مكتبتك</string>
     
     <string name="sync_section_live">Live</string>

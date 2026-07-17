@@ -57,8 +57,10 @@ import com.MegaStream.app.ui.time.createTimeFormat
 import com.MegaStream.domain.model.Channel
 import com.MegaStream.domain.model.Program
 import com.MegaStream.domain.model.RecordingStatus
+import com.MegaStream.player.PlayerStats
 import com.MegaStream.player.timeshift.LiveTimeshiftStatus
 import java.util.Date
+import java.util.Locale
 import com.MegaStream.app.ui.design.AppColors.Brand as Primary
 import com.MegaStream.app.ui.design.AppColors.TextTertiary as OnSurfaceDim
 
@@ -110,10 +112,12 @@ fun ChannelInfoOverlay(
     onStopCasting: () -> Unit = {},
     timeshiftUiState: PlayerTimeshiftUiState = PlayerTimeshiftUiState(),
     onTransientPanelVisibilityChanged: (Boolean) -> Unit = {},
-    resolutionLabel: String? = null
+    resolutionLabel: String? = null,
+    playbackStats: PlayerStats = PlayerStats()
 ) {
     val appTimeFormat = LocalAppTimeFormat.current
     val timeFormat = remember(appTimeFormat) { appTimeFormat.createTimeFormat() }
+    val playbackSignalBadges = remember(playbackStats) { playbackStats.toSignalBadges() }
     val showTimeshiftControls = timeshiftUiState.available && !isCastConnected
     val hasCatchUpOptions = currentChannel?.catchUpSupported == true || currentProgram?.hasArchive == true
     var expandedPanel by remember { mutableStateOf<ChannelInfoPanel?>(null) }
@@ -247,6 +251,12 @@ fun ChannelInfoOverlay(
                                 StatusPill(
                                     label = label,
                                     containerColor = AppColors.SurfaceEmphasis
+                                )
+                            }
+                            playbackSignalBadges.forEach { label ->
+                                StatusPill(
+                                    label = label,
+                                    containerColor = AppColors.SurfaceEmphasis.copy(alpha = 0.78f)
                                 )
                             }
                             currentChannel?.currentVariant
@@ -695,6 +705,45 @@ private fun com.MegaStream.domain.model.LiveChannelVariantAttributes.toOverlayBa
         sourceHint?.takeIf { it == "Backup" || it == "Alternate" || it == "Lite" || it == "Mobile" }?.let(::add)
     }
     return parts.joinToString(" ")
+}
+
+private fun PlayerStats.toSignalBadges(): List<String> {
+    val video = videoCodec.toCodecDisplayName()
+    val audio = audioCodec.toCodecDisplayName()
+    val codecLabel = when {
+        video != null && audio != null -> "$video / $audio"
+        video != null -> video
+        audio != null -> audio
+        else -> null
+    }
+    val bitrateLabel = videoBitrate
+        .takeIf { it > 0 }
+        ?.let { bitrate -> "${String.format(Locale.US, "%.1f", bitrate / 1_000_000f)} Mbps" }
+    val bufferLabel = bufferedDurationMs
+        .takeIf { it > 0 }
+        ?.let { bufferedMs -> "Buffer ${bufferedMs / 1_000}s" }
+
+    return buildList {
+        codecLabel?.let(::add)
+        bitrateLabel?.let(::add)
+        bufferLabel?.let(::add)
+    }.take(3)
+}
+
+private fun String.toCodecDisplayName(): String? {
+    val normalized = trim().lowercase(Locale.ROOT)
+    if (normalized.isBlank() || normalized == "unknown") return null
+    return when {
+        "avc" in normalized || "h264" in normalized -> "H.264"
+        "hevc" in normalized || "h265" in normalized -> "HEVC"
+        "av01" in normalized || "av1" in normalized -> "AV1"
+        "vp9" in normalized -> "VP9"
+        "mp4a" in normalized || "aac" in normalized -> "AAC"
+        "eac3" in normalized -> "E-AC-3"
+        "ac3" in normalized -> "AC-3"
+        "opus" in normalized -> "Opus"
+        else -> trim().substringAfterLast('/').uppercase(Locale.ROOT)
+    }
 }
 
 private data class ChannelInfoMenuEntry(
