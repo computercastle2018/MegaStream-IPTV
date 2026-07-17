@@ -413,6 +413,9 @@
     <string name="settings_github_url">https://github.com/computercastle2018</string>
     <string name="settings_repository">Repository</string>
     <string name="settings_repository_url">https://github.com/computercastle2018/MegaStream-IPTV</string>
+    <string name="settings_download_apk">تنزيل APK</string>
+    <string name="settings_download_apk_desc">احصل على أحدث MegaStream.apk مباشرةً</string>
+    <string name="settings_download_apk_url">https://github.com/computercastle2018/MegaStream-IPTV/releases/latest/download/MegaStream.apk</string>
     <string name="settings_donate">Website</string>
     <string name="settings_donate_url">https://megastation.ee/megastream</string>
     <string name="settings_updates_title">التحديثات</string>

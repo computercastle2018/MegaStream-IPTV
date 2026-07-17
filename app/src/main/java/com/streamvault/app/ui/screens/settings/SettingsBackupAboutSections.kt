@@ -376,6 +376,11 @@ internal fun LazyListScope.settingsAboutSection(
             onClick = { onOpenUri(context.getString(R.string.settings_repository_url)) }
         )
         ClickableSettingsRow(
+            label = stringResource(R.string.settings_download_apk),
+            value = stringResource(R.string.settings_download_apk_desc),
+            onClick = { onOpenUri(context.getString(R.string.settings_download_apk_url)) }
+        )
+        ClickableSettingsRow(
             label = stringResource(R.string.settings_donate),
             value = stringResource(R.string.settings_donate_url),
             onClick = { onOpenUri(context.getString(R.string.settings_donate_url)) }
