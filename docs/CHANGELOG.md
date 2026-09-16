@@ -1,6 +1,15 @@
-﻿# Changelog
+# Changelog
 
 All notable product changes are recorded in this document.
+
+## [2.1.3] - 2026-09-16
+
+### Changed
+
+- Adaptive bitrate now down-switches video quality much faster when the network slows down (quality decreases within ~15s of a bandwidth drop instead of ~25s, with a more conservative throughput target), reducing stalls on slow connections; recovery back up remains gradual.
+- Interrupted live streams no longer automatically zap back to the previous channel: recovery now stays on the current channel with retry / alternate-source / guide options, and the previous-channel fallback (including the 15-second buffer watchdog) is opt-in via the existing zap-auto-revert setting, which now defaults to off.
+
+---
 
 ## [2.1.0] - 2026-07-17
 

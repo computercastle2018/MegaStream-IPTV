@@ -122,7 +122,7 @@ data class SettingsUiState(
     val guideDefaultCategoryId: Long = com.MegaStream.domain.model.VirtualCategoryIds.FAVORITES,
     val guideDefaultCategoryOptions: List<Category> = emptyList(),
     val preventStandbyDuringPlayback: Boolean = true,
-    val zapAutoRevert: Boolean = true,
+    val zapAutoRevert: Boolean = false,
     val autoPlayNextEpisode: Boolean = true,
     val categorySortModes: Map<ContentType, CategorySortMode> = emptyMap(),
     val hiddenCategories: List<Category> = emptyList(),

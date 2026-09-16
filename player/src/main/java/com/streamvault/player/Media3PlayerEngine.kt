@@ -38,6 +38,7 @@ import com.MegaStream.domain.model.VideoFormat
 import com.MegaStream.domain.repository.PlaybackCompatibilityRepository
 import com.MegaStream.player.audio.PlayerAudioFocusController
 import com.MegaStream.player.playback.ActiveDecoderPolicy
+import com.MegaStream.player.playback.AdaptiveTrackSelectionPolicies
 import com.MegaStream.player.playback.DefaultDecoderPreferencePolicy
 import com.MegaStream.player.playback.DefaultPlaybackCompatibilityProfile
 import com.MegaStream.player.playback.AudioVideoOffsetAudioSink
@@ -979,6 +980,7 @@ class Media3PlayerEngine @Inject constructor(
             .build()
 
         return ExoPlayer.Builder(context, renderersFactory)
+            .setTrackSelector(AdaptiveTrackSelectionPolicies.trackSelector(context))
             .setLoadControl(loadControl)
             .setLivePlaybackSpeedControl(livePlaybackSpeedControl)
             .setBandwidthMeter(bandwidthMeter)

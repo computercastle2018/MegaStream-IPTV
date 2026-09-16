@@ -803,7 +803,11 @@ class PlayerViewModel @Inject constructor(
                 return@launch
             }
 
-            if (fallbackToPreviousChannel("Recovery path exhausted for ${recoveryType.name.lowercase()}")) {
+            // Respect the user's zap-auto-revert preference: never auto-return
+            // to the previous channel unless they opted into that behavior.
+            if (zapAutoRevertEnabled &&
+                fallbackToPreviousChannel("Recovery path exhausted for ${recoveryType.name.lowercase()}")
+            ) {
                 appendRecoveryAction("Returned to last channel")
                 showPlayerNotice(
                     message = "Playback failed on this stream. Returned to the last channel.",

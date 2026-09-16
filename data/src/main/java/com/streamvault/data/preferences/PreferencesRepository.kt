@@ -584,7 +584,7 @@ class PreferencesRepository @Inject constructor(
     }
 
     val zapAutoRevert: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.ZAP_AUTO_REVERT] ?: true
+        preferences[PreferencesKeys.ZAP_AUTO_REVERT] ?: false
     }
 
     val recordingWifiOnly: Flow<Boolean> = context.dataStore.data.map { preferences ->

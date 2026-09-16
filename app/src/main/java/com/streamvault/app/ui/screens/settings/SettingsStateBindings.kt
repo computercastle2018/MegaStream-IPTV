@@ -85,7 +85,7 @@ internal fun observeSettingsPreferenceSnapshot(
             guideDefaultCategoryId = VirtualCategoryIds.FAVORITES,
             guideDefaultCategoryOptions = emptyList(),
             preventStandbyDuringPlayback = true,
-            zapAutoRevert = true,
+            zapAutoRevert = false,
             autoPlayNextEpisode = true,
             autoCheckAppUpdates = true,
             autoDownloadAppUpdates = false,
