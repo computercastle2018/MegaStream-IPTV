@@ -2,6 +2,14 @@
 
 All notable product changes are recorded in this document.
 
+## [2.1.4] - 2026-09-16
+
+### Fixed
+
+- Fixed live channels that play briefly and then stop staying dead on screen: the player now automatically reloads the same channel after a stream drop or exhausted recovery, with a short capped backoff (up to 6 attempts, ~3–15s apart) that resets as soon as playback recovers or you switch channels.
+
+---
+
 ## [2.1.3] - 2026-09-16
 
 ### Changed

@@ -230,6 +230,9 @@ class PlayerViewModel @Inject constructor(
     internal var playerNoticeHideJob: Job? = null
     internal var mutePersistJob: Job? = null
     private var recoveryJob: Job? = null
+    internal var autoReloadJob: Job? = null
+    internal var autoReloadAttempts: Int = 0
+    internal var autoReloadLastChannelId: Long = -1L
     internal var numericInputBuffer: String = ""
     internal val triedAlternativeStreams = mutableSetOf<String>()
     internal val failedStreamsThisSession = mutableMapOf<String, Int>()
@@ -443,10 +446,16 @@ class PlayerViewModel @Inject constructor(
             activePlayerEngineFlow.flatMapLatest { it.playbackState }.collect { state ->
                 _playerDiagnostics.update { it.copy(playbackStateLabel = state.name.replace('_', ' ')) }
                 if (state == PlaybackState.ENDED && lastObservedPlaybackState != PlaybackState.ENDED) {
+                    // A live stream that reports ENDED has dropped out; reload it
+                    // automatically instead of leaving a dead player on screen.
+                    if (currentContentType == ContentType.LIVE) {
+                        scheduleLiveAutoReload("stream ended")
+                    }
                     handlePlaybackEnded()
                 }
                 lastObservedPlaybackState = state
                 if (state == PlaybackState.READY && readySideEffectsRequestVersion == prepareRequestVersion) {
+                    cancelLiveAutoReload(playbackRecovered = true)
                     zapBufferWatchdogJob?.cancel()
                     dismissRecoveredNoticeIfPresent()
                     if (currentContentType == ContentType.LIVE) {
@@ -820,6 +829,9 @@ class PlayerViewModel @Inject constructor(
                     recoveryType = recoveryType,
                     actions = buildRecoveryActions(recoveryType)
                 )
+                // Stay on the channel and try reloading it automatically instead
+                // of leaving a failed stream on screen.
+                scheduleLiveAutoReload("recovery exhausted: ${recoveryType.name.lowercase()}")
             }
         }
     }
