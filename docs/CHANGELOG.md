@@ -2,6 +2,14 @@
 
 All notable product changes are recorded in this document.
 
+## [2.1.5] - 2026-09-16
+
+### Added
+
+- Added automatic CI publishing: every push to `main` now builds signed APKs, refreshes the `apk/` direct-download folder, and updates the rolling `latest` pre-release.
+
+---
+
 ## [2.1.4] - 2026-09-16
 
 ### Fixed
