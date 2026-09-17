@@ -1,0 +1,100 @@
+name: Build and Publish
+
+# Publishes automatically after every change pushed to main (and on demand).
+# For every push this workflow:
+#   1. Builds signed release APKs (universal + arm64 + armv7).
+#   2. Commits them back to the apk/ folder so the raw download links stay current.
+#   3. Updates the rolling "latest" pre-release on GitHub Releases with the APKs.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-and-publish-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore release signing material
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            KEYSTORE_PATH="$GITHUB_WORKSPACE/keystore/release.keystore"
+            mkdir -p keystore
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+            cat > keystore.properties <<EOF
+          storeFile=$KEYSTORE_PATH
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+            echo "Signing material configured from secrets."
+          else
+            echo "KEYSTORE_BASE64 secret is not set — building UNSIGNED APKs."
+            echo "UNSIGNED_BUILD=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build release APKs
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Organize APKs
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-universal-release.apk out/MegaStream.apk
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk out/MegaStream-arm64.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk out/MegaStream-armv7.apk
+          ls -la out/
+
+      - name: Publish APKs to apk/ folder
+        run: |
+          if git diff --quiet HEAD -- apk/ && [ -z "$(git status --porcelain apk/)" ]; then
+            echo "No APK changes to publish."
+          else
+            cp out/MegaStream.apk apk/MegaStream.apk
+            cp out/MegaStream-arm64.apk apk/MegaStream-arm64.apk
+            cp out/MegaStream-armv7.apk apk/MegaStream-armv7.apk
+            git config user.name "megaStation CI"
+            git config user.email "actions@users.noreply.github.com"
+            git add apk/
+            git commit -m "CI: update signed APKs for ${GITHUB_SHA::7} [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Update rolling latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          prerelease: true
+          body: |
+            Automated build from `main` (commit ${{ github.sha }}).
+            Files: MegaStream.apk (universal), MegaStream-arm64.apk, MegaStream-armv7.apk.
+          files: |
+            out/MegaStream.apk
+            out/MegaStream-arm64.apk
+            out/MegaStream-armv7.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
