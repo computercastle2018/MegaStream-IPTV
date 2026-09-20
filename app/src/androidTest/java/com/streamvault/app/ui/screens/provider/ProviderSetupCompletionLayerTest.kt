@@ -2,7 +2,6 @@ package com.MegaStream.app.ui.screens.provider
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -23,11 +22,9 @@ class ProviderSetupCompletionLayerTest {
 
     @Test
     fun savedResumingWarning_completesImmediatelyWithoutBlockingDialog() {
-        var uiState by mutableStateOf(
-            ProviderSetupState(
-                onboardingCompletion = ProviderSetupViewModel.OnboardingCompletion.SAVED_RESUMING,
-                completionWarning = "Playlist saved, but initial sync failed. Resume has been queued."
-            )
+        val uiState = ProviderSetupState(
+            onboardingCompletion = ProviderSetupViewModel.OnboardingCompletion.SAVED_RESUMING,
+            completionWarning = "Playlist saved, but initial sync failed. Resume has been queued."
         )
         var providerAddedCount by mutableIntStateOf(0)
         var cleanupCallCount by mutableIntStateOf(0)
@@ -40,9 +37,6 @@ class ProviderSetupCompletionLayerTest {
                     selectedM3uUrl = "",
                     filesDir = InstrumentationRegistry.getInstrumentation().targetContext.filesDir,
                     onProviderAdded = { providerAddedCount++ },
-                    onDismissCompletionWarning = {
-                        uiState = uiState.copy(completionWarning = null)
-                    },
                     onAttachCreatedProvider = {},
                     onSkipCreatedProviderCombinedAttach = {},
                     cleanupImportedFiles = { _, _, _ -> cleanupCallCount++ }

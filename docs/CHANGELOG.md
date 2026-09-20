@@ -2,6 +2,15 @@
 
 All notable product changes are recorded in this document.
 
+## [2.1.6] - 2026-09-16
+
+### Fixed
+
+- Fixed the visible back/close button inside fullscreen playback so it exits the player and returns to the previous screen. Remote and system Back still dismiss active dialogs, overlays, and controls before exiting.
+- Repaired stale Android instrumentation tests so the fullscreen player regression test can compile and run on-device.
+
+---
+
 ## [2.1.5] - 2026-09-16
 
 ### Added

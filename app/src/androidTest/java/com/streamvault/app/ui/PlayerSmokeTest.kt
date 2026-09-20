@@ -13,6 +13,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.MegaStream.app.R
 import com.MegaStream.app.ui.components.shell.CategoryRailPanel
 import com.MegaStream.app.ui.screens.player.overlay.PlayerControlsOverlay
 import com.MegaStream.app.ui.screens.player.overlay.PlayerTrackSelectionDialog
@@ -104,6 +106,57 @@ class PlayerSmokeTest {
         }
 
         composeRule.onNodeWithText(">").assertIsFocused()
+    }
+
+    @Test
+    fun playerControlsOverlay_closeButton_invokesExitCallback() {
+        var exitInvoked = false
+        val closeLabel = InstrumentationRegistry.getInstrumentation()
+            .targetContext
+            .getString(R.string.player_close)
+
+        composeRule.setContent {
+            MegaStreamTheme {
+                PlayerControlsOverlay(
+                    visible = true,
+                    title = TestFixtures.liveTitle,
+                    contentType = "LIVE",
+                    isPlaying = true,
+                    currentProgram = null,
+                    currentChannelName = TestFixtures.liveTitle,
+                    displayChannelNumber = TestFixtures.displayChannelNumber,
+                    currentPosition = 0L,
+                    duration = 0L,
+                    aspectRatioLabel = TestFixtures.aspectRatioLabel,
+                    subtitleTrackCount = 1,
+                    audioTrackCount = 1,
+                    videoQualityCount = 1,
+                    currentRecordingStatus = null,
+                    isMuted = false,
+                    mediaTitle = null,
+                    playButtonFocusRequester = FocusRequester(),
+                    onClose = { exitInvoked = true },
+                    onTogglePlayPause = {},
+                    onSeekBackward = {},
+                    onSeekForward = {},
+                    onRestartProgram = {},
+                    onOpenArchive = {},
+                    onStartRecording = {},
+                    onStopRecording = {},
+                    onScheduleRecording = {},
+                    onToggleAspectRatio = {},
+                    onOpenSubtitleTracks = {},
+                    onOpenAudioTracks = {},
+                    onOpenVideoTracks = {},
+                    onOpenSplitScreen = {},
+                    onToggleMute = {},
+                    clockLabelOverride = TestFixtures.fixedClock
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(closeLabel).performClick()
+        composeRule.runOnIdle { check(exitInvoked) }
     }
 
     @Test

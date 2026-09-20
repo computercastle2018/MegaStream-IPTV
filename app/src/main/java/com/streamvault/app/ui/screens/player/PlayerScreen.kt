@@ -1049,7 +1049,9 @@ fun PlayerScreen(
             playButtonFocusRequester = playButtonFocusRequester,
             quickActionsFocusRequester = quickActionsFocusRequester,
             modifier = Modifier.fillMaxSize(),
-            onClose = viewModel::toggleControls,
+            // The visible top-bar button exits fullscreen playback. Remote/system
+            // Back still uses handleBackPress(), which dismisses overlays first.
+            onClose = onBack,
             onTogglePlayPause = { if (isPlaying) viewModel.pause() else viewModel.play() },
             onSeekBackward = viewModel::seekBackward,
             onSeekForward = viewModel::seekForward,

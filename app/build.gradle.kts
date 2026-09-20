@@ -57,8 +57,8 @@ android {
         applicationId = "com.megastream.app"
         minSdk = 27
         targetSdk = 36
-        versionCode = 30
-        versionName = "2.1.5"
+        versionCode = 31
+        versionName = "2.1.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OFFICIAL_APPLICATION_ID", "\"com.megastream.app\"")
         buildConfigField("String", "OFFICIAL_SIGNING_CERT_SHA256", "\"$officialSigningCertSha256\"")
