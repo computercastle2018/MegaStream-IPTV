@@ -1,0 +1,35 @@
+@model MegaStream.Server.RemoteProviders.Http.ProviderAssignments
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewData["Title"] = "اشتراكات التثبيت"; }
+<p>معرّف التثبيت: <code dir="ltr">@Model.InstallationId</code></p>
+<form method="post" action="/admin/providers/installations/@Model.InstallationId/assign">
+    @Html.AntiForgeryToken()
+    <label>الاشتراك<select name="profileId" required>
+    @foreach (var profile in Model.Profiles.Where(p => p.Status == "active"))
+    {
+        <option value="@profile.Id">@profile.DisplayName (@profile.Type)</option>
+    }
+    </select></label>
+    <label>السياسة<select name="policy"><option value="optional">اختياري</option><option value="auto_enabled">مفعّل تلقائياً</option><option value="required">إلزامي</option></select></label>
+    <label>التفعيل<select name="enabled"><option value="true">نعم</option><option value="false">لا</option></select></label>
+    <button type="submit">تعيين الاشتراك / تحديث التعيين</button>
+</form>
+<h2>التعيينات</h2>
+<table><thead><tr><th>التعيين / الاشتراك</th><th>السياسة</th><th>مفعّل</th><th>المراجعة</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>
+@foreach (var assignment in Model.Assignments)
+{
+    <tr><td><code dir="ltr">@assignment.Id</code><br /><code dir="ltr">@assignment.ProfileId</code></td><td><bdi>@assignment.Policy</bdi></td><td>@(assignment.Enabled ? "نعم" : "لا")</td><td>@assignment.Revision</td><td>@(assignment.RevokedAt.HasValue ? "ملغى" : "مُعيّن")</td><td>
+    @if (!assignment.RevokedAt.HasValue)
+    {
+        <form method="post" action="/admin/providers/assignments/@assignment.Id/revoke">@Html.AntiForgeryToken()<button type="submit">إلغاء التعيين</button></form>
+    }
+    </td></tr>
+}
+</tbody></table>
+<h2>تقارير الجهاز</h2>
+<p>الصلاحية والحد الأقصى للاتصالات بيانات يُبلغ عنها المزود ولا تُعد موثوقة أو بديلاً لحدود ترخيص MegaStream.</p>
+<table><thead><tr><th>التعيين</th><th>مراجعة الاشتراك</th><th>الحالة</th><th>رمز الخطأ الآمن</th><th>وقت التقرير (UTC)</th><th>صلاحية المزود (UTC)</th><th>حد اتصالات المزود</th></tr></thead><tbody>
+@foreach (var report in Model.Reports)
+{
+    <tr><td><code dir="ltr">@report.AssignmentId</code></td><td>@report.ProfileRevision</td><td><bdi>@report.State</bdi></td><td><bdi>@report.SafeErrorCode</bdi></td><td><bdi>@report.LastReportedAt.ToString("u")</bdi></td><td><bdi>@report.ProviderReportedExpiresAt?.ToString("u")</bdi></td><td>@report.ProviderReportedMaxConnections</td></tr>
+}
+</tbody></table>

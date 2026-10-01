@@ -1,5 +1,7 @@
 package com.MegaStream.app.ui.screens.home
 
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.GatedPlayerEngine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.MegaStream.app.di.AuxiliaryPlayerEngine
@@ -85,7 +87,8 @@ class HomeViewModel @Inject constructor(
     private val livePreviewHandoffManager: LivePreviewHandoffManager,
     private val pluginManager: MegaStreamPluginManager,
     @param:AuxiliaryPlayerEngine
-    private val playerEngineProvider: InjectProvider<PlayerEngine>
+    private val playerEngineProvider: InjectProvider<PlayerEngine>,
+    private val playbackGate: PlaybackGate
 ) : ViewModel() {
     private companion object {
         const val MIN_CHANNEL_SEARCH_QUERY_LENGTH = 2
@@ -985,7 +988,9 @@ class HomeViewModel @Inject constructor(
         if (_uiState.value.previewChannelId == channel.id && _uiState.value.previewPlayerEngine != null) return
 
         val previewVersion = ++previewSessionVersion
-        val engine = previewPlayerEngine ?: playerEngineProvider.get().also { previewPlayerEngine = it }
+        val engine = previewPlayerEngine ?: GatedPlayerEngine(
+            playerEngineProvider.get(), playbackGate, viewModelScope
+        ).also { previewPlayerEngine = it }
         previewPlaybackJob?.cancel()
         previewErrorJob?.cancel()
 

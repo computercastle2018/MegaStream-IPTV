@@ -1,5 +1,13 @@
 package com.MegaStream.app.cast
 
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.PlaybackGateVerdict
+import com.MegaStream.app.playback.gate.withPlaybackAdmission
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -22,7 +30,8 @@ import javax.inject.Singleton
 @Singleton
 class CastManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val pluginManager: MegaStreamPluginManager
+    private val pluginManager: MegaStreamPluginManager,
+    private val playbackGate: PlaybackGate
 ) {
 
     private val _connectionState = MutableStateFlow(CastConnectionState.UNAVAILABLE)
@@ -31,6 +40,37 @@ class CastManager @Inject constructor(
     private var castContext: CastContext? = null
     private var initialized = false
     private var pendingRequest: CastMediaRequest? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    init {
+        scope.launch {
+            playbackGate.decision.collect { verdict ->
+                if (verdict is PlaybackGateVerdict.Blocked &&
+                    (pendingRequest != null || castContext?.sessionManager?.currentCastSession != null)
+                ) {
+                    blockCasting(verdict)
+                }
+            }
+        }
+    }
+
+    private fun canStartCasting(session: CastSession? = null): Boolean =
+        playbackGate.withPlaybackAdmission(onBlocked = { stopBlockedCasting(session) }) { true } ?: false
+
+    private fun stopBlockedCasting(session: CastSession? = null) {
+        pendingRequest = null
+        (session ?: castContext?.sessionManager?.currentCastSession)?.remoteMediaClient?.stop()
+        castContext?.sessionManager?.endCurrentSession(true)
+        _connectionState.value = CastConnectionState.DISCONNECTED
+    }
+
+    private fun blockCasting(verdict: PlaybackGateVerdict.Blocked, session: CastSession? = null) {
+        try {
+            stopBlockedCasting(session)
+        } finally {
+            playbackGate.reportBlocked(verdict)
+        }
+    }
 
     private val sessionManagerListener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarting(session: CastSession) {
@@ -38,6 +78,7 @@ class CastManager @Inject constructor(
         }
 
         override fun onSessionStarted(session: CastSession, sessionId: String) {
+            if (!canStartCasting(session)) return
             _connectionState.value = CastConnectionState.CONNECTED
             loadPendingRequest(session)
         }
@@ -60,6 +101,7 @@ class CastManager @Inject constructor(
         }
 
         override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
+            if (!canStartCasting(session)) return
             _connectionState.value = CastConnectionState.CONNECTED
             loadPendingRequest(session)
         }
@@ -82,6 +124,7 @@ class CastManager @Inject constructor(
             castContext = resolvedContext
             resolvedContext.sessionManager.addSessionManagerListener(sessionManagerListener, CastSession::class.java)
             _connectionState.value = currentConnectionState(resolvedContext)
+            resolvedContext.sessionManager.currentCastSession?.let { canStartCasting(it) }
         }.onFailure { throwable ->
             _connectionState.value = CastConnectionState.UNAVAILABLE
             Log.w(TAG, "Google Cast is unavailable on this device", throwable)
@@ -105,12 +148,13 @@ class CastManager @Inject constructor(
         val rewrittenUrl = pluginManager.rewriteCastUrl(request.url) ?: return CastStartResult.UNSUPPORTED
         val resolvedRequest = request.copy(url = rewrittenUrl)
 
+        if (!canStartCasting()) return CastStartResult.UNAVAILABLE
         pendingRequest = resolvedRequest
         val activeSession = resolvedContext.sessionManager.currentCastSession
         return if (activeSession?.isConnected == true) {
-            loadMedia(activeSession, resolvedRequest)
+            val loaded = loadMedia(activeSession, resolvedRequest)
             pendingRequest = null
-            CastStartResult.STARTED
+            if (loaded) CastStartResult.STARTED else CastStartResult.UNAVAILABLE
         } else {
             CastStartResult.ROUTE_SELECTION_REQUIRED
         }
@@ -129,8 +173,8 @@ class CastManager @Inject constructor(
         pendingRequest = null
     }
 
-    private fun loadMedia(session: CastSession, request: CastMediaRequest) {
-        val remoteMediaClient = session.remoteMediaClient ?: return
+    private fun loadMedia(session: CastSession, request: CastMediaRequest): Boolean {
+        val remoteMediaClient = session.remoteMediaClient ?: return false
         val metadataType = if (request.isLive) MediaMetadata.MEDIA_TYPE_TV_SHOW else MediaMetadata.MEDIA_TYPE_MOVIE
         val metadata = MediaMetadata(metadataType).apply {
             putString(MediaMetadata.KEY_TITLE, request.title)
@@ -148,6 +192,7 @@ class CastManager @Inject constructor(
             .setMetadata(metadata)
             .build()
 
+        if (!canStartCasting(session)) return false
         remoteMediaClient.load(
             MediaLoadRequestData.Builder()
                 .setMediaInfo(mediaInfo)
@@ -155,6 +200,7 @@ class CastManager @Inject constructor(
                 .setCurrentTime(request.startPositionMs)
                 .build()
         )
+        return true
     }
 
     private fun currentConnectionState(castContext: CastContext): CastConnectionState {

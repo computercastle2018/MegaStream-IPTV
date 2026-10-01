@@ -1,0 +1,3 @@
+@model DiagnosticsViewModel
+@{ ViewData["Title"] = "التشخيص"; }
+<section class="panel"><form asp-action="Diagnostics" method="get"><div asp-validation-summary="All" class="validation" role="alert"></div><label asp-for="Level">المستوى</label><input asp-for="Level" maxlength="16" /><label asp-for="Category">الفئة</label><input asp-for="Category" maxlength="64" /><label asp-for="InstallationId">معرّف الجهاز</label><input asp-for="InstallationId" /><button type="submit">تصفية</button><a asp-action="Diagnostics">مسح التصفية</a></form></section><section class="panel"><p class="muted">آخر 300 حدث مطابق، بعد تنقيح البيانات الحساسة.</p><partial name="_DiagnosticsTable" model="Model.Events" /></section>

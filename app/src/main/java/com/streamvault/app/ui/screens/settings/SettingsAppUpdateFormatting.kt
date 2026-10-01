@@ -2,12 +2,42 @@ package com.MegaStream.app.ui.screens.settings
 
 import com.MegaStream.app.R
 import com.MegaStream.app.update.AppUpdateDownloadStatus
+import com.MegaStream.app.update.AppUpdateSource
+import com.MegaStream.app.update.GitHubReleaseInfo
+import java.net.URI
+import java.net.URISyntaxException
 import java.text.DateFormat
 
 internal fun formatLatestReleaseLabel(update: AppUpdateUiModel, context: android.content.Context): String {
     val versionName = update.latestVersionName ?: return context.getString(R.string.settings_update_not_checked)
     val versionCodeSuffix = update.latestVersionCode?.let { " ($it)" }.orEmpty()
-    return "$versionName$versionCodeSuffix"
+    val sourceSuffix = formatAppUpdateSourceLabel(update.source, update.downloadUrl, update.releaseUrl)
+        ?.let { " · $it" }.orEmpty()
+    return "$versionName$versionCodeSuffix$sourceSuffix"
+}
+
+internal fun formatAppUpdateSourceLabel(
+    source: AppUpdateSource,
+    downloadUrl: String?,
+    releaseUrl: String?
+): String? {
+    if (source != AppUpdateSource.Backup) return null
+    val domain = sequenceOf(downloadUrl, releaseUrl)
+        .mapNotNull { url ->
+            try {
+                url?.let { URI(it).host }
+            } catch (_: URISyntaxException) {
+                null
+            }
+        }
+        .firstOrNull { it.isNotBlank() }
+    return domain?.let { "Backup ($it)" } ?: "Backup"
+}
+
+/** Preferences keep only legacy release fields, so retain the source in cached notes too. */
+internal fun GitHubReleaseInfo.releaseNotesForCache(): String {
+    val sourceLabel = formatAppUpdateSourceLabel(source, downloadUrl, releaseUrl) ?: return releaseNotes
+    return if (releaseNotes.isBlank()) sourceLabel else "$sourceLabel\n\n$releaseNotes"
 }
 
 internal fun formatUpdateStatusLabel(update: AppUpdateUiModel, context: android.content.Context): String {

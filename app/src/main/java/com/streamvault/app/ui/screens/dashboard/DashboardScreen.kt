@@ -121,6 +121,7 @@ fun DashboardScreen(
             title = stringResource(R.string.nav_home),
             subtitle = provider?.name,
             navigationChrome = AppNavigationChrome.TopBar,
+            initialTopNavigationFocusRoute = Routes.LIVE_TV,
             compactHeader = true,
             showScreenHeader = false
         ) {

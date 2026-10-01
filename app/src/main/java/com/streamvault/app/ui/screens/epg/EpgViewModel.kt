@@ -1,5 +1,8 @@
 package com.MegaStream.app.ui.screens.epg
 
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.withPlaybackAdmission
+import com.MegaStream.app.playback.gate.stopRecordingsWhenBlocked
 import com.MegaStream.app.ui.model.isArchivePlayable
 import com.MegaStream.app.ui.model.guideLookupKey
 import androidx.lifecycle.ViewModel
@@ -252,7 +255,8 @@ class EpgViewModel @Inject constructor(
     private val programReminderManager: ProgramReminderManager,
     private val getCustomCategories: GetCustomCategories,
     private val scheduleRecording: ScheduleRecording,
-    private val recordingManager: RecordingManager
+    private val recordingManager: RecordingManager,
+    private val playbackGate: PlaybackGate
 ) : ViewModel() {
 
     companion object {
@@ -293,6 +297,7 @@ class EpgViewModel @Inject constructor(
     private var combinedCategoriesById: Map<Long, CombinedCategory> = emptyMap()
 
     init {
+        playbackGate.stopRecordingsWhenBlocked(viewModelScope, recordingManager)
         restoreGuidePreferences()
         observeGuideBase()
         observeGuidePresentation()
@@ -547,7 +552,7 @@ class EpgViewModel @Inject constructor(
                 nextProgram = null,
                 recurrence = recurrence
             )
-            val result = scheduleRecording(command)
+            val result = playbackGate.withPlaybackAdmission { scheduleRecording(command) } ?: return@launch
             when (result) {
                 is Result.Success -> {
                     _uiState.update { it.copy(recordingMessage = "Recording scheduled: ${program.title}") }
@@ -591,7 +596,9 @@ class EpgViewModel @Inject constructor(
     fun forceScheduleRecording() {
         val conflict = _uiState.value.pendingRecordingConflict ?: return
         viewModelScope.launch {
-            val result = recordingManager.forceScheduleRecording(conflict.pendingRequest)
+            val result = playbackGate.withPlaybackAdmission {
+                recordingManager.forceScheduleRecording(conflict.pendingRequest)
+            } ?: return@launch
             val message = when (result) {
                 is Result.Success -> "Recording scheduled: ${conflict.programTitle}"
                 is Result.Error -> result.message ?: "Failed to schedule recording"

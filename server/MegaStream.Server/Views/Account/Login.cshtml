@@ -1,0 +1,3 @@
+@model LoginForm
+@{ ViewData["Title"] = "تسجيل الدخول"; }
+<section class="panel login"><p class="muted">لوحة إدارة MegaStream — للمسؤولين فقط</p><form asp-controller="Account" asp-action="Login" method="post"><div asp-validation-summary="All" class="validation" role="alert"></div><input asp-for="ReturnUrl" type="hidden" /><label asp-for="UserName">اسم المستخدم</label><input asp-for="UserName" autocomplete="username" autofocus required /><label asp-for="Password">كلمة المرور</label><input asp-for="Password" type="password" autocomplete="current-password" required /><button type="submit">دخول آمن</button></form></section>

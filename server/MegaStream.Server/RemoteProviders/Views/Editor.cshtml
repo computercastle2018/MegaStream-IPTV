@@ -1,0 +1,58 @@
+@model MegaStream.Server.RemoteProviders.Http.ProviderEditor
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewData["Title"] = Model.ProfileId.HasValue ? "استبدال إعدادات الاشتراك" : "إضافة اشتراك"; }
+@if (Model.HasError)
+{
+    <p class="error" role="alert">تعذر الحفظ. تحقق من القيم والحالة الحالية ثم أعد إدخال الإعدادات كاملة. لم يُحتفظ بالقيم المُرسلة.</p>
+}
+@if (Model.Metadata is { } metadata)
+{
+    <dl><dt>الاسم</dt><dd>@metadata.DisplayName</dd><dt>النوع</dt><dd><bdi>@metadata.Type</bdi></dd><dt>الحالة</dt><dd>@(metadata.Status == "active" ? "نشط" : "ملغى")</dd><dt>المراجعة</dt><dd>@metadata.Revision</dd><dt>الإعدادات</dt><dd>@(metadata.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</dd></dl>
+}
+<p>يستبدل الحفظ الإعدادات كاملة. تبدأ حقول الإعدادات فارغة؛ ترك الأسرار فارغة لا يحتفظ بالقيم السابقة. لا تضع بيانات الدخول أو روابط المزود في الاسم المعروض.</p>
+<form method="post" action="@(Model.ProfileId.HasValue ? $"/admin/providers/{Model.ProfileId}" : "/admin/providers/create")" autocomplete="off">
+    @Html.AntiForgeryToken()
+    <label>اسم العرض الآمن <input name="displayName" maxlength="128" required /></label>
+    <label>نوع المزود
+        <select name="type" dir="ltr">
+        @foreach (var type in new[] { "XTREAM_CODES", "M3U", "STALKER_PORTAL" })
+        {
+            if (type == Model.Type) { <option value="@type" selected>@type</option> }
+            else { <option value="@type">@type</option> }
+        }
+        </select>
+    </label>
+    <p>املأ قسم النوع المحدد فقط؛ لا تُستخدم حقول الأنواع الأخرى.</p>
+    <fieldset><legend>الإعدادات المشتركة المشفّرة</legend>
+        <label>رابط الخادم (Xtream) <input type="password" name="serverUrl" maxlength="4096" autocomplete="new-password" dir="ltr" /></label>
+        <label>رابط دليل البرامج EPG (اختياري) <input type="password" name="epgUrl" maxlength="4096" autocomplete="new-password" dir="ltr" /></label>
+        <label>مزامنة دليل البرامج (Xtream / M3U)<select name="epgSyncMode"><option value="background">في الخلفية</option><option value="upfront">مسبقاً</option><option value="skip">تخطي</option></select></label>
+        <label>وكيل مستخدم HTTP (اختياري) <input type="password" name="httpUserAgent" maxlength="512" autocomplete="new-password" dir="ltr" /></label>
+        <label>ترويسات HTTP (اختيارية؛ ترويسة Name: value في كل سطر، بحد أقصى 20 ترويسة و512 حرفاً للقيمة)<textarea name="httpHeaders" maxlength="16384" rows="3" spellcheck="false" dir="ltr"></textarea></label>
+    </fieldset>
+    <fieldset><legend>Xtream Codes</legend>
+        <label>اسم المستخدم <input type="password" name="username" maxlength="256" autocomplete="new-password" dir="ltr" /></label>
+        <label>كلمة المرور <input type="password" name="password" maxlength="1024" autocomplete="new-password" dir="ltr" /></label>
+        <label>المزامنة السريعة<select name="fastSyncEnabled"><option value="false">لا</option><option value="true">نعم</option></select></label>
+        <label>مزامنة البث المباشر<select name="liveSyncMode"><option value="auto">تلقائي</option><option value="category_by_category">فئة تلو الأخرى</option><option value="stream_all">جميع البثوث</option></select></label>
+    </fieldset>
+    <fieldset><legend>M3U</legend>
+        <label>رابط قائمة التشغيل <input type="password" name="m3uUrl" maxlength="4096" autocomplete="new-password" dir="ltr" /></label>
+        <label>تصنيف المحتوى حسب الطلب VOD<select name="vodClassificationEnabled"><option value="false">لا</option><option value="true">نعم</option></select></label>
+    </fieldset>
+    <fieldset><legend>بوابة Stalker</legend>
+        <label>رابط البوابة <input type="password" name="portalUrl" maxlength="4096" autocomplete="new-password" dir="ltr" /></label>
+        <label>عنوان Stalker MAC الافتراضي لدى المزود <input type="password" name="stalkerMacAddress" maxlength="17" autocomplete="new-password" dir="ltr" /></label>
+        <p>هذا حقل افتراضي لحساب المزود فقط. لا تُدخل عنوان MAC فعلياً أو أي معرّف لعتاد الجهاز.</p>
+        <label>ملف الجهاز لدى المزود (اختياري) <input type="password" name="deviceProfile" maxlength="256" autocomplete="new-password" dir="ltr" /></label>
+        <label>المنطقة الزمنية (اختيارية) <input type="password" name="timezone" maxlength="64" autocomplete="new-password" dir="ltr" /></label>
+        <label>الإعداد المحلي (اختياري) <input type="password" name="locale" maxlength="32" autocomplete="new-password" dir="ltr" /></label>
+    </fieldset>
+    <button type="submit">حفظ الإعدادات كاملة</button>
+</form>
+@if (Model.ProfileId.HasValue)
+{
+    <form method="post" action="/admin/providers/@Model.ProfileId/revoke">
+        @Html.AntiForgeryToken()
+        <button type="submit">إلغاء الاشتراك وجميع تعييناته</button>
+    </form>
+}

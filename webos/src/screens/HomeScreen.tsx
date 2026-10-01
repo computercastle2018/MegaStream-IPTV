@@ -126,7 +126,7 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
         </div>
       </div>
 
-      <div className="home-version">v0.1.0</div>
+      <div className="home-version">v3.0.4</div>
 
       {syncing && <LoadingOverlay message={t("home.syncing")} />}
     </div>

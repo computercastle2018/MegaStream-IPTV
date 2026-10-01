@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MegaStream.Server", "MegaStream.Server\MegaStream.Server.csproj", "{A709D551-71C5-49C7-B422-73EEE24B8ABD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MegaStream.Server.Tests", "MegaStream.Server.Tests\MegaStream.Server.Tests.csproj", "{D70B19EC-1CA2-48FD-8606-BB6C98B29859}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A709D551-71C5-49C7-B422-73EEE24B8ABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A709D551-71C5-49C7-B422-73EEE24B8ABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A709D551-71C5-49C7-B422-73EEE24B8ABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A709D551-71C5-49C7-B422-73EEE24B8ABD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D70B19EC-1CA2-48FD-8606-BB6C98B29859}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D70B19EC-1CA2-48FD-8606-BB6C98B29859}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D70B19EC-1CA2-48FD-8606-BB6C98B29859}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D70B19EC-1CA2-48FD-8606-BB6C98B29859}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

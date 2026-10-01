@@ -37,6 +37,11 @@ release-signing-info.local.txt
 # Build output
 build_output_*.txt
 
+# .NET
+**/bin/
+**/obj/
+!**/.env.example
+
 # Generated sources
 domain/bin/
 

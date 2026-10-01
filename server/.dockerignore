@@ -1,0 +1,16 @@
+# Only application source belongs in the Docker build context.
+**
+!MegaStream.Server/
+!MegaStream.Server/**
+**/bin/
+**/obj/
+**/secrets/
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.pfx
+**/*.p12
+**/appsettings.*.local.json
+**/appsettings.Production.json
+**/TestResults/

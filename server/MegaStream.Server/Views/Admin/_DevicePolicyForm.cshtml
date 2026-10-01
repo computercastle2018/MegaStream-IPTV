@@ -1,0 +1,14 @@
+@model DevicePolicyForm
+<form asp-controller="Admin" asp-action="SetDevicePolicy" method="post">
+    <input asp-for="Id" type="hidden" />
+    <label asp-for="KioskMode">وضع الكشك المطلوب</label>
+    <select asp-for="KioskMode" required>
+        <option value="off">متوقف</option>
+        <option value="playback">أثناء التشغيل</option>
+        <option value="always">دائماً</option>
+    </select>
+    <span asp-validation-for="KioskMode" class="validation"></span>
+    <label asp-for="AllowLocalExit"><input asp-for="AllowLocalExit" /> السماح بالخروج المحلي</label>
+    <p class="muted">هذه سياسة مطلوبة وليست تأكيداً لتطبيقها. لا تُفرض على الأجهزة غير المُدارة، وتخضع لقدرات الجهاز.</p>
+    <button type="submit">حفظ سياسة الجهاز</button>
+</form>

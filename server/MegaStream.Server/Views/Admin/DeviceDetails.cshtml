@@ -1,0 +1,67 @@
+@model DeviceDetailsViewModel
+@{ ViewData["Title"] = "تفاصيل الجهاز"; }
+<section class="panel">
+    <h2>ترخيص الجهاز</h2>
+    <dl><dt>حالة الترخيص</dt><dd>@AdminDisplay.DeviceLicenseState(Model.Device)</dd></dl>
+    @if (Model.Device.License is { } assignedLicense)
+    {
+        <p><a asp-action="LicenseDetails" asp-route-id="@assignedLicense.Id">@assignedLicense.Label</a></p>
+    }
+    @if (Model.Device.Status == InstallationStatus.Active && !Model.Device.LicenseId.HasValue)
+    {
+        <form asp-action="AssignDeviceLicense" method="post">
+            <input type="hidden" name="Id" value="@Model.Device.Id" />
+            <label for="device-license">الترخيص</label>
+            <select id="device-license" name="LicenseId" required>
+                <option value="">اختر الترخيص</option>
+                @foreach (var license in Model.AvailableLicenses)
+                {
+                    <option value="@license.Id">@license.Label — حتى @license.ValidUntil.ToString("yyyy-MM-dd")</option>
+                }
+            </select>
+            <button type="submit" disabled="@(Model.AvailableLicenses.Count == 0)">ترخيص الجهاز</button>
+        </form>
+        @if (Model.AvailableLicenses.Count == 0)
+        {
+            <p><a asp-action="CreateLicense">إنشاء ترخيص</a></p>
+        }
+    }
+</section>
+<p><a class="button secondary" href="/admin/providers/installations/@Model.Device.Id">إدارة الاشتراكات المخصصة لهذا الجهاز</a></p>
+<section class="panel">
+    <h2>الاشتراكات الموجودة على الجهاز</h2>
+    <p>اتصال الجهاز: <span class="badge @AdminDisplay.DeviceConnectionClass(Model.Device, Model.OnlineCutoff)">@AdminDisplay.DeviceState(Model.Device, Model.OnlineCutoff)</span></p>
+    @if (Model.Device.LocalSubscriptionsReportedAt is { } reportedAt)
+    {
+        <p class="muted">آخر بلاغ UTC: @reportedAt.ToString("yyyy-MM-dd HH:mm:ss")</p>
+        <div class="table-wrap"><table><thead><tr><th>الاشتراك</th><th>النوع</th><th>الحالة</th><th>الصلاحية UTC</th><th>حد الاتصالات</th></tr></thead><tbody>
+        @foreach (var subscription in Model.LocalSubscriptions)
+        {
+            <tr><td>@subscription.Name</td><td><bdi>@(subscription.Type switch { "xtream_codes" => "Xtream", "m3u" => "M3U", _ => "Stalker" })</bdi></td><td>@subscription.DisplayState</td><td>@(subscription.ExpiresAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.ExpiresAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير محددة")</td><td>@subscription.MaxConnections</td></tr>
+        }
+        </tbody></table></div>
+        @if (Model.LocalSubscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات محفوظة بحسب آخر بلاغ.</p> }
+    }
+    else
+    {
+        <p class="empty">لم تصل بيانات الاشتراكات من الجهاز بعد.</p>
+    }
+</section>
+<section class="panel">
+    <h2>سياسة الكشك</h2>
+    <p class="notice">@(Model.ManagedDevice ? "جهاز مُدار بحسب آخر بلاغ — التطبيق الفعلي يعتمد على قدرات الجهاز" : "غير مدعوم — لا يفرض على الجهاز")</p>
+    <dl><dt>الوضع المطلوب</dt><dd>@AdminDisplay.KioskState(Model.Device.KioskMode)</dd><dt>الخروج المحلي</dt><dd>@(Model.Device.AllowLocalExit ? "مسموح" : "غير مسموح بحسب السياسة المطلوبة")</dd></dl>
+    <partial name="_DevicePolicyForm" model="@(new DevicePolicyForm { Id = Model.Device.Id, KioskMode = Enum.TryParse<AdminKioskMode>(Model.Device.KioskMode, out var kioskMode) ? kioskMode : null, AllowLocalExit = Model.Device.AllowLocalExit })" />
+</section>
+<section class="panel">
+    <h2>سجل تغييرات سياسة الجهاز</h2>
+    <p class="muted">أحدث 100 تغيير. للقراءة فقط.</p>
+    <div class="table-wrap"><table><thead><tr><th>الوقت UTC</th><th>المسؤول</th><th>الوضع السابق</th><th>الوضع الجديد</th><th>الخروج المحلي سابقاً</th><th>الخروج المحلي الآن</th></tr></thead><tbody>
+    @foreach (var audit in Model.PolicyAudit)
+    {
+        <tr><td>@audit.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td><td>@audit.ActorId</td><td>@AdminDisplay.KioskState(audit.OldKioskMode)</td><td>@AdminDisplay.KioskState(audit.NewKioskMode)</td><td>@(audit.OldAllowLocalExit ? "مسموح" : "غير مسموح")</td><td>@(audit.NewAllowLocalExit ? "مسموح" : "غير مسموح")</td></tr>
+    }
+    </tbody></table></div>
+    @if (Model.PolicyAudit.Count == 0) { <p class="empty">لا توجد تغييرات مسجلة.</p> }
+</section>
+<div asp-validation-summary="All" class="validation" role="alert"></div><section class="panel"><h2>@Model.Device.DeviceModel</h2><dl><dt>المعرّف</dt><dd>@Model.Device.Id</dd><dt>المنصة / النظام</dt><dd>@Model.Device.Platform / @Model.Device.OsVersion</dd><dt>الشركة</dt><dd>@Model.Device.Manufacturer</dd><dt>إصدار التطبيق</dt><dd>@Model.Device.AppVersion</dd><dt>الحالة</dt><dd>@AdminDisplay.DeviceState(Model.Device, Model.OnlineCutoff)</dd><dt>آخر ظهور UTC</dt><dd>@Model.Device.LastSeenAt.ToString("yyyy-MM-dd HH:mm:ss")</dd><dt>آخر تصريح ينتهي UTC</dt><dd>@(Model.Device.LastLeaseExpiresAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "—")</dd><dt>الترخيص</dt><dd>@if(Model.Device.LicenseId.HasValue) { <a asp-action="LicenseDetails" asp-route-id="@Model.Device.LicenseId">@Model.Device.License?.Label</a> } else { <span>غير مرتبط</span> }</dd></dl>@if(Model.Device.Status == InstallationStatus.Active) { <form asp-action="RevokeDevice" method="post"><input type="hidden" name="Id" value="@Model.Device.Id" /><p class="notice">الإلغاء يمنع إصدار تصاريح جديدة، مع بقاء السعة محجوزة حتى انتهاء التصريح الحالي.</p><button class="danger" type="submit">إلغاء الجهاز</button></form> }</section><section class="panel"><h2>الجلسات الأخيرة</h2><div class="table-wrap"><table><thead><tr><th>بدأت UTC</th><th>آخر نبضة UTC</th><th>انتهت UTC</th><th>الذاكرة بالبايت</th><th>سبب الخروج</th><th>الإصدار</th></tr></thead><tbody>@foreach(var s in Model.Sessions) { <tr><td>@s.StartedAt.ToString("u")</td><td>@s.LastHeartbeatAt.ToString("u")</td><td>@s.EndedAt?.ToString("u")</td><td>@s.MemoryBytes</td><td>@s.ExitReason</td><td>@s.AppVersion</td></tr> }</tbody></table></div></section><section class="panel"><h2>أحدث أحداث التشخيص</h2><partial name="_DiagnosticsTable" model="Model.Diagnostics" /></section>

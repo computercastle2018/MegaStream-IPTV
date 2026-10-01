@@ -1,6 +1,7 @@
 package com.MegaStream.app.ui.screens.home
 
 import android.app.Application
+import com.MegaStream.app.playback.gate.FakePlaybackGate
 import androidx.lifecycle.ViewModel
 import com.MegaStream.app.player.LivePreviewHandoffManager
 import com.MegaStream.app.plugins.MegaStreamPluginManager
@@ -142,7 +143,8 @@ class HomeViewModelTest {
             multiViewManager = multiViewManager,
             livePreviewHandoffManager = livePreviewHandoffManager,
             pluginManager = pluginManager,
-            playerEngineProvider = playerEngineProvider
+            playerEngineProvider = playerEngineProvider,
+            playbackGate = FakePlaybackGate()
         ).also(createdViewModels::add)
 
     private fun clearViewModel(viewModel: HomeViewModel) {

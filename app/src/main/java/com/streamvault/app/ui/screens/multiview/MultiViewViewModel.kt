@@ -1,5 +1,7 @@
 package com.MegaStream.app.ui.screens.multiview
 
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.GatedPlayerEngine
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
@@ -46,7 +48,8 @@ class MultiViewViewModel @Inject constructor(
     private val playbackHistoryRepository: PlaybackHistoryRepository,
     private val providerRepository: ProviderRepository,
     private val parentalControlManager: ParentalControlManager,
-    private val unlockParentalCategory: UnlockParentalCategory
+    private val unlockParentalCategory: UnlockParentalCategory,
+    private val playbackGate: PlaybackGate
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MultiViewUiState())
@@ -263,6 +266,7 @@ class MultiViewViewModel @Inject constructor(
                                 it.bypassAudioFocus = true
                                 it.enableMediaSession = false
                             }
+                        localEngine = GatedPlayerEngine(localEngine, playbackGate, viewModelScope)
                         if (initVersion != slotInitVersion || slotGen != slotGenerations.getOrDefault(index, 0L)) {
                             return@launch
                         }

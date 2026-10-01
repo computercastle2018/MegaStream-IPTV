@@ -1,5 +1,6 @@
 package com.MegaStream.app.ui.screens.epg
 
+import com.MegaStream.app.playback.gate.FakePlaybackGate
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import androidx.lifecycle.ViewModel
@@ -126,7 +127,8 @@ class EpgViewModelTest {
             programReminderManager = programReminderManager,
             getCustomCategories = getCustomCategories,
             scheduleRecording = scheduleRecording,
-            recordingManager = recordingManager
+            recordingManager = recordingManager,
+            playbackGate = FakePlaybackGate()
         ).also(createdViewModels::add)
 
     private fun clearViewModel(viewModel: EpgViewModel) {

@@ -137,8 +137,8 @@ class PlaybackCompatibilityRepositoryImplTest {
 
     private fun readDaoSource(): String {
         val candidates = listOf(
-            Paths.get("src", "main", "java", "com", "MegaStream", "data", "local", "dao", "Daos.kt"),
-            Paths.get("data", "src", "main", "java", "com", "MegaStream", "data", "local", "dao", "Daos.kt")
+            Paths.get("src", "main", "java", "com", "streamvault", "data", "local", "dao", "Daos.kt"),
+            Paths.get("data", "src", "main", "java", "com", "streamvault", "data", "local", "dao", "Daos.kt")
         )
         val path = candidates.firstOrNull { Files.exists(it) }
             ?: error("Could not locate Daos.kt from ${Paths.get("").toAbsolutePath()}")

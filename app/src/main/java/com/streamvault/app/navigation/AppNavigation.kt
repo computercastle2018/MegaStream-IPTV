@@ -3,11 +3,24 @@ package com.MegaStream.app.navigation
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.MegaStream.app.playback.gate.PlaybackGateVerdict
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
-import androidx.navigation.NavHostController
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.tv.material3.Text
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.interaction.TvButton
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -34,9 +47,8 @@ import com.MegaStream.app.MainActivity
 import java.io.Serializable
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.launch
 
-
-private const val PLAYER_REQUEST_KEY = "player_request"
 
 data class PlayerNavigationRequest(
     val streamUrl: String,
@@ -58,9 +70,12 @@ data class PlayerNavigationRequest(
     val seasonNumber: Int? = null,
     val episodeNumber: Int? = null,
     val episodeId: Long? = null
-) : Serializable
+) : Serializable {
+    override fun toString(): String = "PlayerNavigationRequest([REDACTED])"
+}
 
 object Routes {
+    const val LICENSE_ACTIVATION = "license_activation"
     const val PROVIDER_SETUP = "provider_setup?providerId={providerId}&importUri={importUri}"
     const val HOME = "home"
     const val LIVE_TV = "live_tv"
@@ -210,13 +225,6 @@ private fun isStreamUrlSafe(url: String?): Boolean {
     return scheme in setOf("http", "https", "rtsp", "rtmp", "rtsps", "mms", "xtream", "content", "file")
 }
 
-/** Navigate only when the current destination is fully resumed – prevents double-navigation during transitions. */
-private fun NavHostController.navigateIfResumed(route: String, builder: NavOptionsBuilder.() -> Unit = {}): Boolean {
-    if (currentBackStackEntry?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) != true) return false
-    navigate(route, builder)
-    return true
-}
-
 private suspend fun Lifecycle.awaitResumed() {
     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) return
     suspendCancellableCoroutine { continuation ->
@@ -238,56 +246,130 @@ private suspend fun Lifecycle.awaitResumed() {
     }
 }
 
-private fun NavHostController.navigateToPlayer(request: PlayerNavigationRequest): Boolean {
-    if (currentBackStackEntry?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) != true) return false
-    currentBackStackEntry?.savedStateHandle?.set(PLAYER_REQUEST_KEY, request)
-    navigate(Routes.PLAYER) { launchSingleTop = true }
-    return true
-}
-
-private fun NavHostController.navigateToExternalPlayer(request: PlayerNavigationRequest): Boolean {
-    if (currentBackStackEntry?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) != true) return false
-    currentBackStackEntry?.savedStateHandle?.set(PLAYER_REQUEST_KEY, request)
-    navigate(Routes.PLAYER) { launchSingleTop = true }
-    return true
-}
-
 @Composable
 fun AppNavigation(mainActivity: MainActivity) {
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState().value
     val externalNavigationRequest = mainActivity.externalNavigationRequestFlow.collectAsStateWithLifecycle().value
+    val licenseNavigation: LicenseNavigationViewModel = hiltViewModel()
+    val gateDecision by licenseNavigation.decision.collectAsStateWithLifecycle()
+    val activePlayer by licenseNavigation.routing.activePlayerFlow.collectAsStateWithLifecycle()
+    val blockedEvent by licenseNavigation.blocked.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val licenseScope = rememberCoroutineScope()
+
+    DisposableEffect(lifecycleOwner, licenseNavigation) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) licenseNavigation.checkNow()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    fun openActivation() {
+        val entry = navController.currentBackStackEntry
+        val route = entry?.destination?.route
+        licenseNavigation.suspendActive(route)
+        licenseScope.launch {
+            licenseNavigation.awaitStartup()
+            if (navController.currentBackStackEntry != entry) return@launch
+            if (licenseNavigation.checkNow() is PlaybackGateVerdict.Allowed) {
+                val intent = licenseNavigation.retry()
+                licenseNavigation.consumeBlocked()
+                if (intent != null) {
+                    val target = if (intent is PlaybackNavigationIntent.Player) Routes.PLAYER else Routes.MULTI_VIEW
+                    navController.navigate(target) { launchSingleTop = true }
+                }
+            } else {
+                if (route != Routes.LICENSE_ACTIVATION) {
+                    navController.navigate(Routes.LICENSE_ACTIVATION) {
+                        launchSingleTop = true
+                        if (isProtectedPlaybackRoute(route)) popUpTo(requireNotNull(route)) { inclusive = true }
+                    }
+                }
+                licenseNavigation.consumeBlocked()
+            }
+        }
+    }
+
+    fun navigateIfResumed(route: String, builder: NavOptionsBuilder.() -> Unit = {}): Boolean {
+        if (navController.currentBackStackEntry?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) != true) return false
+        if (isProtectedPlaybackRoute(route)) {
+            val intent = if (route.substringBefore('?').substringBefore('/') == Routes.MULTI_VIEW) {
+                PlaybackNavigationIntent.MultiView
+            } else {
+                licenseNavigation.routing.activePlayer?.let { PlaybackNavigationIntent.Player(it) } ?: return false
+            }
+            if (!licenseNavigation.request(intent)) {
+                openActivation()
+                return true
+            }
+        } else if (navController.currentDestination?.route == Routes.LICENSE_ACTIVATION && route != Routes.LICENSE_ACTIVATION) {
+            licenseNavigation.cancel()
+        }
+        navController.navigate(route, builder)
+        return true
+    }
+
+    fun navigateToPlayer(request: PlayerNavigationRequest): Boolean {
+        if (navController.currentBackStackEntry?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) != true) return false
+        if (licenseNavigation.request(PlaybackNavigationIntent.Player(request))) {
+            navController.navigate(Routes.PLAYER) { launchSingleTop = true }
+        } else {
+            openActivation()
+        }
+        return true // The external request is consumed even when retained for activation.
+    }
+
+    fun cancelActivation() {
+        licenseNavigation.cancel()
+        if (!navController.popBackStack()) navController.navigate(Routes.HOME) { launchSingleTop = true }
+    }
+
+    LaunchedEffect(currentBackStackEntry) {
+        val route = currentBackStackEntry?.destination?.route
+        if (route != null && !isProtectedPlaybackRoute(route) && route != Routes.LICENSE_ACTIVATION) {
+            licenseNavigation.routing.clearActive()
+        }
+    }
+
+    LaunchedEffect(blockedEvent, currentBackStackEntry) {
+        if (blockedEvent != null) {
+            currentBackStackEntry?.lifecycle?.awaitResumed()
+            if (licenseNavigation.blocked.value != null) openActivation()
+        }
+    }
 
     LaunchedEffect(externalNavigationRequest, currentBackStackEntry) {
         val entry = currentBackStackEntry ?: return@LaunchedEffect
         entry.lifecycle.awaitResumed()
         when (val request = externalNavigationRequest) {
             is ExternalNavigationRequest.Player -> {
-                if (navController.navigateToExternalPlayer(request.request)) {
+                if (navigateToPlayer(request.request)) {
                     mainActivity.clearExternalNavigationRequest()
                 }
             }
 
             is ExternalNavigationRequest.Destination -> {
-                if (navController.navigateIfResumed(request.destination.toRoute()) { launchSingleTop = true }) {
+                if (navigateIfResumed(request.destination.toRoute()) { launchSingleTop = true }) {
                     mainActivity.clearExternalNavigationRequest()
                 }
             }
 
             is ExternalNavigationRequest.ImportM3u -> {
-                if (navController.navigateIfResumed(Routes.providerSetup(importUri = request.uri)) { launchSingleTop = true }) {
+                if (navigateIfResumed(Routes.providerSetup(importUri = request.uri)) { launchSingleTop = true }) {
                     mainActivity.clearExternalNavigationRequest()
                 }
             }
 
             is ExternalNavigationRequest.ImportBackup -> {
-                if (navController.navigateIfResumed(Routes.settings(backupUri = request.uri)) { launchSingleTop = true }) {
+                if (navigateIfResumed(Routes.settings(backupUri = request.uri)) { launchSingleTop = true }) {
                     mainActivity.clearExternalNavigationRequest()
                 }
             }
 
             is ExternalNavigationRequest.Search -> {
-                if (navController.navigateIfResumed(Routes.search(request.query)) { launchSingleTop = true }) {
+                if (navigateIfResumed(Routes.search(request.query)) { launchSingleTop = true }) {
                     mainActivity.clearExternalNavigationRequest()
                 }
             }
@@ -304,7 +386,7 @@ fun AppNavigation(mainActivity: MainActivity) {
         val currentRoute = entry.destination?.route
         if (currentRoute == route || currentRoute?.startsWith("$route?") == true) return
 
-        navController.navigate(route) {
+        navigateIfResumed(route) {
             popUpTo(navController.graph.startDestinationId) {
                 saveState = true
             }
@@ -317,15 +399,36 @@ fun AppNavigation(mainActivity: MainActivity) {
         navController = navController,
         startDestination = Routes.WELCOME
     ) {
+        composable(Routes.LICENSE_ACTIVATION) {
+            LicenseActivationRoute(
+                navigation = licenseNavigation,
+                onCancel = ::cancelActivation,
+                onContinue = {
+                    if (licenseNavigation.checkNow() is PlaybackGateVerdict.Allowed) {
+                        val intent = licenseNavigation.retry()
+                        licenseNavigation.consumeBlocked()
+                        if (intent == null) {
+                            cancelActivation()
+                        } else {
+                            val target = if (intent is PlaybackNavigationIntent.Player) Routes.PLAYER else Routes.MULTI_VIEW
+                            navController.navigate(target) {
+                                popUpTo(Routes.LICENSE_ACTIVATION) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                },
+            )
+        }
         composable(Routes.WELCOME) {
             WelcomeScreen(
                 onNavigateToHome = dropUnlessResumed {
-                    navController.navigate(Routes.HOME) {
+                    navigateIfResumed(Routes.HOME) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
                     }
                 },
                 onNavigateToSetup = dropUnlessResumed {
-                    navController.navigate(Routes.providerSetup()) {
+                    navigateIfResumed(Routes.providerSetup()) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
                     }
                 }
@@ -347,7 +450,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                 initialImportUri = importUri,
                 onBack = { navController.popBackStack() },
                 onProviderAdded = dropUnlessResumed {
-                    navController.navigate(Routes.HOME) {
+                    navigateIfResumed(Routes.HOME) {
                         popUpTo(Routes.PROVIDER_SETUP) { inclusive = true }
                     }
                 }
@@ -359,10 +462,10 @@ fun AppNavigation(mainActivity: MainActivity) {
             DashboardScreen(
                 onNavigate = { route -> tabNavigate(route) },
                 onAddProvider = dropUnlessResumed {
-                    navController.navigate(Routes.providerSetup(null))
+                    navigateIfResumed(Routes.providerSetup(null))
                 },
                 onRecentChannelClick = { channel, combinedProfileId ->
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
                             categoryId = com.MegaStream.domain.model.VirtualCategoryIds.RECENT,
@@ -374,7 +477,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                     )
                 },
                 onFavoriteChannelClick = { channel, combinedProfileId ->
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
                             categoryId = com.MegaStream.domain.model.VirtualCategoryIds.FAVORITES,
@@ -386,10 +489,10 @@ fun AppNavigation(mainActivity: MainActivity) {
                     )
                 },
                 onMovieClick = { movie ->
-                    navController.navigateIfResumed(Routes.movieDetail(movie.id, Routes.HOME))
+                    navigateIfResumed(Routes.movieDetail(movie.id, Routes.HOME))
                 },
                 onSeriesClick = { series ->
-                    navController.navigateIfResumed(Routes.seriesDetail(series.id, Routes.HOME))
+                    navigateIfResumed(Routes.seriesDetail(series.id, Routes.HOME))
                 },
                 onPlaybackHistoryClick = { history ->
                     val route = when (history.contentType) {
@@ -431,9 +534,9 @@ fun AppNavigation(mainActivity: MainActivity) {
                         }
                     }
                     if (route is PlayerNavigationRequest) {
-                        navController.navigateToPlayer(route)
+                        navigateToPlayer(route)
                     } else {
-                        navController.navigateIfResumed(route as String) { launchSingleTop = true }
+                        navigateIfResumed(route as String) { launchSingleTop = true }
                     }
                 },
                 currentRoute = Routes.HOME
@@ -449,7 +552,7 @@ fun AppNavigation(mainActivity: MainActivity) {
             val initialCategoryId = backStackEntry.arguments?.getLong("categoryId")?.takeIf { it != -1L }
             HomeScreen(
                 onChannelClick = { channel, category, provider, combinedProfileId, combinedSourceFilterProviderId ->
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
                             categoryId = category?.id,
@@ -471,10 +574,10 @@ fun AppNavigation(mainActivity: MainActivity) {
         composable(Routes.MOVIES) {
             MoviesScreen(
                 onMovieClick = { movie ->
-                    navController.navigateIfResumed(Routes.movieDetail(movie.id, Routes.MOVIES))
+                    navigateIfResumed(Routes.movieDetail(movie.id, Routes.MOVIES))
                 },
                 onContinueWatchingPlay = { history ->
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         history.toPlayerNavigationRequest().copy(returnRoute = Routes.MOVIES)
                     )
                 },
@@ -486,7 +589,7 @@ fun AppNavigation(mainActivity: MainActivity) {
         composable(Routes.SERIES) {
             SeriesScreen(
                 onSeriesClick = { seriesId ->
-                    navController.navigateIfResumed(Routes.seriesDetail(seriesId, Routes.SERIES))
+                    navigateIfResumed(Routes.seriesDetail(seriesId, Routes.SERIES))
                 },
                 onNavigate = { route -> tabNavigate(route) },
                 currentRoute = Routes.SERIES
@@ -510,7 +613,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                 initialAnchorTime = epgAnchorTime,
                 initialFavoritesOnly = epgFavoritesOnly,
                 onPlayChannel = { channel, categoryId, isVirtual, combinedProfileId, returnRoute ->
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
                             categoryId = categoryId,
@@ -525,7 +628,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                     if (!channel.isArchivePlayable(program)) {
                         return@FullEpgScreen
                     }
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         Routes.player(
                             streamUrl = channel.streamUrl,
                             title = channel.name,
@@ -554,20 +657,27 @@ fun AppNavigation(mainActivity: MainActivity) {
             )
         ) { backStackEntry ->
             val backupUri = backStackEntry.arguments?.getString("backupUri")?.takeIf { it.isNotBlank() }
+            Column(Modifier.fillMaxSize()) {
+                TvButton(onClick = { navigateIfResumed(Routes.LICENSE_ACTIVATION) { launchSingleTop = true } }) {
+                    Text(stringResource(R.string.license_nav_open))
+                }
+                Box(Modifier.weight(1f)) {
             SettingsScreen(
                 onNavigate = { route -> tabNavigate(route) },
                 onAddProvider = dropUnlessResumed {
-                    navController.navigate(Routes.providerSetup(null))
+                    navigateIfResumed(Routes.providerSetup(null))
                 },
                 onEditProvider = { provider ->
-                    navController.navigateIfResumed(Routes.providerSetup(provider.id))
+                    navigateIfResumed(Routes.providerSetup(provider.id))
                 },
                 onNavigateToParentalControl = { providerId ->
-                    navController.navigateIfResumed(Routes.parentalControlGroups(providerId))
+                    navigateIfResumed(Routes.parentalControlGroups(providerId))
                 },
                 currentRoute = Routes.SETTINGS,
                 initialBackupImportUri = backupUri
             )
+                }
+            }
         }
 
         composable(Routes.PLUGINS) {
@@ -599,7 +709,7 @@ fun AppNavigation(mainActivity: MainActivity) {
             com.MegaStream.app.ui.screens.search.SearchScreen(
                 initialQuery = backStackEntry.arguments?.getString("query").orEmpty(),
                 onChannelClick = { channel ->
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
                             categoryId = channel.categoryId ?: ChannelRepository.ALL_CHANNELS_ID,
@@ -610,12 +720,12 @@ fun AppNavigation(mainActivity: MainActivity) {
                     )
                 },
                 onMovieClick = { movie ->
-                     navController.navigateIfResumed(
+                     navigateIfResumed(
                          Routes.movieDetail(movie.id, Routes.search(backStackEntry.arguments?.getString("query").orEmpty()))
                      )
                 },
                 onSeriesClick = { series ->
-                     navController.navigateIfResumed(
+                     navigateIfResumed(
                          Routes.seriesDetail(series.id, Routes.search(backStackEntry.arguments?.getString("query").orEmpty()))
                      )
                 },
@@ -625,37 +735,49 @@ fun AppNavigation(mainActivity: MainActivity) {
         }
 
         composable(route = Routes.PLAYER) { backStackEntry ->
-            val playerRequest = backStackEntry.savedStateHandle.get<PlayerNavigationRequest>(PLAYER_REQUEST_KEY)
-                ?: navController.previousBackStackEntry?.savedStateHandle?.get<PlayerNavigationRequest>(PLAYER_REQUEST_KEY)?.also {
-                    backStackEntry.savedStateHandle[PLAYER_REQUEST_KEY] = it
+            if (gateDecision !is PlaybackGateVerdict.Allowed || licenseNavigation.checkNow() !is PlaybackGateVerdict.Allowed) {
+                LaunchedEffect(backStackEntry, gateDecision) {
+                    backStackEntry.lifecycle.awaitResumed()
+                    openActivation()
                 }
-            val streamUrl = if (isStreamUrlSafe(playerRequest?.streamUrl)) playerRequest?.streamUrl.orEmpty() else ""
+                return@composable
+            }
+            val playerRequest = activePlayer
+            if (playerRequest == null) {
+                // A restored player route is not a persisted capability or media request.
+                LaunchedEffect(backStackEntry) {
+                    backStackEntry.lifecycle.awaitResumed()
+                    navController.navigate(Routes.HOME) { popUpTo(Routes.PLAYER) { inclusive = true } }
+                }
+                return@composable
+            }
+            val streamUrl = if (isStreamUrlSafe(playerRequest.streamUrl)) playerRequest.streamUrl else ""
             PlayerScreen(
                 streamUrl = streamUrl,
-                title = playerRequest?.title.orEmpty(),
-                epgChannelId = playerRequest?.channelId,
-                internalChannelId = playerRequest?.internalId ?: -1L,
-                categoryId = playerRequest?.categoryId,
-                providerId = playerRequest?.providerId,
-                isVirtual = playerRequest?.isVirtual ?: false,
-                combinedProfileId = playerRequest?.combinedProfileId,
-                combinedSourceFilterProviderId = playerRequest?.combinedSourceFilterProviderId,
-                contentType = playerRequest?.contentType ?: "LIVE",
-                artworkUrl = playerRequest?.artworkUrl,
-                archiveStartMs = playerRequest?.archiveStartMs,
-                archiveEndMs = playerRequest?.archiveEndMs,
-                archiveTitle = playerRequest?.archiveTitle,
-                returnRoute = playerRequest?.returnRoute,
-                seriesId = playerRequest?.seriesId,
-                seasonNumber = playerRequest?.seasonNumber,
-                episodeNumber = playerRequest?.episodeNumber,
-                episodeId = playerRequest?.episodeId,
+                title = playerRequest.title.orEmpty(),
+                epgChannelId = playerRequest.channelId,
+                internalChannelId = playerRequest.internalId ?: -1L,
+                categoryId = playerRequest.categoryId,
+                providerId = playerRequest.providerId,
+                isVirtual = playerRequest.isVirtual ?: false,
+                combinedProfileId = playerRequest.combinedProfileId,
+                combinedSourceFilterProviderId = playerRequest.combinedSourceFilterProviderId,
+                contentType = playerRequest.contentType ?: "LIVE",
+                artworkUrl = playerRequest.artworkUrl,
+                archiveStartMs = playerRequest.archiveStartMs,
+                archiveEndMs = playerRequest.archiveEndMs,
+                archiveTitle = playerRequest.archiveTitle,
+                returnRoute = playerRequest.returnRoute,
+                seriesId = playerRequest.seriesId,
+                seasonNumber = playerRequest.seasonNumber,
+                episodeNumber = playerRequest.episodeNumber,
+                episodeId = playerRequest.episodeId,
                 onBack = {
-                    val route = playerRequest?.returnRoute
+                    val route = playerRequest.returnRoute
                     if (!route.isNullOrBlank() && navController.popBackStack(route, false)) {
                         Unit
                     } else if (!route.isNullOrBlank()) {
-                        navController.navigate(route) {
+                        navigateIfResumed(route) {
                             popUpTo(Routes.PLAYER) { inclusive = true }
                             launchSingleTop = true
                             restoreState = true
@@ -665,7 +787,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                     }
                 },
                 onNavigate = { route ->
-                    navController.navigateIfResumed(route) {
+                    navigateIfResumed(route) {
                         launchSingleTop = true
                         if (route == Routes.MULTI_VIEW) {
                             popUpTo(Routes.PLAYER) { inclusive = true }
@@ -686,7 +808,7 @@ fun AppNavigation(mainActivity: MainActivity) {
             val movieId = backStackEntry.arguments?.getLong("movieId") ?: -1L
             com.MegaStream.app.ui.screens.movies.MovieDetailScreen(
                 onPlay = { movie ->
-                    navController.navigateToPlayer(
+                    navigateToPlayer(
                         Routes.moviePlayer(movie).copy(
                             returnRoute = Routes.movieDetail(
                                 movieId = movie.id.takeIf { it > 0L } ?: movieId,
@@ -697,7 +819,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                 },
                 onBack = {
                     if (!returnRoute.isNullOrBlank()) {
-                        navController.navigate(returnRoute) {
+                        navigateIfResumed(returnRoute) {
                             popUpTo(backStackEntry.destination.route ?: Routes.MOVIE_DETAIL) { inclusive = true }
                             launchSingleTop = true
                         }
@@ -719,7 +841,7 @@ fun AppNavigation(mainActivity: MainActivity) {
             val seriesId = backStackEntry.arguments?.getLong("seriesId") ?: -1L
             com.MegaStream.app.ui.screens.series.SeriesDetailScreen(
                 onEpisodeClick = { episode ->
-                     navController.navigateToPlayer(
+                     navigateToPlayer(
                          Routes.episodePlayer(episode).copy(
                              returnRoute = Routes.seriesDetail(
                                  seriesId = episode.seriesId.takeIf { it > 0L } ?: seriesId,
@@ -730,7 +852,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                 },
                 onBack = {
                     if (!returnRoute.isNullOrBlank()) {
-                        navController.navigate(returnRoute) {
+                        navigateIfResumed(returnRoute) {
                             popUpTo(backStackEntry.destination.route ?: Routes.SERIES_DETAIL) { inclusive = true }
                             launchSingleTop = true
                         }
@@ -741,7 +863,14 @@ fun AppNavigation(mainActivity: MainActivity) {
             )
         }
 
-        composable(Routes.MULTI_VIEW) {
+        composable(Routes.MULTI_VIEW) { backStackEntry ->
+            if (gateDecision !is PlaybackGateVerdict.Allowed || licenseNavigation.checkNow() !is PlaybackGateVerdict.Allowed) {
+                LaunchedEffect(backStackEntry, gateDecision) {
+                    backStackEntry.lifecycle.awaitResumed()
+                    openActivation()
+                }
+                return@composable
+            }
             MultiViewScreen(
                 onBack = { navController.popBackStack() }
             )

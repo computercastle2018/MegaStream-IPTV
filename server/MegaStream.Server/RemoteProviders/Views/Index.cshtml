@@ -1,0 +1,15 @@
+@model IReadOnlyList<MegaStream.Server.RemoteProviders.Core.RemoteProviderProfileMetadata>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewData["Title"] = "الاشتراكات"; }
+<p>تُعرض البيانات العامة فقط. إعدادات المزود محفوظة مشفّرة ولا تظهر في لوحة الإدارة.</p>
+<p><a href="/admin/providers/create?type=XTREAM_CODES">إضافة اشتراك Xtream Codes</a> · <a href="/admin/providers/create?type=M3U">إضافة اشتراك M3U</a> · <a href="/admin/providers/create?type=STALKER_PORTAL">إضافة بوابة Stalker</a></p>
+<table>
+<thead><tr><th>الاسم</th><th>النوع</th><th>الحالة</th><th>المراجعة</th><th>الإعدادات</th><th>الإجراء</th></tr></thead>
+<tbody>
+@foreach (var profile in Model)
+{
+    <tr><td>@profile.DisplayName</td><td><bdi>@profile.Type</bdi></td><td>@(profile.Status == "active" ? "نشط" : "ملغى")</td><td>@profile.Revision</td><td>@(profile.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</td><td><a href="/admin/providers/@profile.Id">التفاصيل / استبدال الإعدادات</a></td></tr>
+}
+</tbody>
+</table>
+<h2>تعيين الاشتراكات للتثبيت</h2>
+<p>افتح <code dir="ltr">/admin/providers/installations/{installationId}</code> باستخدام معرّف التثبيت GUID من صفحة الجهاز في لوحة الإدارة. لا تُستخدم معرّفات العتاد الفعلية.</p>

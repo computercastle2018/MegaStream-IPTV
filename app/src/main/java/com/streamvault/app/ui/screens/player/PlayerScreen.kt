@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.LifecycleEventObserver
+import com.MegaStream.app.playback.keepalive.PlaybackKeepAliveMonitor
+import com.MegaStream.app.playback.keepalive.getOrCreatePlaybackKeepAliveMonitor
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -76,6 +79,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import com.MegaStream.app.R
 import com.MegaStream.app.MainActivity
+import com.MegaStream.app.kiosk.integration.KioskPlayerSignals
 import com.MegaStream.app.cast.CastConnectionState
 import com.MegaStream.app.ui.components.PlayerRenderView
 import com.MegaStream.app.ui.design.requestFocusSafely
@@ -163,6 +167,10 @@ fun PlayerScreen(
     val playerEngine by viewModel.activePlayerEngine.collectAsStateWithLifecycle()
     val playbackState by playerEngine.playbackState.collectAsStateWithLifecycle()
     val isPlaying by playerEngine.isPlaying.collectAsStateWithLifecycle()
+    KioskPlayerSignals(
+        playbackActive = streamUrl.isNotBlank() &&
+            (isPlaying || playbackState == PlaybackState.BUFFERING)
+    )
     val renderSurfaceType by playerEngine.renderSurfaceType.collectAsStateWithLifecycle()
     val playerStats by viewModel.playerStats.collectAsStateWithLifecycle()
     val showControls by viewModel.showControls.collectAsStateWithLifecycle()
@@ -284,15 +292,57 @@ fun PlayerScreen(
         }
     }
 
-    LifecycleEventEffect(Lifecycle.Event.ON_START) {
-        viewModel.onAppForegrounded()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val applicationContext = LocalContext.current.applicationContext
+    var keepAliveAttachment by remember(viewModel) {
+        mutableStateOf<Pair<PlaybackKeepAliveMonitor, Any>?>(null)
     }
-
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
-        if (currentPictureInPictureMode) {
-            viewModel.closeOverlays()
-        } else {
-            viewModel.onAppBackgrounded()
+    DisposableEffect(viewModel, lifecycleOwner, applicationContext) {
+        // Install only after composition commits. The VM owns collection across guide/background.
+        val monitor = viewModel.getOrCreatePlaybackKeepAliveMonitor(
+            applicationContext,
+            viewModel.activePlayerEngine,
+            hasCurrentStream = { viewModel.currentStreamUrl.isNotBlank() }
+        )
+        val lifecycle = lifecycleOwner.lifecycle
+        val token = monitor.attach(
+            foregroundEligible = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED),
+            hasScreenStream = streamUrl.isNotBlank()
+        )
+        keepAliveAttachment = monitor to token
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    monitor.foregroundChanged(token, true)
+                    viewModel.onAppForegrounded()
+                }
+                Lifecycle.Event.ON_STOP -> {
+                    // Revoke cold-start eligibility synchronously, before any queued flow emission.
+                    monitor.foregroundChanged(token, false)
+                    if (currentPictureInPictureMode) {
+                        viewModel.closeOverlays()
+                    } else {
+                        // Background playback continues only with an existing foreground request;
+                        // still run the callback to update app state and persist playback progress.
+                        viewModel.onAppBackgrounded(
+                            keepPlayingInBackground = monitor.keepPlayingInBackground()
+                        )
+                    }
+                }
+                Lifecycle.Event.ON_DESTROY -> monitor.foregroundChanged(token, false)
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+            monitor.detach(token)
+            if (keepAliveAttachment?.second === token) keepAliveAttachment = null
+        }
+    }
+    SideEffect {
+        keepAliveAttachment?.let { (monitor, token) ->
+            monitor.screenStreamChanged(token, streamUrl.isNotBlank())
         }
     }
 

@@ -1,5 +1,9 @@
 package com.MegaStream.app.tvinput
 
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.PlaybackGateVerdict
+import com.MegaStream.app.playback.gate.withPlaybackAdmission
+import kotlinx.coroutines.flow.collect
 import android.content.ContentUris
 import android.content.Context
 import android.media.tv.TvInputManager
@@ -43,6 +47,9 @@ class MegaStreamTvInputService : TvInputService() {
     @Inject
     lateinit var okHttpClient: OkHttpClient
 
+    @Inject
+    lateinit var playbackGate: PlaybackGate
+
     override fun onCreateSession(inputId: String): Session = MegaStreamSession(this)
 
     private inner class MegaStreamSession(context: Context) : Session(context) {
@@ -59,7 +66,36 @@ class MegaStreamTvInputService : TvInputService() {
             })
         }
 
-        private val mainHandler = Handler(Looper.getMainLooper())
+        private var playbackActive = false
+
+        init {
+            scope.launch {
+                playbackGate.decision.collect { verdict ->
+                    if (verdict is PlaybackGateVerdict.Blocked && playbackActive) {
+                        blockPlayback(verdict)
+                    }
+                }
+            }
+        }
+
+        private fun canStartPlayback(): Boolean =
+            playbackGate.withPlaybackAdmission(onBlocked = { stopBlockedPlayback() }) { true } ?: false
+
+        private fun stopBlockedPlayback() {
+            playbackActive = false
+            player.playWhenReady = false
+            player.stop()
+            player.clearMediaItems()
+            notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN)
+        }
+
+        private fun blockPlayback(verdict: PlaybackGateVerdict.Blocked) {
+            try {
+                stopBlockedPlayback()
+            } finally {
+                playbackGate.reportBlocked(verdict)
+            }
+        }
 
         override fun onTune(channelUri: Uri): Boolean {
             notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING)
@@ -107,8 +143,12 @@ class MegaStreamTvInputService : TvInputService() {
             notifyContentAllowed()
             notifyChannelRetuned(channelUri)
             val mediaSource = buildMediaSource(streamInfo)
+            if (!canStartPlayback()) return
+            playbackActive = true
             player.setMediaSource(mediaSource)
+            if (!canStartPlayback()) return
             player.prepare()
+            if (!canStartPlayback()) return
             player.playWhenReady = true
         }
 

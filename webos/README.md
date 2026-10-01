@@ -48,7 +48,7 @@ Then:
 
 ```bash
 npm run build                     # produces dist/ (already contains appinfo.json + icon.png)
-npm run package                   # ares-package dist -o out  ->  out/com.MegaStream.webos_0.1.0_all.ipk
+npm run package                   # builds and packages out/com.megastream.webos_3.0.4_all.ipk
 ares-setup-device                 # one-time: register your TV (Developer Mode app must be running)
 npm run install-tv                # ares-install the .ipk onto the TV named "tv"
 npm run launch-tv                 # ares-launch the app

@@ -1,0 +1,75 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: megastream
+      MYSQL_USER: megastream
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql --protocol=TCP --host=127.0.0.1 --user=\"$$MYSQL_USER\" --database=\"$$MYSQL_DATABASE\" --execute='SELECT 1' >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${APP_PORT:-5080}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      MYSQL_CONNECTION_STRING: "Server=db;Port=3306;Database=megastream;User=megastream;Password=${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}"
+      SIGNING_KEY_FILE: /run/secrets/license-signing.pem
+      DEVICE_SECRET_PEPPER: ${DEVICE_SECRET_PEPPER:?Set a persistent random device-secret pepper}
+      PROVIDER_SECRET_KEY: ${PROVIDER_SECRET_KEY:?Set an independent provider encryption key}
+      PROVIDER_SECRET_KEY_VERSION: ${PROVIDER_SECRET_KEY_VERSION:-1}
+      DATA_PROTECTION_KEYS_PATH: /var/lib/megastream/keys
+      DATA_PROTECTION_CERTIFICATE_FILE: /run/secrets/data-protection.pfx
+      DATA_PROTECTION_CERTIFICATE_PASSWORD: ${DATA_PROTECTION_CERTIFICATE_PASSWORD:?Set the separate DataProtection PFX password}
+      Updates__PublicOrigin: ${UPDATES_PUBLIC_ORIGIN:?Set the exact public HTTPS origin}
+      Updates__StoragePath: /var/lib/megastream/apks
+      Updates__MaxUploadBytes: "209715200"
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:?Set the actual reverse-proxy peer IP addresses}
+      AllowedHosts: "${ALLOWED_HOSTS:?Set the public subdomain};localhost"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      DIAGNOSTIC_RETENTION_DAYS: ${DIAGNOSTIC_RETENTION_DAYS:-30}
+      ONLINE_WINDOW_MINUTES: ${ONLINE_WINDOW_MINUTES:-10}
+      DB_MIGRATE: "false"
+    volumes:
+      - data-protection:/var/lib/megastream/keys
+      - apk-storage:/var/lib/megastream/apks
+      - type: bind
+        source: ${SIGNING_KEY_HOST_PATH:-./secrets/license-signing.pem}
+        target: /run/secrets/license-signing.pem
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DATA_PROTECTION_CERTIFICATE_HOST_PATH:-./secrets/data-protection.pfx}
+        target: /run/secrets/data-protection.pfx
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--location", "--max-redirs", "0", "--header", "Host: localhost", "http://127.0.0.1:8080/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mysql-data:
+  data-protection:
+  apk-storage:

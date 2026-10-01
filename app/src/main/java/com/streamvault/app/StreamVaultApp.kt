@@ -8,7 +8,7 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import com.MegaStream.app.diagnostics.CrashReportStore
-import com.MegaStream.app.diagnostics.RuntimeDiagnosticsManager
+import com.MegaStream.app.controlplane.integration.ProductionRuntime
 import com.MegaStream.app.update.GitHubReleaseChecker
 import com.MegaStream.app.update.isRemoteAppVersionNewer
 import com.MegaStream.app.ui.accessibility.isReducedMotionEnabled
@@ -35,8 +35,13 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class MegaStreamApp : Application(), SingletonImageLoader.Factory {
-    private val runtimeDiagnosticsManager by lazy { RuntimeDiagnosticsManager(this) }
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO +
+        kotlinx.coroutines.CoroutineExceptionHandler { _, _ ->
+            // Optional startup tasks must not crash the app or log sensitive provider failures.
+        })
+
+    @Inject
+    lateinit var productionRuntime: ProductionRuntime
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
@@ -48,7 +53,8 @@ class MegaStreamApp : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         // Crash reporting must install before anything else can throw.
         CrashReportStore.install(this)
-        runtimeDiagnosticsManager.start()
+        // The legacy raw crash store stays local-only; typed runtime diagnostics own sessions.
+        productionRuntime.start()
 
         // Everything below is non-essential for first-frame rendering and is
         // deferred off the main thread to keep cold-start TTI low. The earlier
@@ -96,11 +102,6 @@ class MegaStreamApp : Application(), SingletonImageLoader.Factory {
         RecordingReconcileWorker.enqueueOneShot(this)
     }
 
-    override fun onTerminate() {
-        runtimeDiagnosticsManager.stop()
-        super.onTerminate()
-    }
-
     private suspend fun refreshCachedAppUpdateIfNeeded() {
         val autoCheckEnabled = preferencesRepository.autoCheckAppUpdates.first()
         if (!autoCheckEnabled) {
@@ -118,7 +119,7 @@ class MegaStreamApp : Application(), SingletonImageLoader.Factory {
         when (val result = gitHubReleaseChecker.fetchLatestRelease()) {
             is Result.Success -> {
                 val release = result.data
-                if (isRemoteAppVersionNewer(release.versionCode, release.versionName, release.publishedAt)) {
+                if (release != null && isRemoteAppVersionNewer(release.versionCode, release.versionName, release.publishedAt)) {
                     preferencesRepository.setCachedAppUpdateRelease(
                         versionName = release.versionName,
                         versionCode = release.versionCode,

@@ -1,6 +1,7 @@
 package com.MegaStream.app.ui.screens.player
 
 import androidx.lifecycle.viewModelScope
+import com.MegaStream.app.playback.gate.withPlaybackAdmission
 import com.MegaStream.app.cast.CastMediaRequest
 import com.MegaStream.app.cast.CastStartResult
 import com.MegaStream.domain.model.ContentType
@@ -71,6 +72,7 @@ fun PlayerViewModel.startManualRecording() {
     }
     viewModelScope.launch {
         val now = System.currentTimeMillis()
+        if (playbackGate.withPlaybackAdmission { true } != true) return@launch
         val result = recordingManager.startManualRecording(
             RecordingRequest(
                 providerId = currentProviderId,
@@ -104,6 +106,7 @@ fun PlayerViewModel.scheduleWeeklyRecording() {
 
 private fun PlayerViewModel.scheduleRecordingInternal(recurrence: RecordingRecurrence) {
     viewModelScope.launch {
+        if (playbackGate.withPlaybackAdmission { true } != true) return@launch
         val result = scheduleRecordingUseCase(
             ScheduleRecordingCommand(
                 contentType = currentContentType,

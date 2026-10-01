@@ -1,0 +1,75 @@
+@model System.Collections.Generic.IReadOnlyList<MegaStream.Server.Updates.UpdateReleaseSummary>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "إدارة تحديثات التطبيق";
+}
+<p class="notice">يُنشئ الرفع ملفًا لا يمكن تعديله. انشر الإصدار في خطوة منفصلة بعد مراجعة بياناته.</p>
+<section class="panel">
+    <h2>رفع إصدار</h2>
+    <p class="notice">ارفع ملفات من مسار بناء موثوق فقط. بيانات الحزمة والحد الأدنى لإصدار SDK وشهادة التوقيع هي إقرارات من المسؤول؛ ولا يتم استخراجها من الملف أو التحقق من صحتها هنا.</p>
+    <form method="post" action="@Url.Content("~/admin/updates/upload")" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <p><label>ملف APK (بحد أقصى 200 MiB؛ وقد يكون الحد المضبوط أقل) <input type="file" name="Apk" accept=".apk" required /></label></p>
+        <p><label>رقم الإصدار <input type="number" name="VersionCode" min="1" required /></label></p>
+        <p><label>اسم الإصدار <input name="VersionName" required /></label></p>
+        <p><label>قناة الإصدار <select name="Channel"><option value="stable">stable</option><option value="beta">beta</option></select></label></p>
+        <p><label>اسم الحزمة <select name="PackageName"><option value="com.megastream.app">com.megastream.app</option><option value="com.megastream.app.beta">com.megastream.app.beta</option></select></label></p>
+        <p><label>معمارية التطبيق (ABI) <select name="Abi"><option value="universal">universal (إقرار من مسار بناء موثوق)</option><option value="arm64_v8a">arm64_v8a</option><option value="armeabi_v7a">armeabi_v7a</option><option value="x86_64">x86_64</option><option value="x86">x86</option></select></label></p>
+        <p><label>الحد الأدنى لإصدار SDK <input type="number" name="MinSdk" min="1" required /></label></p>
+        <p><label>بصمة SHA-256 المتوقعة لشهادة التوقيع (اختياري) <input name="SigningCertificateSha256" /></label></p>
+        <p><label><input type="checkbox" name="Mandatory" value="true" style="width:auto" /> تحديث إلزامي</label></p>
+        <p><label>ملاحظات <textarea name="Notes"></textarea></label></p>
+        <button type="submit">رفع مسودة</button>
+    </form>
+</section>
+<section class="panel">
+    <h2>الإصدارات</h2>
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>الإصدار</th><th>الحزمة / القناة</th><th>المتطلبات</th><th>سلامة الملف</th><th>الحالة / الإجراءات</th></tr></thead>
+        <tbody>
+        @foreach (var release in Model)
+        {
+            <tr>
+                <td>@release.VersionName (@release.VersionCode)<br /><code dir="ltr" style="overflow-wrap:anywhere">@release.Id</code><p>@release.Notes</p></td>
+                <td><bdi>@release.PackageName</bdi><br /><bdi>@release.Channel</bdi><br />المعمارية: <bdi>@release.Abi</bdi></td>
+                <td>إصدار SDK: @release.MinSdk<br />إلزامي: @(release.Mandatory ? "نعم" : "لا")</td>
+                <td>@release.SizeBytes بايت<br />بصمة SHA-256: <code dir="ltr" style="overflow-wrap:anywhere">@release.Sha256</code><br />بصمة الشهادة: <code dir="ltr" style="overflow-wrap:anywhere">@release.SigningCertificateSha256</code></td>
+                <td>
+                    <bdi>@release.Status</bdi>
+                    <form method="post" action="@Url.Content($"~/admin/updates/releases/{release.Id}/publish")">
+                        @Html.AntiForgeryToken()
+                        <button type="submit">نشر الإصدار</button>
+                    </form>
+                    <a href="@Url.Content($"~/admin/updates/releases/{release.Id}/outdated")">الأجهزة التي تحتاج إلى تحديث (JSON)</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</section>
+<section class="panel">
+    <h2>إرسال التحديث إلى تثبيت واحد أو أكثر</h2>
+    <form method="post" action="@Url.Content("~/admin/updates/send")">
+        @Html.AntiForgeryToken()
+        <p><label>الإصدار
+            <select name="ReleaseId" required>
+                <option value="">اختر إصدارًا</option>
+                @foreach (var release in Model)
+                {
+                    <option value="@release.Id">@release.VersionName (@release.VersionCode) / @release.Channel / @release.Status</option>
+                }
+            </select>
+        </label></p>
+        <p><label>معرّفات التثبيت (معرّف GUID واحد أو عدة معرّفات مفصولة بفواصل أو أسطر جديدة)<br /><textarea name="InstallationIds" rows="5" required></textarea></label></p>
+        <p><label>وضع التثبيت
+            <select name="Mode">
+                <option value="prompt">طلب تأكيد المستخدم</option>
+                <option value="managed">تثبيت مُدار بصلاحية مالك الجهاز</option>
+            </select>
+        </label></p>
+        <p class="notice">اختيار التثبيت المُدار طلب صريح، وليس إثباتًا لامتلاك صلاحية مالك الجهاز. يتطلب التثبيت العادي على Android موافقة المستخدم.</p>
+        <button type="submit">إضافة التحديث إلى قائمة الانتظار</button>
+    </form>
+</section>

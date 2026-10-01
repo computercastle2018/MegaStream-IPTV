@@ -1,10 +1,10 @@
 {
   "id": "com.megastream.webos",
-  "version": "0.1.0",
+  "version": "3.0.4",
   "vendor": "MegaStream",
   "type": "web",
   "main": "index.html",
-  "title": "MegaStream",
+  "title": "MegaStream3.0.4",
   "icon": "icon.png",
   "largeIcon": "icon.png",
   "iconColor": "#0f766e",

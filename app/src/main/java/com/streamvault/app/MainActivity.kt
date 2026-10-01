@@ -17,6 +17,8 @@ import com.MegaStream.app.cast.CastRouteChooserActivity
 import com.MegaStream.app.backup.BackupFileBridge
 import com.MegaStream.app.device.isTelevisionDevice
 import com.MegaStream.app.localization.resolveAppLocale
+import com.MegaStream.app.kiosk.integration.KioskController
+import com.MegaStream.app.kiosk.integration.KioskHost
 import com.MegaStream.app.navigation.AppNavigation
 import com.MegaStream.app.navigation.ExternalDestination
 import com.MegaStream.app.navigation.ExternalNavigationRequest
@@ -90,6 +92,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var castManager: CastManager
 
+    @Inject
+    lateinit var kioskController: KioskController
+
     private val _pictureInPictureModeFlow = MutableStateFlow(false)
     val pictureInPictureModeFlow: StateFlow<Boolean> = _pictureInPictureModeFlow.asStateFlow()
 
@@ -110,6 +115,7 @@ class MainActivity : ComponentActivity() {
             )
         }
         super.onCreate(savedInstanceState)
+        kioskController.bind(lifecycleScope)
         // Disable legacy window-fitting so Compose receives IME insets directly.
         // This fixes keyboard-covers-input-field on API 30+ where adjustResize is
         // ignored when the theme sets windowFullscreen=true.
@@ -200,15 +206,34 @@ class MainActivity : ComponentActivity() {
                 LocalAppTimeFormat provides appTimeFormat
             ) {
                 MegaStreamTheme(uiStyle = AppUiStyle.fromStorage(appUiStyleValue)) {
-                    AppNavigation(mainActivity = this@MainActivity)
+                    val inPictureInPicture by pictureInPictureModeFlow.collectAsState()
+                    KioskHost(kioskController, inPictureInPicture) {
+                        AppNavigation(mainActivity = this@MainActivity)
+                    }
                 }
             }
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        kioskController.start()
+    }
+
     override fun onResume() {
         super.onResume()
+        kioskController.resume()
         applyImmersiveSystemUi()
+    }
+
+    override fun onPause() {
+        kioskController.pause()
+        super.onPause()
+    }
+
+    override fun onStop() {
+        kioskController.stop()
+        super.onStop()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

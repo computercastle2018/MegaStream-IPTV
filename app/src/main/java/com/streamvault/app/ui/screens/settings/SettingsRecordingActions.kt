@@ -1,6 +1,8 @@
 package com.MegaStream.app.ui.screens.settings
 
 import android.app.Application
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.withPlaybackAdmission
 import com.MegaStream.app.R
 import com.MegaStream.domain.manager.RecordingManager
 import com.MegaStream.domain.model.RecordingStorageConfig
@@ -15,12 +17,15 @@ import kotlinx.coroutines.sync.withLock
 internal class SettingsRecordingActions(
     private val appContext: Application,
     private val recordingManager: RecordingManager,
-    private val uiState: MutableStateFlow<SettingsUiState>
+    private val uiState: MutableStateFlow<SettingsUiState>,
+    private val playbackGate: PlaybackGate
 ) {
     // Serializes all storage-config updates so that a concurrent read-modify-write
     // (e.g. folder + retention changed close together) always builds from the latest
     // committed RecordingStorageState rather than two stale copies of the same snapshot.
     private val storageConfigMutex = Mutex()
+
+    private fun canStartRecording(): Boolean = playbackGate.withPlaybackAdmission { true } ?: false
 
     fun stopRecording(scope: CoroutineScope, recordingId: String) {
         scope.launch {
@@ -84,6 +89,7 @@ internal class SettingsRecordingActions(
 
     fun retryRecording(scope: CoroutineScope, recordingId: String) {
         scope.launch {
+            if (!canStartRecording()) return@launch
             val result = recordingManager.retryRecording(recordingId)
             uiState.update {
                 it.copy(
@@ -99,6 +105,7 @@ internal class SettingsRecordingActions(
 
     fun setRecordingScheduleEnabled(scope: CoroutineScope, recordingId: String, enabled: Boolean) {
         scope.launch {
+            if (enabled && !canStartRecording()) return@launch
             val result = recordingManager.setScheduleEnabled(recordingId, enabled)
             uiState.update {
                 it.copy(

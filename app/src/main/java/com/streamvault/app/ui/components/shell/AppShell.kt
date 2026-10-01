@@ -33,11 +33,13 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.MegaStream.app.localization.LanguageMenuViewModel
 import com.MegaStream.app.ui.screens.settings.LevelOption
@@ -104,6 +106,7 @@ fun AppScreenScaffold(
     header: (@Composable ColumnScope.() -> Unit)? = null,
     topBarActions: (@Composable RowScope.() -> Unit)? = null,
     contentPadding: PaddingValues = PaddingValues(),
+    initialTopNavigationFocusRoute: String? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val spacing = LocalAppSpacing.current
@@ -179,7 +182,8 @@ fun AppScreenScaffold(
                         currentRoute = currentRoute,
                         onNavigate = onNavigate,
                         actions = topBarActions,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        initialTopNavigationFocusRoute = initialTopNavigationFocusRoute
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
@@ -254,13 +258,21 @@ private fun TopNavigationBar(
     currentRoute: String,
     onNavigate: (String) -> Unit,
     actions: (@Composable RowScope.() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialTopNavigationFocusRoute: String? = null
 ) {
     val items = remember { buildDestinationItems() }
     val scrollState = rememberScrollState()
 
-    val focusRequesters = remember { mutableMapOf<String, FocusRequester>() }
-    
+    val focusRequesters = remember { items.associate { it.route to FocusRequester() } }
+
+    LaunchedEffect(Unit) {
+        if (initialTopNavigationFocusRoute != null) {
+            withFrameNanos {}
+            focusRequesters[initialTopNavigationFocusRoute]?.requestFocus()
+        }
+    }
+
     Surface(
         modifier = modifier.focusProperties {
             onEnter = {
@@ -294,7 +306,7 @@ private fun TopNavigationBar(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 items.forEach { item ->
-                    val requester = focusRequesters.getOrPut(item.route) { FocusRequester() }
+                    val requester = focusRequesters.getValue(item.route)
                     TopNavigationButton(
                         label = stringResource(item.labelRes),
                         icon = item.icon,

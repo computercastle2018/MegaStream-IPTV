@@ -1,0 +1,3 @@
+@model LicenseCreatedViewModel
+@{ ViewData["Title"] = "تم إنشاء الترخيص"; }
+<section class="panel"><h2>@Model.License.Label</h2><p class="notice">احفظ هذا المفتاح الآن. لن يظهر مرة أخرى، ولا تعِد إرسال النموذج أو تحديث الصفحة.</p><pre class="secret" dir="ltr">@Model.FullKey</pre><a class="button" asp-action="LicenseDetails" asp-route-id="@Model.License.Id">متابعة إلى إدارة الترخيص</a></section>

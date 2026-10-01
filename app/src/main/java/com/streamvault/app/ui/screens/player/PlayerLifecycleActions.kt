@@ -65,10 +65,11 @@ internal fun PlayerViewModel.startTokenRenewalMonitoring(expirationTime: Long?) 
     }
 }
 
-fun PlayerViewModel.onAppBackgrounded() {
+fun PlayerViewModel.onAppBackgrounded(keepPlayingInBackground: Boolean = false) {
     if (!isAppInForeground) return
     isAppInForeground = false
-    shouldResumeAfterForeground = playerEngine.isPlaying.value
+    val wasPlaying = playerEngine.isPlaying.value
+    shouldResumeAfterForeground = wasPlaying && !keepPlayingInBackground
     if (shouldResumeAfterForeground) {
         playerEngine.pause()
     }

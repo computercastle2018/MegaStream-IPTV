@@ -1,6 +1,8 @@
 package com.MegaStream.app.ui.screens.settings
 
 import android.app.Application
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.stopRecordingsWhenBlocked
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.ViewModel
@@ -110,7 +112,8 @@ class SettingsViewModel @Inject constructor(
     private val gitHubReleaseChecker: GitHubReleaseChecker,
     private val appUpdateInstaller: AppUpdateInstaller,
     private val getCustomCategories: GetCustomCategories,
-    private val audioCompatibilityMemoryStore: AudioCompatibilityMemoryStore
+    private val audioCompatibilityMemoryStore: AudioCompatibilityMemoryStore,
+    private val playbackGate: PlaybackGate
 ) : ViewModel() {
     private val appContext = application
     private val exportBackup = ExportBackup(backupManager)
@@ -140,7 +143,8 @@ class SettingsViewModel @Inject constructor(
     private val recordingActions = SettingsRecordingActions(
         appContext = application,
         recordingManager = recordingManager,
-        uiState = _uiState
+        uiState = _uiState,
+        playbackGate = playbackGate
     )
     private val providerActions = SettingsProviderActions(
         providerRepository = providerRepository,
@@ -167,6 +171,7 @@ class SettingsViewModel @Inject constructor(
     )
 
     init {
+        playbackGate.stopRecordingsWhenBlocked(viewModelScope, recordingManager)
         refreshCrashReport()
         registerPreferenceObservers()
         registerXtreamIndexJobObserver()

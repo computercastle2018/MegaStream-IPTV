@@ -1,6 +1,9 @@
 package com.MegaStream.app.ui.screens.player
 
 import android.os.SystemClock
+import com.MegaStream.app.playback.gate.PlaybackGate
+import com.MegaStream.app.playback.gate.GatedPlayerEngine
+import com.MegaStream.app.playback.gate.stopRecordingsWhenBlocked
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.MegaStream.app.cast.CastConnectionState
@@ -76,7 +79,8 @@ import okhttp3.Request
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerViewModel @Inject constructor(
     @param:MainPlayerEngine
-    private val mainPlayerEngine: PlayerEngine,
+    mainPlayerEngine: PlayerEngine,
+    internal val playbackGate: PlaybackGate,
     internal val epgRepository: EpgRepository,
     internal val channelRepository: ChannelRepository,
     internal val movieRepository: MovieRepository,
@@ -113,7 +117,8 @@ class PlayerViewModel @Inject constructor(
         internal const val TIMER_TICK_MS = 1_000L
     }
 
-    private val activePlayerEngineFlow = MutableStateFlow(mainPlayerEngine)
+    private val mainPlayerEngine: PlayerEngine = GatedPlayerEngine(mainPlayerEngine, playbackGate, viewModelScope)
+    private val activePlayerEngineFlow = MutableStateFlow(this.mainPlayerEngine)
     val activePlayerEngine: StateFlow<PlayerEngine> = activePlayerEngineFlow.asStateFlow()
     val playerEngine: PlayerEngine
         get() = activePlayerEngineFlow.value
@@ -435,6 +440,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     init {
+        playbackGate.stopRecordingsWhenBlocked(viewModelScope, recordingManager)
         viewModelScope.launch {
             activePlayerEngineFlow.flatMapLatest { it.error }.collect { error ->
                 if (error != null) {
@@ -1066,7 +1072,8 @@ class PlayerViewModel @Inject constructor(
             providerId = providerId.takeIf { it > 0L }
         ) ?: return false
 
-        val adoptedEngine = session.engine
+        // Re-own gate observation for the Player lifetime, even when Home is cleared.
+        val adoptedEngine = GatedPlayerEngine(session.engine, playbackGate, viewModelScope)
         return runCatching {
             // Detach the Home preview surface before Player binds its own.
             adoptedEngine.clearRenderBinding()
@@ -1074,11 +1081,7 @@ class PlayerViewModel @Inject constructor(
             // session before the adopted live engine enables its own replacement.
             mainPlayerEngine.setMediaSessionEnabled(false)
             setActivePlayerEngine(adoptedEngine)
-            (adoptedEngine as? Media3PlayerEngine)?.let {
-                it.bypassAudioFocus = false
-                it.enableMediaSession = preferencesRepository.playerMediaSessionEnabled.first()
-                it.constrainResolutionForMultiView = false
-            }
+            adoptedEngine.configureForFullScreen(preferencesRepository.playerMediaSessionEnabled.first())
             applyPlaybackPreferences()
             if (!isActivePlaybackSession(requestVersion)) {
                 setActivePlayerEngine(mainPlayerEngine)
@@ -1107,7 +1110,7 @@ class PlayerViewModel @Inject constructor(
                 true
             }
         }.getOrElse {
-            livePreviewHandoffManager.clear(adoptedEngine)
+            livePreviewHandoffManager.clear(session.engine)
             if (playerEngine === adoptedEngine) {
                 setActivePlayerEngine(mainPlayerEngine)
             }
