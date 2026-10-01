@@ -83,6 +83,13 @@ class ProductionRuntime @Inject internal constructor(
         startJob?.join()
     }
 
+    suspend fun refreshLicense() = withContext(Dispatchers.Main.immediate) {
+        awaitStartup()
+        lifecycleLane.withLock {
+            if (!exitRequested) controller?.tick(force = true)?.join()
+        }
+    }
+
     /** Main-thread entry: nonblocking and idempotent, including after initialization failure. */
     fun start() {
         check(android.os.Looper.myLooper() == android.os.Looper.getMainLooper())

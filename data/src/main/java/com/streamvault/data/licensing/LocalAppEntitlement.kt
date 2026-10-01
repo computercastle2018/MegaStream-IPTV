@@ -12,6 +12,7 @@ import com.MegaStream.domain.licensing.TrustedTimeEvaluator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 
 /** Local-only authorization: no response or an invalid response never refreshes lease or anchor. */
 class LocalAppEntitlement(
@@ -35,19 +36,26 @@ class LocalAppEntitlement(
     override suspend fun applyOnlineDecision(
         decision: OnlineEntitlementDecision,
         compactLease: String?,
-    ): LicenseAccessDecision = synchronized(store) {
+    ): LicenseAccessDecision {
         val candidate = if (decision.state == LicenseAccessState.ALLOWED) compactLease?.let(::verifyOrNull) else null
-        val reading = clock()
-        val previous = observeClock(store.read(), reading)
-        val next = when {
-            candidate != null && matchesOnlineGrant(decision, candidate) && canAccept(candidate, previous, reading) ->
-                acceptedSnapshot(candidate, previous, reading)
-            decision.state != LicenseAccessState.ALLOWED && compactLease == null && freshOnlineDenial(decision, previous) ->
-                withOnlineDenial(previous, decision)
-            else -> previous
+        if (candidate != null && matchesOnlineGrant(decision, candidate)) {
+            val ahead = candidate.issuedAtEpochSeconds - clock().wallEpochSeconds
+            // Let a slightly slow device clock catch up; never accept a future or unverified lease.
+            if (ahead in 1..5) delay(ahead * 1000)
         }
-        if (next != previous) store.write(next)
-        publish(evaluate(next, reading))
+        return synchronized(store) {
+            val reading = clock()
+            val previous = observeClock(store.read(), reading)
+            val next = when {
+                candidate != null && matchesOnlineGrant(decision, candidate) && canAccept(candidate, previous, reading) ->
+                    acceptedSnapshot(candidate, previous, reading)
+                decision.state != LicenseAccessState.ALLOWED && compactLease == null && freshOnlineDenial(decision, previous) ->
+                    withOnlineDenial(previous, decision)
+                else -> previous
+            }
+            if (next != previous) store.write(next)
+            publish(evaluate(next, reading))
+        }
     }
 
     private fun matchesOnlineGrant(online: OnlineEntitlementDecision, lease: OfflineLease): Boolean {

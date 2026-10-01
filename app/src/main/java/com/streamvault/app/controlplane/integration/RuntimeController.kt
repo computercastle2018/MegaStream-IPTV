@@ -93,8 +93,8 @@ class RuntimeController(
         }
     }
 
-    fun tick(): Job = scope.launch(ioDispatcher) {
-        lane.withLock { if (!exitRequested) runTick() }
+    fun tick(force: Boolean = false): Job = scope.launch(ioDispatcher) {
+        lane.withLock { if (!exitRequested) runTick(force) }
     }
 
     /** Explicit, terminal, exactly-once exit. Queued ticks and a later start cannot reopen a session. */
@@ -145,7 +145,7 @@ class RuntimeController(
         }
     }
 
-    private suspend fun runTick() {
+    private suspend fun runTick(force: Boolean = false) {
         recomputeGate()
         if (sessionId == null || startupBlocked || exitRequested) return
         val now = try {
@@ -163,7 +163,7 @@ class RuntimeController(
                 lastAttemptCompletedAt = now
                 return
             }
-            if (now - previous < intervalMillis) return
+            if (!force && now - previous < intervalMillis) return
         }
         try {
             if (mutableSnapshot.value.registration != RegistrationStatus.REGISTERED && !register()) return

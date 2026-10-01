@@ -1575,6 +1575,9 @@
     <string name="shortcut_search_short">Search</string>
     <string name="shortcut_search_long">Search content</string>
     <string name="license_title">License activation</string>
+    <string name="license_refresh">Check license with server</string>
+    <string name="license_refreshing">Checking license…</string>
+    <string name="license_refresh_failed">Playback license could not be verified. Check your connection and device license in the control panel.</string>
     <string name="license_entitlement_status">Verified license status: %1$s</string>
     <string name="license_entitlement_expiry">Verified license expiry: %1$s</string>
     <string name="license_expiry_unknown">Not available</string>

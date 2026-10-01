@@ -33,6 +33,20 @@ import kotlin.coroutines.resume
  * These do not claim to verify the adapters' durable AppStarted or acknowledgement implementation.
  */
 class RuntimeControllerTest {
+    @Test fun manualLicenseRefreshBypassesCadenceWithoutCreatingAnotherSession() = scenario {
+        controller.start().join()
+        controller.tick().join()
+        assertEquals(1, count("heartbeat:FOREGROUND"))
+        controller.tick(force = true).join()
+        assertEquals(2, count("heartbeat:FOREGROUND"))
+        assertEquals(1, count("session-committed"))
+        controller.tick().join()
+        assertEquals(2, count("heartbeat:FOREGROUND"))
+        controller.manualExit().join()
+        controller.tick(force = true).join()
+        assertEquals(2, count("heartbeat:FOREGROUND"))
+    }
+
     @Test fun recoveryAndCommittedSessionPrecedeAllRuntimeAndUploadWork() = scenario {
         controller.start().join()
         assertEquals(listOf("recover", "session-committed", "gate", "register", "heartbeat:FOREGROUND", "gate", "upload"), calls)

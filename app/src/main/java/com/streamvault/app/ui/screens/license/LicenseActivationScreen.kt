@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
@@ -60,6 +61,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import androidx.tv.material3.LocalContentColor
 import com.MegaStream.app.R
 import com.MegaStream.app.controlplane.EntitlementState
 import com.MegaStream.app.ui.interaction.TvButton
@@ -134,6 +136,7 @@ fun LicenseActivationScreen(viewModel: LicenseActivationViewModel, modifier: Mod
         }
     }
 
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
     BoxWithConstraints(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val sideBySide = maxWidth >= 600.dp
         Column(
@@ -203,6 +206,13 @@ fun LicenseActivationScreen(viewModel: LicenseActivationViewModel, modifier: Mod
                                 onValueChange = { if (!state.busy && !state.disposed && it.length <= 512) secret.value = it },
                                 label = { Text(stringResource(R.string.license_key_label)) },
                                 enabled = !state.busy && !state.disposed,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                    cursorColor = MaterialTheme.colorScheme.primary,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
                                 singleLine = true,
                                 visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password,
@@ -266,6 +276,7 @@ fun LicenseActivationScreen(viewModel: LicenseActivationViewModel, modifier: Mod
                 }
             }
         }
+    }
     }
 }
 

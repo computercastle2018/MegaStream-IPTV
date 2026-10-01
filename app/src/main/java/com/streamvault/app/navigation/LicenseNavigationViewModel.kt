@@ -28,6 +28,11 @@ class LicenseNavigationViewModel @Inject constructor(
 
     suspend fun awaitStartup() = runtime.awaitStartup()
 
+    suspend fun refreshLicense(): PlaybackGateVerdict {
+        runtime.refreshLicense()
+        return checkNow()
+    }
+
     internal fun request(intent: PlaybackNavigationIntent): Boolean {
         val verdict = checkNow()
         val allowed = routing.request(intent, verdict)

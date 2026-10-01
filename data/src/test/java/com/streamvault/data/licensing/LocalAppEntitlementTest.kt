@@ -11,11 +11,23 @@ import java.security.spec.ECGenParameterSpec
 import java.util.Base64
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.junit.Test
 
 class LocalAppEntitlementTest {
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test fun signedLeaseWithSmallDeviceClockLagWaitsUntilValid() = runTest {
+        val entitlement = LocalAppEntitlement(verifier, INSTALLATION, BINDING, store) {
+            ClockReading(NOW + testScheduler.currentTime / 1000, 1000 + testScheduler.currentTime, "boot-1")
+        }
+        val fresh = lease().copy(issuedAtEpochSeconds = NOW + 2, notBeforeEpochSeconds = NOW + 2)
+        assertThat(entitlement.applyOnlineDecision(online(fresh), token(fresh)).allowed).isTrue()
+        assertThat(testScheduler.currentTime).isEqualTo(2000L)
+        assertThat(store.read().lease!!.expiresAtEpochSeconds).isEqualTo(fresh.expiresAtEpochSeconds)
+    }
+
     private val keys = KeyPairGenerator.getInstance("EC").apply {
         initialize(ECGenParameterSpec("secp256r1"))
     }.generateKeyPair()
