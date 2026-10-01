@@ -12,6 +12,24 @@
 <form method="post" action="@(Model.ProfileId.HasValue ? $"/admin/providers/{Model.ProfileId}" : "/admin/providers/create")" autocomplete="off">
     @Html.AntiForgeryToken()
     <label>اسم العرض الآمن <input name="displayName" maxlength="128" required /></label>
+    @if (!Model.ProfileId.HasValue)
+    {
+        <label>الجهاز المستهدف
+            <select name="installationId">
+                <option value="">حفظ فقط دون تعيين لجهاز</option>
+                @foreach (var device in Model.Devices)
+                {
+                    <option value="@device.Id">@device.DeviceModel — @(device.Id.ToString("D")[..8])</option>
+                }
+            </select>
+        </label>
+        <label>طريقة الإضافة على الجهاز
+            <select name="assignmentPolicy">
+                <option value="auto_enabled">إضافة الاشتراك وتفعيله تلقائيًا</option>
+                <option value="optional">إضافة الاشتراك دون تفعيل تلقائي</option>
+            </select>
+        </label>
+    }
     <label>نوع المزود
         <select name="type" dir="ltr">
         @foreach (var type in new[] { "XTREAM_CODES", "M3U", "STALKER_PORTAL" })

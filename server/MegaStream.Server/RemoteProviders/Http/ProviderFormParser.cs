@@ -57,7 +57,7 @@ internal static class ProviderFormParser
         "true" => true, "false" => false, _ => throw new FormatException()
     };
 
-    private static string? Optional(IFormCollection form, string key, int maxLength)
+    public static string? Optional(IFormCollection form, string key, int maxLength)
     {
         var fields = form[key];
         if (fields.Count > 1) throw new FormatException();

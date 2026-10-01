@@ -31,6 +31,8 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -76,6 +78,8 @@ internal fun ProviderSettingsCard(
     onRefreshM3uClassification: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    var showSubscriptionInformation by remember(provider.id) { mutableStateOf(false) }
+    val subscriptionInformationLabel = stringResource(R.string.settings_subscription_information)
     val liveOnboardingIncomplete = provider.type == ProviderType.XTREAM_CODES &&
         provider.status == ProviderStatus.PARTIAL &&
         !isActive
@@ -132,20 +136,39 @@ internal fun ProviderSettingsCard(
             }
         }
 
-        // Expiration Date
-        val expDate = provider.expirationDate
-        val expirationText = remember(expDate) {
-            when (expDate) {
-                null -> context.getString(R.string.settings_expiration_unknown)
-                Long.MAX_VALUE -> context.getString(R.string.settings_expiration_never)
-                else -> context.getString(R.string.settings_expires, java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(expDate)))
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(subscriptionInformationLabel, color = OnSurface)
+            Switch(
+                checked = showSubscriptionInformation,
+                onCheckedChange = { showSubscriptionInformation = it },
+                modifier = Modifier.semantics { contentDescription = subscriptionInformationLabel }
+            )
         }
-        Text(
-            text = expirationText,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (expDate != null && expDate < System.currentTimeMillis() && expDate != Long.MAX_VALUE) ErrorColor else OnSurfaceDim
-        )
+
+        if (showSubscriptionInformation) {
+            val expDate = provider.expirationDate
+            val expirationText = remember(expDate) {
+                when (expDate) {
+                    null -> context.getString(R.string.settings_expiration_unknown)
+                    Long.MAX_VALUE -> context.getString(R.string.settings_expiration_never)
+                    else -> context.getString(R.string.settings_expires, java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(expDate)))
+                }
+            }
+            Text(
+                text = expirationText,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (expDate != null && expDate < System.currentTimeMillis() && expDate != Long.MAX_VALUE) ErrorColor else OnSurfaceDim
+            )
+            Text(
+                text = stringResource(R.string.settings_subscription_connections, provider.maxConnections),
+                style = MaterialTheme.typography.bodySmall,
+                color = OnSurfaceDim
+            )
+        }
 
         if (liveOnboardingMessageRes != null) {
             Text(
@@ -162,7 +185,7 @@ internal fun ProviderSettingsCard(
             }
         }
 
-        diagnostics?.let { model ->
+        if (showSubscriptionInformation) diagnostics?.let { model ->
             Text(
                 text = listOf(model.sourceLabel, model.connectionSummary, model.expirySummary)
                     .filter { it.isNotBlank() }
@@ -308,7 +331,5 @@ internal fun sectionCatalogCount(
         ProviderCatalogCountUiModel(count, ProviderCatalogCountStatus.PENDING)
     }
 }
-
-
 
 

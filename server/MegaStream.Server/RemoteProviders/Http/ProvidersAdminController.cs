@@ -1,5 +1,8 @@
 using MegaStream.Server.RemoteProviders.Core;
 using MegaStream.Server.Services;
+using MegaStream.Server.Data;
+using MegaStream.Server.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +14,7 @@ namespace MegaStream.Server.RemoteProviders.Http;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [RequestSizeLimit(32768)]
 [RequestFormLimits(ValueCountLimit = 40, KeyLengthLimit = 64, ValueLengthLimit = 16384, MultipartBodyLengthLimit = 32768)]
-public sealed class ProvidersAdminController(IRemoteProviderService service) : Controller
+public sealed class ProvidersAdminController(IRemoteProviderService service, AppDbContext db) : Controller
 {
     private const string Views = "~/RemoteProviders/Views/";
 
@@ -19,7 +22,8 @@ public sealed class ProvidersAdminController(IRemoteProviderService service) : C
     public async Task<IActionResult> Index(CancellationToken ct) => View(Views + "Index.cshtml", await service.ListProfilesAsync(ct));
 
     [HttpGet("create")]
-    public IActionResult Create([FromQuery] string? type) => View(Views + "Editor.cshtml", new ProviderEditor(null, SafeType(type), null, false));
+    public async Task<IActionResult> Create([FromQuery] string? type, CancellationToken ct) =>
+        View(Views + "Editor.cshtml", await NewEditor(SafeType(type), false, ct));
 
     [HttpGet("{profileId:guid}")]
     public async Task<IActionResult> Details([FromRoute] Guid profileId, CancellationToken ct)
@@ -42,17 +46,25 @@ public sealed class ProvidersAdminController(IRemoteProviderService service) : C
         {
             var form = await ReadForm(ct);
             var request = ProviderFormParser.Parse(form);
+            var target = profileId.HasValue ? null : ProviderFormParser.Optional(form, "installationId", 36);
+            Guid? installationId = target is null ? null : Guid.ParseExact(target, "D");
+            var policy = installationId.HasValue ? ProviderFormParser.Field(form, "assignmentPolicy", 16) : "auto_enabled";
             var saved = profileId.HasValue
                 ? await service.UpdateProfileAsync(profileId.Value, request, ct)
-                : await service.CreateProfileAsync(request, ct);
+                : await service.CreateProfileAsync(request, ct, installationId, policy);
+            if (installationId.HasValue)
+                return RedirectToAction(nameof(Assignments), new { installationId });
             return RedirectToAction(nameof(Details), new { profileId = saved.Id });
         }
-        catch (Exception error) when (error is DomainException { StatusCode: 400 } or InvalidDataException or BadHttpRequestException or FormatException)
+        catch (Exception error) when (error is DomainException { StatusCode: 400 } or
+            DomainException { Code: "invalid_device" or "installation_disabled" } or InvalidDataException or BadHttpRequestException or FormatException)
         {
             ModelState.Clear();
             // Never use the posted configuration, exception text, or attempted values in a view.
             Response.StatusCode = 400;
-            return View(Views + "Editor.cshtml", new ProviderEditor(profileId, RemoteProviderValues.XtreamCodes, null, true));
+            return View(Views + "Editor.cshtml", profileId.HasValue
+                ? new ProviderEditor(profileId, RemoteProviderValues.XtreamCodes, null, true)
+                : await NewEditor(RemoteProviderValues.XtreamCodes, true, ct));
         }
     }
 
@@ -111,8 +123,19 @@ public sealed class ProvidersAdminController(IRemoteProviderService service) : C
 
     private static string SafeType(string? type) => type is RemoteProviderValues.M3u or RemoteProviderValues.StalkerPortal
         ? type : RemoteProviderValues.XtreamCodes;
+
+    private async Task<ProviderEditor> NewEditor(string type, bool hasError, CancellationToken ct) =>
+        new(null, type, null, hasError)
+        {
+            Devices = await db.Installations.AsNoTracking().Where(x => x.Status == InstallationStatus.Active)
+                .OrderBy(x => x.DeviceModel).Select(x => new ProviderDevice(x.Id, x.DeviceModel)).ToListAsync(ct)
+        };
 }
 
-public sealed record ProviderEditor(Guid? ProfileId, string Type, RemoteProviderProfileMetadata? Metadata, bool HasError);
+public sealed record ProviderEditor(Guid? ProfileId, string Type, RemoteProviderProfileMetadata? Metadata, bool HasError)
+{
+    public IReadOnlyList<ProviderDevice> Devices { get; init; } = Array.Empty<ProviderDevice>();
+}
+public sealed record ProviderDevice(Guid Id, string DeviceModel);
 public sealed record ProviderAssignments(Guid InstallationId, IReadOnlyList<RemoteProviderProfileMetadata> Profiles,
     IReadOnlyList<RemoteProviderAssignment> Assignments, IReadOnlyList<ProviderAssignmentReport> Reports);

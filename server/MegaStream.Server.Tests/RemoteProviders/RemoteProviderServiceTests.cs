@@ -13,6 +13,22 @@ namespace MegaStream.Server.Tests.RemoteProviders;
 
 public sealed class RemoteProviderServiceTests
 {
+    [Fact]
+    public async Task Creating_for_revoked_device_leaves_no_profile_or_assignment()
+    {
+        await using var store = await RemoteProviderDatabase.CreateAsync();
+        var installation = await store.AddInstallationAsync();
+        await using var session = new Session(store);
+        var device = await session.Db.Installations.SingleAsync(x => x.Id == installation);
+        device.Status = InstallationStatus.Revoked;
+        await session.Db.SaveChangesAsync();
+        var error = await Assert.ThrowsAsync<DomainException>(() => session.Service.CreateProfileAsync(
+            RemoteProviderTestData.Profile(), installationId: installation));
+        Assert.Equal(403, error.StatusCode);
+        Assert.Empty(await session.Service.ListProfilesAsync());
+        Assert.Empty(await session.Db.Set<RemoteProviderAssignment>().ToListAsync());
+    }
+
     [Theory]
     [InlineData(RemoteProviderValues.XtreamCodes)]
     [InlineData(RemoteProviderValues.M3u)]

@@ -100,7 +100,8 @@ public sealed class RemoteProviderDeviceResult
 }
 public interface IRemoteProviderService
 {
-    Task<RemoteProviderProfileMetadata> CreateProfileAsync(ReplaceRemoteProviderProfile request, CancellationToken ct = default);
+    Task<RemoteProviderProfileMetadata> CreateProfileAsync(ReplaceRemoteProviderProfile request, CancellationToken ct = default,
+        Guid? installationId = null, string policy = "auto_enabled");
     Task<RemoteProviderProfileMetadata> UpdateProfileAsync(Guid profileId, ReplaceRemoteProviderProfile request, CancellationToken ct = default);
     Task RevokeProfileAsync(Guid profileId, CancellationToken ct = default);
     Task<IReadOnlyList<RemoteProviderProfileMetadata>> ListProfilesAsync(CancellationToken ct = default);

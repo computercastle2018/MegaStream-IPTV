@@ -466,6 +466,8 @@
     <string name="settings_parental_pin">رقم PIN للرقابة الأبوية</string>
     <string name="settings_change_pin">تغيير رقم PIN</string>
     <string name="settings_set_pin">تعيين رقم PIN</string>
+    <string name="settings_subscription_information">معلومات الاشتراك</string>
+    <string name="settings_subscription_connections">حد الاتصالات: %1$d</string>
     <string name="settings_expiration_unknown">انتهاء الصلاحية: غير معروف</string>
     <string name="settings_expiration_never">انتهاء الصلاحية: أبداً</string>
     <string name="settings_expires">ينتهي: %1$s</string>

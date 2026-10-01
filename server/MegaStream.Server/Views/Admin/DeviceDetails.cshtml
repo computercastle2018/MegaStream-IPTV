@@ -34,10 +34,15 @@
     @if (Model.Device.LocalSubscriptionsReportedAt is { } reportedAt)
     {
         <p class="muted">آخر بلاغ UTC: @reportedAt.ToString("yyyy-MM-dd HH:mm:ss")</p>
-        <div class="table-wrap"><table><thead><tr><th>الاشتراك</th><th>النوع</th><th>الحالة</th><th>الصلاحية UTC</th><th>حد الاتصالات</th></tr></thead><tbody>
+        <div class="table-wrap"><table><thead><tr><th>الاشتراك</th><th>النوع</th><th>الحالة</th><th>المعلومات</th></tr></thead><tbody>
         @foreach (var subscription in Model.LocalSubscriptions)
         {
-            <tr><td>@subscription.Name</td><td><bdi>@(subscription.Type switch { "xtream_codes" => "Xtream", "m3u" => "M3U", _ => "Stalker" })</bdi></td><td>@subscription.DisplayState</td><td>@(subscription.ExpiresAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.ExpiresAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير محددة")</td><td>@subscription.MaxConnections</td></tr>
+            <tr><td>@subscription.Name</td><td><bdi>@(subscription.Type switch { "xtream_codes" => "Xtream", "m3u" => "M3U", _ => "Stalker" })</bdi></td><td>@subscription.DisplayState</td><td>
+                <details class="subscription-information"><summary>إظهار / إخفاء معلومات الاشتراك</summary>
+                    <dl><dt>الصلاحية UTC</dt><dd>@(subscription.ExpiresAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.ExpiresAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير محددة")</dd>
+                    <dt>حد الاتصالات</dt><dd>@subscription.MaxConnections</dd><dt>مفعّل على الجهاز</dt><dd>@(subscription.Enabled ? "نعم" : "لا")</dd></dl>
+                </details>
+            </td></tr>
         }
         </tbody></table></div>
         @if (Model.LocalSubscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات محفوظة بحسب آخر بلاغ.</p> }

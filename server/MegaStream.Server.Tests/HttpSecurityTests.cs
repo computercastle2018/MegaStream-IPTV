@@ -157,6 +157,8 @@ public class HttpSecurityTests
         }
         var html = WebUtility.HtmlDecode(await client.GetStringAsync($"/Admin/DeviceDetails?id={first.InstallationId}"));
         Assert.Contains("Sports", html);
+        Assert.Contains("<details class=\"subscription-information\"><summary>إظهار / إخفاء معلومات الاشتراك</summary>", html);
+        Assert.DoesNotContain("<details class=\"subscription-information\" open", html);
         Assert.Contains("الاشتراكات الموجودة على الجهاز", html);
         Assert.Contains("badge online", html);
         using (var scope = app.Services.CreateScope())

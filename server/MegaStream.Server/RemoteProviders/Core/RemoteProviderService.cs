@@ -9,17 +9,27 @@ namespace MegaStream.Server.RemoteProviders.Core;
 
 public sealed class RemoteProviderService(AppDbContext db, ProviderPayloadCipher cipher) : IRemoteProviderService
 {
-    public Task<RemoteProviderProfileMetadata> CreateProfileAsync(ReplaceRemoteProviderProfile request, CancellationToken ct = default)
+    public Task<RemoteProviderProfileMetadata> CreateProfileAsync(ReplaceRemoteProviderProfile request, CancellationToken ct = default,
+        Guid? installationId = null, string policy = "auto_enabled")
     {
         ConfigurationValidator.Validate(request);
-        return Serialized(revision =>
+        if (installationId.HasValue && (installationId == Guid.Empty || policy is not ("optional" or "auto_enabled")))
+            throw new DomainException(400, "invalid_provider_policy", "Provider assignment policy is invalid.");
+        return Serialized(async revision =>
         {
+            if (installationId.HasValue) await ActiveInstallation(installationId.Value, ct);
             var now = DateTime.UtcNow;
             var profile = new RemoteProviderProfile { Id = Guid.NewGuid(), DisplayName = request.DisplayName, Type = request.Type,
                 Revision = revision, CreatedAt = now, UpdatedAt = now, KeyVersion = cipher.KeyVersion };
             profile.EncryptedPayload = cipher.Encrypt(profile.Id, profile.Type, revision, request.Configuration);
             db.Set<RemoteProviderProfile>().Add(profile);
-            return Task.FromResult(Metadata(profile));
+            if (installationId.HasValue)
+                db.Set<RemoteProviderAssignment>().Add(new RemoteProviderAssignment
+                {
+                    Id = Guid.NewGuid(), ProfileId = profile.Id, InstallationId = installationId.Value,
+                    Policy = policy, Enabled = true, AssignedAt = now, Revision = revision
+                });
+            return Metadata(profile);
         }, true, ct);
     }
 

@@ -615,6 +615,8 @@
     <string name="settings_parental_pin">Parental PIN</string>
     <string name="settings_change_pin">Change PIN</string>
     <string name="settings_set_pin">Set PIN</string>
+    <string name="settings_subscription_information">Subscription information</string>
+    <string name="settings_subscription_connections">Connection limit: %1$d</string>
     <string name="settings_expiration_unknown">Expiration: Unknown</string>
     <string name="settings_expiration_never">Expiration: Never</string>
     <string name="settings_expires">Expires: %1$s</string>

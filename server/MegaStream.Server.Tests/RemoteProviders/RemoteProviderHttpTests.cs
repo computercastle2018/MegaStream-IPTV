@@ -18,6 +18,57 @@ namespace MegaStream.Server.Tests.RemoteProviders;
 public sealed class RemoteProviderHttpTests
 {
     [Theory]
+    [InlineData("optional")]
+    [InlineData("auto_enabled")]
+    public async Task Create_form_assigns_subscription_only_to_selected_device(string policy)
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        await LoginAsync(app, client);
+        RegisterResponse owner, other;
+        using (var scope = app.Services.CreateScope())
+        {
+            var devices = scope.ServiceProvider.GetRequiredService<DeviceService>();
+            owner = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Selected TV", "14"));
+            other = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Other TV", "14"));
+        }
+        var html = await client.GetStringAsync("/admin/providers/create?type=XTREAM_CODES");
+        Assert.Contains($"value=\"{owner.InstallationId:D}\"", html);
+        var form = Form();
+        form["__RequestVerificationToken"] = Token(html);
+        form["installationId"] = owner.InstallationId.ToString("D");
+        form["assignmentPolicy"] = policy;
+        using var response = await client.PostAsync("/admin/providers/create", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.EndsWith($"/installations/{owner.InstallationId:D}", response.Headers.Location!.OriginalString);
+        using var verify = app.Services.CreateScope();
+        var service = verify.ServiceProvider.GetRequiredService<IRemoteProviderService>();
+        var assignment = Assert.Single((await service.GetDeviceAsync(owner.InstallationId)).Items);
+        Assert.Equal(policy, assignment.Policy);
+        Assert.Empty((await service.GetDeviceAsync(other.InstallationId)).Items);
+    }
+
+    [Theory]
+    [InlineData("not-a-device")]
+    [InlineData("00000000-0000-0000-0000-000000000001")]
+    public async Task Invalid_selected_device_does_not_save_subscription_or_echo_credentials(string device)
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        await LoginAsync(app, client);
+        var form = Form();
+        form["__RequestVerificationToken"] = Token(await client.GetStringAsync("/admin/providers/create"));
+        form["installationId"] = device;
+        form["assignmentPolicy"] = "auto_enabled";
+        using var response = await client.PostAsync("/admin/providers/create", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.DoesNotContain(form["password"], html);
+        using var verify = app.Services.CreateScope();
+        Assert.Empty(await verify.ServiceProvider.GetRequiredService<IRemoteProviderService>().ListProfilesAsync());
+    }
+
+    [Theory]
     [InlineData("GET", "/api/v1/providers/assignments")]
     [InlineData("POST", "/api/v1/providers/assignments/00000000-0000-0000-0000-000000000001/status")]
     public async Task Anonymous_provider_api_returns_uncacheable_401_without_login_redirect(string method, string path)
