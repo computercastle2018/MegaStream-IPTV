@@ -1,6 +1,60 @@
+@{
+    var authenticated = User.Identity?.IsAuthenticated == true;
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var section = controller == "Admin" ? action switch
+    {
+        "LicenseDetails" or "LicenseCreated" or "CreateLicense" => "Licenses",
+        "DeviceDetails" => "Devices",
+        "DiagnosticDetails" => "Diagnostics",
+        _ => action
+    } : controller;
+}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>@ViewData["Title"] — MegaStream</title><link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /></head>
-<body><a class="skip" href="#main">تخطي إلى المحتوى</a><header><a class="brand" asp-controller="Admin" asp-action="Index">MegaStream <span>لوحة الإدارة</span></a>
-@if (User.Identity?.IsAuthenticated == true) { <nav aria-label="القائمة الرئيسية"><a asp-controller="Admin" asp-action="Index">الرئيسية</a><a asp-controller="Admin" asp-action="Licenses">التراخيص</a><a asp-controller="Admin" asp-action="Devices">الأجهزة</a><a asp-controller="Admin" asp-action="Codes">رموز التفعيل</a><a asp-controller="Admin" asp-action="Diagnostics">التشخيص</a><a href="/admin/updates">التحديثات</a><a href="/admin/providers">الاشتراكات</a><a asp-controller="Admin" asp-action="Notifications">الإشعارات</a></nav><form asp-controller="Account" asp-action="Logout" method="post"><button class="secondary" type="submit">تسجيل الخروج</button></form> }
-</header><main id="main"><h1>@ViewData["Title"]</h1>@RenderBody()</main><footer>إدارة آمنة • جميع الأوقات بالتوقيت العالمي UTC • لا تُعرض أسرار الأجهزة</footer>@await RenderSectionAsync("Scripts", required: false)</body></html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#087f70" />
+    <title>@ViewData["Title"] — MegaStream</title>
+    <link rel="icon" type="image/png" href="~/images/megastream.png" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="@(authenticated ? "admin-shell" : "account-shell")">
+    <a class="skip" href="#main">تخطي إلى المحتوى</a>
+    <header class="sidebar">
+        <a class="brand" asp-controller="Admin" asp-action="Index">
+            <img src="~/images/megastream.png" alt="" width="40" height="40" />
+            <span><b dir="ltr">MegaStream</b><small>لوحة الإدارة</small></span>
+        </a>
+        @if (authenticated)
+        {
+            <nav aria-label="القائمة الرئيسية">
+                <a asp-controller="Admin" asp-action="Index" aria-current="@(section == "Index" ? "page" : null)"><i class="nav-icon home" aria-hidden="true"></i>الرئيسية</a>
+                <a asp-controller="Admin" asp-action="Licenses" aria-current="@(section == "Licenses" ? "page" : null)"><i class="nav-icon license" aria-hidden="true"></i>التراخيص</a>
+                <a asp-controller="Admin" asp-action="Devices" aria-current="@(section == "Devices" ? "page" : null)"><i class="nav-icon device" aria-hidden="true"></i>الأجهزة</a>
+                <a asp-controller="Admin" asp-action="Codes" aria-current="@(section == "Codes" ? "page" : null)"><i class="nav-icon code-icon" aria-hidden="true"></i>رموز التفعيل</a>
+                <a asp-controller="Admin" asp-action="Diagnostics" aria-current="@(section == "Diagnostics" ? "page" : null)"><i class="nav-icon diagnostic" aria-hidden="true"></i>التشخيص</a>
+                <a href="@Url.Content("~/admin/updates")" aria-current="@(section == "UpdatesAdmin" ? "page" : null)"><i class="nav-icon update" aria-hidden="true"></i>التحديثات</a>
+                <a href="@Url.Content("~/admin/providers")" aria-current="@(section == "ProvidersAdmin" ? "page" : null)"><i class="nav-icon provider" aria-hidden="true"></i>الاشتراكات</a>
+                <a asp-controller="Admin" asp-action="Notifications" aria-current="@(section == "Notifications" ? "page" : null)"><i class="nav-icon notification" aria-hidden="true"></i>الإشعارات</a>
+            </nav>
+            <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
+                <button class="secondary" type="submit"><i class="nav-icon exit" aria-hidden="true"></i>تسجيل الخروج</button>
+            </form>
+        }
+    </header>
+    <div class="workspace">
+        <div class="topbar">
+            <span>لوحة التحكم <span class="breadcrumb-divider" aria-hidden="true">/</span> @ViewData["Title"]</span>
+            <span class="timezone"><bdi>UTC</bdi><span>التوقيت العالمي</span></span>
+        </div>
+        <main id="main" tabindex="-1">
+            <h1>@ViewData["Title"]</h1>
+            @RenderBody()
+        </main>
+        <footer><bdi>MegaStream</bdi></footer>
+    </div>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

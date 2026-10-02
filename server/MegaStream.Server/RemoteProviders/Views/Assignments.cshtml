@@ -14,6 +14,7 @@
     <button type="submit">تعيين الاشتراك / تحديث التعيين</button>
 </form>
 <h2>التعيينات</h2>
+<div class="table-wrap">
 <table><thead><tr><th>التعيين / الاشتراك</th><th>السياسة</th><th>مفعّل</th><th>المراجعة</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>
 @foreach (var assignment in Model.Assignments)
 {
@@ -25,13 +26,16 @@
     </td></tr>
 }
 </tbody></table>
+</div>
 <details class="subscription-information"><summary>إظهار / إخفاء معلومات اشتراكات الجهاز</summary>
 <h2>تقارير الجهاز</h2>
 <p>الصلاحية والحد الأقصى للاتصالات بيانات يُبلغ عنها المزود ولا تُعد موثوقة أو بديلاً لحدود ترخيص MegaStream.</p>
+<div class="table-wrap">
 <table><thead><tr><th>التعيين</th><th>مراجعة الاشتراك</th><th>الحالة</th><th>رمز الخطأ الآمن</th><th>وقت التقرير (UTC)</th><th>صلاحية المزود (UTC)</th><th>حد اتصالات المزود</th></tr></thead><tbody>
 @foreach (var report in Model.Reports)
 {
     <tr><td><code dir="ltr">@report.AssignmentId</code></td><td>@report.ProfileRevision</td><td><bdi>@report.State</bdi></td><td><bdi>@report.SafeErrorCode</bdi></td><td><bdi>@report.LastReportedAt.ToString("u")</bdi></td><td><bdi>@report.ProviderReportedExpiresAt?.ToString("u")</bdi></td><td>@report.ProviderReportedMaxConnections</td></tr>
 }
 </tbody></table>
+</div>
 </details>
