@@ -28,36 +28,36 @@ internal fun StudioCatalogHero(
     eyebrow: String? = null,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(Modifier.fillMaxWidth().heightIn(min = 220.dp, max = 320.dp)) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
         val compact = maxWidth < 600.dp
-        Box(Modifier.fillMaxWidth().height(if (compact) 240.dp else 290.dp)) {
+        Box(Modifier.fillMaxWidth().heightIn(min = if (compact) 180.dp else 160.dp)) {
             if (!imageUrl.isNullOrBlank()) {
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = title,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.matchParentSize()
                 )
             }
-            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+            Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(
                 MaterialTheme.colorScheme.background.copy(alpha = 0.15f),
                 MaterialTheme.colorScheme.background.copy(alpha = 0.94f)
             ))))
             Column(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                    .padding(horizontal = if (compact) 20.dp else 32.dp, vertical = 22.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = if (compact) 16.dp else 24.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(eyebrow ?: stringResource(R.string.studio_latest_added),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelLarge)
-                Text(title, style = MaterialTheme.typography.headlineMedium,
+                Text(title, style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (!metadata.isNullOrBlank()) Text(metadata,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                 TvButton(onClick = onClick, modifier = modifier) {
                     Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))

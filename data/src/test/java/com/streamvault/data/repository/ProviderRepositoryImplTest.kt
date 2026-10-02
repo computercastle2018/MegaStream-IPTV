@@ -17,6 +17,7 @@ import com.MegaStream.data.remote.dto.XtreamAuthResponse
 import com.MegaStream.data.remote.dto.XtreamServerInfo
 import com.MegaStream.data.remote.dto.XtreamUserInfo
 import com.MegaStream.data.security.CredentialCrypto
+import com.MegaStream.data.security.CredentialDecryptionException
 import com.MegaStream.data.sync.SyncManager
 import com.MegaStream.domain.model.ProviderEpgSyncMode
 import com.MegaStream.domain.model.ProviderSavedWithSyncErrorException
@@ -28,6 +29,7 @@ import com.MegaStream.domain.model.ProviderXtreamLiveSyncMode
 import com.MegaStream.domain.model.SyncMetadata
 import com.MegaStream.domain.repository.SyncMetadataRepository
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -83,6 +85,61 @@ class ProviderRepositoryImplTest {
 
     init {
         whenever(preferencesRepository.xtreamBase64TextCompatibility).thenReturn(flowOf(false))
+    }
+
+    @Test
+    fun `getProviderCredentials decrypts exact IDs even when account keys are duplicated`() = runTest {
+        val first = ProviderEntity(id = 7L, name = "First", type = ProviderType.XTREAM_CODES,
+            serverUrl = "https://example.com", username = "user", password = "enc:v1:first", isActive = false)
+        whenever(providerDao.getById(7L)).thenReturn(first)
+        whenever(providerDao.getById(8L)).thenReturn(first.copy(id = 8L, password = "enc:v1:second"))
+        whenever(credentialCrypto.decryptIfNeeded("enc:v1:first")).thenReturn("first-secret")
+        whenever(credentialCrypto.decryptIfNeeded("enc:v1:second")).thenReturn("second-secret")
+
+        assertThat(repository.getProviderCredentials(7L)?.password).isEqualTo("first-secret")
+        assertThat(repository.getProviderCredentials(8L)?.password).isEqualTo("second-secret")
+        assertThat(repository.getProvider(7L)?.password).isEmpty()
+        verify(credentialCrypto).decryptIfNeeded("enc:v1:first")
+        verify(credentialCrypto).decryptIfNeeded("enc:v1:second")
+        verify(providerDao, never()).getAllSync()
+        verify(credentialCrypto, never()).encryptIfNeeded(any())
+        verify(providerDao, never()).update(any())
+    }
+
+    @Test
+    fun `getProviderCredentials returns unknown for missing or blank credentials without decrypting`() = runTest {
+        val blank = ProviderEntity(id = 7L, name = "Blank", type = ProviderType.XTREAM_CODES,
+            serverUrl = "https://example.com", username = "", password = "enc:v1:unused")
+        whenever(providerDao.getById(7L)).thenReturn(blank)
+        whenever(providerDao.getById(8L)).thenReturn(blank.copy(id = 8L, username = "user", password = ""))
+        whenever(providerDao.getById(9L)).thenReturn(null)
+
+        for (id in listOf(0L, 7L, 8L, 9L)) assertThat(repository.getProviderCredentials(id)).isNull()
+        verify(providerDao, never()).getById(0L)
+        verify(credentialCrypto, never()).decryptIfNeeded(any())
+    }
+
+    @Test
+    fun `getProviderCredentials never returns unreadable ciphertext or empty decrypted password`() = runTest {
+        val stored = ProviderEntity(id = 7L, name = "Unreadable", type = ProviderType.XTREAM_CODES,
+            serverUrl = "https://example.com", username = "user", password = "enc:v1:broken")
+        whenever(providerDao.getById(7L)).thenReturn(stored)
+        whenever(credentialCrypto.decryptIfNeeded("enc:v1:broken")).thenThrow(CredentialDecryptionException())
+        assertThat(repository.getProviderCredentials(7L)).isNull()
+        whenever(providerDao.getById(8L)).thenReturn(stored.copy(id = 8L, password = "enc:v1:empty"))
+        whenever(credentialCrypto.decryptIfNeeded("enc:v1:empty")).thenReturn("")
+        assertThat(repository.getProviderCredentials(8L)).isNull()
+        verify(providerDao, never()).update(any())
+    }
+
+    @Test
+    fun `getProviderCredentials propagates lookup cancellation`() = runTest {
+        whenever(providerDao.getById(7L)).thenThrow(CancellationException("cancelled"))
+        var cancelled = false
+        try { repository.getProviderCredentials(7L) }
+        catch (_: CancellationException) { cancelled = true }
+        assertThat(cancelled).isTrue()
+        verify(credentialCrypto, never()).decryptIfNeeded(any())
     }
 
     @Test

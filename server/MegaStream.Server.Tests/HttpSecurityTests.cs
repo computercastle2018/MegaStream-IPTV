@@ -112,7 +112,7 @@ public class HttpSecurityTests
         return tokens.ToArray();
     }
 
-    internal static async Task LoginAdmin(TestApplication app, HttpClient client)
+    internal static async Task LoginAdmin(WebApplicationFactory<Program> app, HttpClient client)
     {
         using (var scope = app.Services.CreateScope())
         {

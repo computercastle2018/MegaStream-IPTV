@@ -4,7 +4,7 @@
     <string name="nav_home">الرئيسية</string>
     <string name="nav_live_tv">البث التلفزيوني المباشر</string>
     <string name="nav_movies">أفلام</string>
-    <string name="nav_series">سلسلة</string>
+    <string name="nav_series">المسلسلات</string>
     <string name="nav_epg">دليل</string>
     <string name="nav_settings">الإعدادات</string>
     <string name="welcome_enter_app">أدخل التطبيق</string>
@@ -15,7 +15,7 @@
     
     <string name="sync_section_live">Live</string>
     <string name="sync_section_vod">VOD</string>
-    <string name="sync_section_series">Series</string>
+    <string name="sync_section_series">المسلسلات</string>
     <string name="sync_items_indexed_format">%1$d items indexed</string>
     <string name="welcome_tagline">تلفزيون IPTV مميز لغرفة المعيشة</string>
     <string name="welcome_subtitle">يمكنك العودة إلى القنوات المباشرة والمشاهدة اللحظية والأفلام والمسلسلات من خلال تجربة Android TV للطرف الأول.</string>
@@ -90,7 +90,7 @@
     <string name="dashboard_favorite_channels">القنوات المفضلة</string>
     <string name="dashboard_recent_channels">القنوات الأخيرة</string>
     <string name="dashboard_recent_movies">الأفلام المضافة مؤخرا</string>
-    <string name="dashboard_recent_series">سلسلة تم تحديثها مؤخرًا</string>
+    <string name="dashboard_recent_series">المسلسلات المحدّثة مؤخرًا</string>
     <string name="dashboard_search_library">مكتبة البحث</string>
     <string name="dashboard_live_shortcuts">اختصارات حية</string>
     <string name="dashboard_live_shortcuts_subtitle">المفضلة والقنوات الأخيرة والمجموعة الأخيرة.</string>
@@ -111,13 +111,13 @@
     <string name="dashboard_update_install_ready">تم تنزيل آخر تحديث بالفعل. افتح الإعدادات لتثبيته.</string>
     <string name="dashboard_update_open_settings">فتح التحديثات</string>
     <string name="dashboard_update_open_installer">التثبيت من الإعدادات</string>
-    <string name="dashboard_updated_series_badge">سلسلة محدثة</string>
+    <string name="dashboard_updated_series_badge">مسلسلات محدّثة</string>
     <string name="dashboard_stat_live">%1$d مباشر</string>
     <string name="dashboard_stat_favorites">%1$d المفضلة</string>
     <string name="dashboard_stat_recent">%1$d حديثة</string>
     <string name="dashboard_stat_resume">%1$d للاستئناف</string>
     <string name="dashboard_stat_movies">%1$d افلام</string>
-    <string name="dashboard_stat_series">سلسلة %1$d</string>
+    <string name="dashboard_stat_series">المسلسلات: %1$d</string>
     <string name="dashboard_empty_title">قم بإعداد مزود لفتح الشاشة الرئيسية</string>
     <string name="dashboard_empty_body">أضف قائمة تشغيل أو مصدر Xtream أولاً. بمجرد تنشيط الموفر، ستعرض الصفحة الرئيسية القنوات المفضلة، وتستمر في المشاهدة، وصفوف المكتبة الجديدة.</string>
     <string name="pin_dialog_title">أدخل رقم التعريف الشخصي</string>
@@ -531,7 +531,7 @@
     <string name="settings_diagnostic_items">%1$d عناصر</string>
     <string name="settings_retry_epg">إعادة محاولة EPG</string>
     <string name="settings_retry_movies">إعادة محاولة الأفلام</string>
-    <string name="settings_retry_series">إعادة محاولة المسلسلات</string>
+    <string name="settings_retry_series">إعادة محاولة مزامنة المسلسلات</string>
     <string name="settings_status_active">نشط</string>
     <string name="settings_status_partial">جزئي</string>
     <string name="settings_status_error">خطأ</string>

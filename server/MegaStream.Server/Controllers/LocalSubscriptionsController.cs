@@ -7,6 +7,7 @@ using MegaStream.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MegaStream.Server.RemoteProviders.Core;
 
 namespace MegaStream.Server.Controllers;
 
@@ -15,7 +16,7 @@ namespace MegaStream.Server.Controllers;
 [Authorize(AuthenticationSchemes = DeviceAuthenticationHandler.SchemeName)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [RequestSizeLimit(65536)]
-public sealed class LocalSubscriptionsController(AppDbContext db) : ControllerBase
+public sealed class LocalSubscriptionsController(AppDbContext db, LocalSubscriptionCredentialsStore credentials) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Report(LocalSubscriptionsRequest request, CancellationToken ct)
@@ -28,7 +29,7 @@ public sealed class LocalSubscriptionsController(AppDbContext db) : ControllerBa
         foreach (var subscription in request.Subscriptions)
             subscription.Name = Sanitizer.CleanDiagnostic(subscription.Name, 128);
         // Replace the complete snapshot, including removals, without changing licensing or presence.
-        var json = JsonSerializer.Serialize(request.Subscriptions);
+        var json = credentials.Encode(id, request.Subscriptions);
         var updated = await db.Installations.Where(x => x.Id == id && x.Status == InstallationStatus.Active)
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.LocalSubscriptionsJson, json)
                 .SetProperty(x => x.LocalSubscriptionsReportedAt, DateTime.UtcNow), ct);

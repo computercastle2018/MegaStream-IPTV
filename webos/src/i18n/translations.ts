@@ -122,7 +122,7 @@ const ar: Dict = {
 
   "home.live": "البث المباشر",
   "home.movies": "أفلام",
-  "home.series": "مسلسلات",
+  "home.series": "المسلسلات",
   "home.sportsGuide": "دليل الرياضة",
   "home.changePlaylist": "تغيير القائمة",
   "home.settings": "الإعدادات",
@@ -148,13 +148,13 @@ const ar: Dict = {
 
   "content.live": "البث المباشر",
   "content.movies": "أفلام",
-  "content.series": "مسلسلات",
+  "content.series": "المسلسلات",
   "content.loading": "جارٍ تحميل {type}…",
   "content.backToProviders": "اضغط رجوع للعودة إلى المزوّدين",
   "content.failed": "فشل التحميل",
 
   "episodes.loading": "جارٍ تحميل الحلقات…",
-  "episodes.series": "مسلسلات",
+  "episodes.series": "المسلسلات",
   "episodes.seasons": "المواسم",
   "episodes.season": "الموسم {n}",
   "episodes.none": "لا توجد حلقات",

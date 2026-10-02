@@ -25,9 +25,12 @@ interface ProviderRepository {
      * Returns cleartext credentials for all providers that have both a
      * username and a password. Used by the Drive credentials sync path
      * (M3). Decryption happens inside the `:data` layer — the cleartext
-     * payload is only ever exposed via this single typed method.
+     * payload is only exposed via typed repository methods.
      */
     suspend fun getAllProviderCredentials(): List<ProviderCredentials>
+
+    /** Exact-row credentials for reporting; null when absent or unreadable. Never guesses by account key. */
+    suspend fun getProviderCredentials(providerId: Long): ProviderCredentials? = null
 
     /**
      * Applies a cleartext password to the provider matched by

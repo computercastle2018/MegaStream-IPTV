@@ -1,0 +1,17 @@
+@model MegaStream.Server.RemoteProviders.Http.ProviderAccess
+<div data-provider-access>
+    <form method="post" action="@Model.BaseUrl/reveal" asp-antiforgery="false" data-provider-reveal>
+        @Html.AntiForgeryToken()
+        <button type="submit" aria-expanded="false">إظهار بيانات الدخول</button>
+    </form>
+    <div data-provider-credentials hidden aria-live="polite"></div>
+    <span data-provider-error role="alert"></span>
+    @if (Model.CanExport)
+    {
+        <form method="post" action="@Model.BaseUrl/export" asp-antiforgery="false" data-provider-export>
+            @Html.AntiForgeryToken()
+            <button type="submit">تنزيل M3U</button>
+        </form>
+    }
+    else { <span class="muted">تصدير M3U غير متاح لهذا النوع.</span> }
+</div>

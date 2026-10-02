@@ -13,4 +13,6 @@ public sealed record DeviceExperienceResponse(bool AllowSubscriptionDetails,
     IReadOnlyList<DeviceNotificationResponse> Notifications, string? MacAddress);
 public sealed record DeviceExperienceV2Response(bool AllowSubscriptionDetails,
     IReadOnlyList<DeviceNotificationResponse> Notifications, string? MacAddress, string? UiStyle);
+public sealed record DeviceExperienceV3Response(bool AllowSubscriptionDetails,
+    IReadOnlyList<DeviceNotificationResponse> Notifications, string? MacAddress, string? UiStyle, string PlaybackQuality);
 public sealed record DeviceNotificationResponse(string Id, string Title, string Message, string CreatedAt);

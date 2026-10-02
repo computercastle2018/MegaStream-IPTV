@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="series_episode_newest">Newest first</string>
+    <string name="series_episode_oldest">Oldest first</string>
+    <string name="series_episode_all_seasons">All seasons</string>
+    <string name="series_episode_all">All episodes</string>
+    <string name="series_episode_unwatched">Not finished</string>
+    <string name="series_episode_in_progress">In progress</string>
+    <string name="series_episode_completed">Watched</string>
+    <string name="series_episode_search">Search episodes</string>
+</resources>

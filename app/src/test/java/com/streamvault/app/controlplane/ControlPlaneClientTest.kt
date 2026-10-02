@@ -17,7 +17,7 @@ class ControlPlaneClientTest {
         val payload = """{"allowSubscriptionDetails":false,"notifications":[{"id":"$ID","title":"Notice","message":"Hello","createdAt":"$TIME"}],"macAddress":null}"""
         val client = ControlPlaneClient(CallExecutor {
             assertEquals("/api/v1/devices/experience", it.url.encodedPath)
-            assertEquals("2", it.url.queryParameter("version"))
+            assertEquals("3", it.url.queryParameter("version"))
             assertEquals("Bearer $CREDENTIAL", it.header("Authorization"))
             assertEquals("GET", it.method)
             response(it, payload)
@@ -49,6 +49,28 @@ class ControlPlaneClientTest {
             })
             assertFailure("invalid_response", client.deviceExperience(CREDENTIAL))
         }
+    }
+
+    @Test fun experienceAcceptsOnlyAuthorizedAllowlistedQualityPolicy() {
+        for (quality in listOf(null, "auto", "480", "720", "1080", "2160")) {
+            val wireQuality = quality?.let { "\"$it\"" } ?: "null"
+            val client = ControlPlaneClient(CallExecutor {
+                assertEquals("Bearer $CREDENTIAL", it.header("Authorization"))
+                response(it, """{"allowSubscriptionDetails":false,"playbackQuality":$wireQuality}""")
+            })
+            val result = client.deviceExperience(CREDENTIAL) as ControlPlaneResult.Success
+            assertEquals(quality, result.value.playbackQuality)
+        }
+        for (quality in listOf("\"-1\"", "\"0\"", "\"1081\"", "\"99999\"", "true", "1080", "\"AUTO\"", "\" 1080\"")) {
+            val client = ControlPlaneClient(CallExecutor {
+                response(it, """{"allowSubscriptionDetails":false,"playbackQuality":$quality}""")
+            })
+            assertFailure("invalid_response", client.deviceExperience(CREDENTIAL))
+        }
+        val unauthorized = ControlPlaneClient(CallExecutor {
+            response(it, """{"allowSubscriptionDetails":false,"playbackQuality":"1080"}""").newBuilder().code(401).build()
+        })
+        assertTrue(unauthorized.deviceExperience(CREDENTIAL) is ControlPlaneResult.Failure)
     }
 
     @Test fun registrationIsAnonymousIdempotentAndChecksReturnedIdentity() {

@@ -51,6 +51,32 @@ public sealed class UiStyleForm
     [RegularExpression("^(classic|modern|studio)$", ErrorMessage = "اختر تصميماً صالحاً")]
     public string? UiStyle { get; set; }
 }
+public sealed class DevicePlaybackQualityForm
+{
+    public Guid Id { get; set; }
+    [RegularExpression("^(auto|480|720|1080|2160)$")]
+    public string? PlaybackQuality { get; set; }
+}
+public sealed class GlobalPlaybackQualityForm
+{
+    [Required, RegularExpression("^(auto|480|720|1080|2160)$")]
+    public string PlaybackQuality { get; set; } = "";
+}
+public sealed class BulkPlaybackQualityForm : IValidatableObject
+{
+    [Required, RegularExpression("^all$")] public string Scope { get; set; } = "";
+    [Required, RegularExpression("^(apply|inherit)$")] public string Mode { get; set; } = "";
+    [RegularExpression("^(auto|480|720|1080|2160)$")] public string? PlaybackQuality { get; set; }
+    public bool Confirm { get; set; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext context)
+    {
+        if (!Confirm) yield return new ValidationResult("أكد تطبيق السياسة على جميع الأجهزة النشطة", [nameof(Confirm)]);
+        if (Mode == "apply" && PlaybackQuality is null)
+            yield return new ValidationResult("اختر جودة التشغيل", [nameof(PlaybackQuality)]);
+        if (Mode == "inherit" && PlaybackQuality is not null)
+            yield return new ValidationResult("الوراثة لا تقبل تجاوزاً للجودة", [nameof(PlaybackQuality)]);
+    }
+}
 public sealed class AdminNotificationForm : IValidatableObject
 {
     public Guid? TargetInstallationId { get; set; }
@@ -68,13 +94,18 @@ public sealed record NotificationsViewModel(AdminNotificationForm Form, IReadOnl
 public sealed record DashboardViewModel(int LicenseCount, int DeviceCount, int OnlineDeviceCount, int IncidentCount, int OnlineWindowMinutes, IReadOnlyList<DiagnosticEvent> RecentIncidents);
 public sealed record LicenseCreatedViewModel(License License, string FullKey);
 public sealed record LicenseDetailsViewModel(License License, IReadOnlyList<Installation> Devices, LicenseLimitsForm Limits);
-public sealed record DevicesViewModel(IReadOnlyList<Installation> Devices, DateTime OnlineCutoff);
+public sealed record DevicesViewModel(IReadOnlyList<Installation> Devices, DateTime OnlineCutoff)
+{
+    public string GlobalPlaybackQuality { get; init; } = "1080";
+}
 public sealed record DeviceDetailsViewModel(Installation Device, IReadOnlyList<DiagnosticEvent> Diagnostics, DateTime OnlineCutoff, IReadOnlyList<DeviceSession> Sessions)
 {
+    public string GlobalPlaybackQuality { get; init; } = "1080";
     public MegaStream.Server.V1.V1InstallationMetadata? VersionReport { get; init; }
     public IReadOnlyList<MegaStream.Server.Updates.UpdateReleaseSummary> AvailableUpdates { get; init; } = [];
     public IReadOnlyList<MegaStream.Server.Updates.DeviceUpdateCommand> UpdateCommands { get; init; } = [];
     public IReadOnlyList<MegaStream.Server.Contracts.LocalSubscription> LocalSubscriptions { get; init; } = [];
+    public IReadOnlySet<long> LocalCredentialIds { get; init; } = new HashSet<long>();
     public bool ManagedDevice { get; init; }
     public IReadOnlyList<License> AvailableLicenses { get; init; } = [];
     public IReadOnlyList<DevicePolicyAudit> PolicyAudit { get; init; } = [];

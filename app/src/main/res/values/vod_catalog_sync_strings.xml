@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="movies_sync_catalog">Sync movies list</string>
+    <string name="series_sync_catalog">Sync series list</string>
+    <string name="vod_catalog_sync_in_progress">Synchronizing list</string>
+    <string name="movies_catalog_synced">Movies list updated</string>
+    <string name="series_catalog_synced">Series list updated</string>
+    <string name="vod_catalog_sync_failed">List synchronization failed: %1$s</string>
+</resources>

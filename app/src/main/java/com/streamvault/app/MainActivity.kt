@@ -214,7 +214,7 @@ class MainActivity : ComponentActivity() {
                     uiStyleManaged = deviceExperience.uiStyle != null
                 ) {
                     val inPictureInPicture by pictureInPictureModeFlow.collectAsState()
-                    KioskHost(kioskController, inPictureInPicture) {
+                    KioskHost(kioskController, inPictureInPicture, onReturnHome = ::returnToHome) {
                         AppNavigation(mainActivity = this@MainActivity)
                         if (!inPictureInPicture) com.MegaStream.app.ui.notifications.DeviceNotificationsHost()
                     }
@@ -294,6 +294,10 @@ class MainActivity : ComponentActivity() {
 
     fun clearExternalNavigationRequest() {
         _externalNavigationRequestFlow.value = null
+    }
+
+    fun returnToHome() {
+        _externalNavigationRequestFlow.value = ExternalNavigationRequest.Destination(ExternalDestination.Home)
     }
 
     fun openPlayer(request: PlayerNavigationRequest) {

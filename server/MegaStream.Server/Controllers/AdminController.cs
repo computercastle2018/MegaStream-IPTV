@@ -90,7 +90,8 @@ public sealed class AdminController(AppDbContext db, IAdminService admin, IConfi
         var model = await LicenseModel(id, ct);
         return model is null ? NotFound() : View("LicenseDetails", model);
     }
-    [HttpGet] public async Task<IActionResult> Devices(CancellationToken ct) => View(new DevicesViewModel(await db.Installations.AsNoTracking().Include(x => x.License).OrderByDescending(x => x.LastSeenAt).Take(500).ToListAsync(ct), OnlineCutoff));
+    [HttpGet] public async Task<IActionResult> Devices(CancellationToken ct) => View(new DevicesViewModel(await db.Installations.AsNoTracking().Include(x => x.License).OrderByDescending(x => x.LastSeenAt).Take(500).ToListAsync(ct), OnlineCutoff)
+    { GlobalPlaybackQuality = await PlaybackQualityPolicy.GlobalAsync(db, ct) });
     [HttpGet]
     public async Task<IActionResult> DeviceDetails(Guid id, CancellationToken ct)
     {
@@ -113,17 +114,47 @@ public sealed class AdminController(AppDbContext db, IAdminService admin, IConfi
         return View("DeviceDetails", new DeviceDetailsViewModel(device,
             Clean(await db.DiagnosticEvents.AsNoTracking().Where(x => x.InstallationId == id).OrderByDescending(x => x.OccurredAt).Take(100).ToListAsync(ct)), OnlineCutoff, sessions)
         {
+            GlobalPlaybackQuality = await PlaybackQualityPolicy.GlobalAsync(db, ct),
             VersionReport = await db.Set<MegaStream.Server.V1.V1InstallationMetadata>().AsNoTracking().SingleOrDefaultAsync(x => x.InstallationId == id, ct),
             AvailableUpdates = availableUpdates,
             UpdateCommands = await db.Set<MegaStream.Server.Updates.DeviceUpdateCommand>().AsNoTracking().Include(x => x.Release)
                 .Where(x => x.InstallationId == id).OrderByDescending(x => x.CreatedAt).Take(20).ToListAsync(ct),
             LocalSubscriptions = device.LocalSubscriptionsJson is null ? [] :
-                System.Text.Json.JsonSerializer.Deserialize<List<MegaStream.Server.Contracts.LocalSubscription>>(device.LocalSubscriptionsJson) ?? [],
+                MegaStream.Server.RemoteProviders.Core.LocalSubscriptionCredentialsStore.Summaries(device.LocalSubscriptionsJson)
+                    .OfType<MegaStream.Server.Contracts.LocalSubscription>().ToList(),
+            LocalCredentialIds = device.LocalSubscriptionsJson is null ? new HashSet<long>() :
+                MegaStream.Server.RemoteProviders.Core.LocalSubscriptionCredentialsStore.CredentialIds(device.LocalSubscriptionsJson),
             AvailableLicenses = await db.Licenses.AsNoTracking().Where(x => x.Status == LicenseStatus.Active &&
                 x.ValidFrom <= DateTime.UtcNow && x.ValidUntil > DateTime.UtcNow).OrderBy(x => x.Label).ToListAsync(ct),
             ManagedDevice = await db.Set<MegaStream.Server.V1.V1InstallationMetadata>().AsNoTracking().AnyAsync(x => x.InstallationId == id && x.ManagedDevice, ct),
             PolicyAudit = await db.Set<DevicePolicyAudit>().AsNoTracking().Where(x => x.InstallationId == id).OrderByDescending(x => x.CreatedAt).Take(100).ToListAsync(ct)
         });
+    }
+    [HttpPost]
+    public async Task<IActionResult> SetDevicePlaybackQuality(DevicePlaybackQualityForm form, CancellationToken ct)
+    {
+        if (form.Id == Guid.Empty || !ModelState.IsValid || !Request.Form.ContainsKey(nameof(form.PlaybackQuality))) return BadRequest();
+        var changed = await db.Installations.Where(x => x.Id == form.Id && x.Status == InstallationStatus.Active)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.PlaybackQuality, form.PlaybackQuality), ct);
+        return changed == 1 ? RedirectToAction(nameof(DeviceDetails), new { id = form.Id }) : BadRequest();
+    }
+    [HttpPost]
+    public async Task<IActionResult> SetGlobalPlaybackQuality(GlobalPlaybackQualityForm form, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+        var changed = await db.PlaybackQualityDefaults.Where(x => x.Id == 1)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.Quality, form.PlaybackQuality), ct);
+        return changed == 1 ? RedirectToAction(nameof(Devices)) : BadRequest();
+    }
+    [HttpPost]
+    public async Task<IActionResult> SetAllPlaybackQuality(BulkPlaybackQualityForm form, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+        var quality = form.Mode == "inherit" ? null : form.PlaybackQuality;
+        var changed = await db.Installations.Where(x => x.Status == InstallationStatus.Active)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.PlaybackQuality, quality), ct);
+        TempData["PlaybackQualityResult"] = $"تم تحديث سياسة الجودة لـ {changed} جهاز نشط";
+        return RedirectToAction(nameof(Devices));
     }
     [HttpPost]
     public async Task<IActionResult> SetDeviceUiStyle(UiStyleForm form, CancellationToken ct)

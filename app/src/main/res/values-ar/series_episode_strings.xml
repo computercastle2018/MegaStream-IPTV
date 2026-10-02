@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="series_episode_newest">الأحدث أولاً</string>
+    <string name="series_episode_oldest">الأقدم أولاً</string>
+    <string name="series_episode_all_seasons">كل المواسم</string>
+    <string name="series_episode_all">كل الحلقات</string>
+    <string name="series_episode_unwatched">غير المكتملة</string>
+    <string name="series_episode_in_progress">قيد المشاهدة</string>
+    <string name="series_episode_completed">تمت مشاهدتها</string>
+    <string name="series_episode_search">البحث في الحلقات</string>
+</resources>

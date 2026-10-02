@@ -243,6 +243,7 @@ fun DashboardScreen(
                     ) { channel ->
                         ChannelCard(
                             channel = channel,
+                            compact = isStudio,
                             isRecording = channel.id in recordingChannelIds,
                             isScheduledRecording = channel.id in scheduledChannelIds,
                             onClick = { onRecentChannelClick(channel, uiState.currentCombinedProfileId) }
@@ -304,7 +305,7 @@ private fun StudioDashboardHero(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = if (compact) 300.dp else 340.dp)
+                .heightIn(min = if (compact) 180.dp else 200.dp)
                 .background(MaterialTheme.colorScheme.background)
         ) {
             feature.artworkUrl?.takeIf { it.isNotBlank() }?.let { artwork ->
@@ -326,7 +327,7 @@ private fun StudioDashboardHero(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = if (compact) 20.dp else 32.dp)
-                    .padding(top = if (compact) 100.dp else 140.dp, bottom = 24.dp),
+                    .padding(top = if (compact) 24.dp else 40.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
@@ -342,7 +343,7 @@ private fun StudioDashboardHero(
                         text = feature.summary,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 3,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 620.dp)
                     )

@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -451,7 +452,7 @@ private fun PlayerTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = if (studio) Modifier.weight(1f).padding(end = 16.dp) else Modifier) {
+            Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
                 if (!studio) {
                 PlayerMetaPill(
                     text = when (contentType) {
@@ -467,7 +468,7 @@ private fun PlayerTopBar(
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    maxLines = if (studio) 1 else Int.MAX_VALUE,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 if (studio || contentType != "LIVE") {
@@ -507,20 +508,30 @@ private fun PlayerTopBar(
                     color = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.padding(end = 16.dp)
                 )
+                if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
+                    com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+                    com.MegaStream.app.ui.components.shell.AppTopBarLanguageAction()
+                } else {
+                    com.MegaStream.app.ui.components.shell.AppTopBarLanguageAction()
+                    com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+                }
 
                 TvClickableSurface(
                     onClick = onClose,
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(999.dp)),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(6.dp)),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = Color.White.copy(alpha = 0.12f),
                         focusedContainerColor = Primary.copy(alpha = 0.9f)
                     )
                 ) {
-                    Text(
-                        text = stringResource(R.string.player_close),
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                    ) {
+                        Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.return_to_home), color = Color.White)
+                    }
                 }
             }
         }

@@ -46,6 +46,8 @@ export interface Episode {
   episode: number;
   streamUrl: string;
   streamFormat: StreamFormat;
+  /** Provider added/release timestamp in milliseconds, when valid. */
+  newestAt?: number;
 }
 
 /** The minimal shape the player needs. */

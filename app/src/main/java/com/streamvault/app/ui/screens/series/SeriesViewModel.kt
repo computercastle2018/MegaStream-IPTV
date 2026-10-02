@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.MegaStream.app.ui.screens.vod.VodCatalogRefresh
 import com.MegaStream.data.sync.ContentCachePolicy
+import com.MegaStream.data.sync.SyncManager
+import com.MegaStream.data.sync.SyncRepairSection
 import com.MegaStream.domain.repository.SyncMetadataRepository
 import com.MegaStream.app.ui.model.applyProviderCategoryDisplayPreferences
 import com.MegaStream.app.ui.model.VodViewMode
@@ -65,6 +67,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class SeriesLibraryLens {
     FAVORITES,
@@ -84,7 +88,8 @@ class SeriesViewModel @Inject constructor(
     private val getContinueWatching: GetContinueWatching,
     private val getCustomCategories: GetCustomCategories,
     private val parentalControlManager: ParentalControlManager,
-    private val syncMetadataRepository: SyncMetadataRepository
+    private val syncMetadataRepository: SyncMetadataRepository,
+    private val syncManager: SyncManager,
 ) : ViewModel() {
     private companion object {
         const val UNCATEGORIZED = "Uncategorized"
@@ -122,6 +127,9 @@ class SeriesViewModel @Inject constructor(
             seriesRepository.refreshSeries(providerId, categoryIds)
         }
     )
+    private val manualCatalogRefresh = VodCatalogRefresh(viewModelScope, { false }) { providerId ->
+        syncSeriesCatalog(syncManager, providerId)
+    }
 
     private data class PreviewLoadResult(
         val snapshot: SeriesCatalogSnapshot,
@@ -131,10 +139,12 @@ class SeriesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            catalogRefresh.state.collect { refresh ->
-                _catalogRevision.value = refresh.revision
-                _uiState.update { it.copy(isCatalogRefreshing = refresh.isRefreshing, catalogRefreshError = refresh.error) }
-            }
+            combine(catalogRefresh.state, manualCatalogRefresh.state) { automatic, manual -> automatic to manual }
+                .collect { (automatic, manual) ->
+                    _catalogRevision.value = automatic.revision + manual.revision
+                    _uiState.update { it.copy(isCatalogRefreshing = automatic.isRefreshing || manual.isRefreshing,
+                        catalogRefreshError = manual.error ?: automatic.error, catalogSyncRevision = manual.revision) }
+                }
         }
         viewModelScope.launch {
             providerRepository.getActiveProvider().flatMapLatest { provider ->
@@ -162,6 +172,7 @@ class SeriesViewModel @Inject constructor(
                 previousProviderId = provider?.id
                 activeProviderId = provider?.id
                 catalogRefresh.enter(provider?.id, _studioMode.value)
+                manualCatalogRefresh.enter(provider?.id, true)
                 _uiState.update {
                     it.copy(
                         hasActiveProvider = provider != null,
@@ -237,7 +248,7 @@ class SeriesViewModel @Inject constructor(
                     }
                 }
                 .flatMapLatest { params ->
-                    combine(_previewBatchSize, _studioMode) { batchSize, studio -> batchSize to studio }.flatMapLatest { (batchSize, studio) ->
+                    combine(_previewBatchSize, _studioMode, _catalogRevision) { batchSize, studio, _ -> batchSize to studio }.flatMapLatest { (batchSize, studio) ->
                         if (params.query.isBlank()) {
                             val categoryIds = params.providerCategories.take(batchSize).map { it.id }
                             if (categoryIds.isEmpty()) {
@@ -560,8 +571,10 @@ class SeriesViewModel @Inject constructor(
         catalogRefresh.enter(activeProviderId, enabled)
     }
 
-    fun refreshStudioCatalog() {
-        catalogRefresh.refreshIfNeeded()
+    fun syncCatalog() {
+        if (activeProviderId == null || _uiState.value.isCatalogRefreshing) return
+        catalogRefresh.enter(activeProviderId, false)
+        manualCatalogRefresh.refreshIfNeeded(force = true)
     }
 
     fun selectCategory(categoryName: String?) {
@@ -1344,9 +1357,16 @@ private data class SelectedSeriesCategorySnapshot(
     val canLoadMore: Boolean = false
 )
 
+internal suspend fun syncSeriesCatalog(syncManager: SyncManager, providerId: Long): Result<Unit> = withContext(Dispatchers.IO) {
+    val outcome = syncManager.retrySection(providerId, SyncRepairSection.SERIES)
+    if (outcome !is Result.Success) return@withContext outcome
+    syncManager.processQueuedXtreamIndexJobs(providerId, ContentType.SERIES, force = true)
+}
+
 data class SeriesUiState(
     val isCatalogRefreshing: Boolean = false,
     val catalogRefreshError: String? = null,
+    val catalogSyncRevision: Long = 0,
     val newestAddedItems: List<Series> = emptyList(),
     val seriesByCategory: Map<String, List<Series>> = emptyMap(),
     val categoryNames: List<String> = emptyList(),

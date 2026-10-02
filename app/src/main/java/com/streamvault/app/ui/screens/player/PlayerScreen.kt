@@ -168,9 +168,11 @@ fun PlayerScreen(
     val playerEngine by viewModel.activePlayerEngine.collectAsStateWithLifecycle()
     val playbackState by playerEngine.playbackState.collectAsStateWithLifecycle()
     val isPlaying by playerEngine.isPlaying.collectAsStateWithLifecycle()
+    val focusRequester = remember { FocusRequester() }
     KioskPlayerSignals(
         playbackActive = streamUrl.isNotBlank() &&
-            (isPlaying || playbackState == PlaybackState.BUFFERING)
+            (isPlaying || playbackState == PlaybackState.BUFFERING),
+        focusRequester = focusRequester
     )
     val renderSurfaceType by playerEngine.renderSurfaceType.collectAsStateWithLifecycle()
     val playerStats by viewModel.playerStats.collectAsStateWithLifecycle()
@@ -238,7 +240,6 @@ fun PlayerScreen(
     var showEpisodePicker by remember { mutableStateOf(false) }
     var channelInfoSubPanelOpen by remember { mutableStateOf(false) }
     
-    val focusRequester = remember { FocusRequester() }
     val channelListFocusRequester = remember { FocusRequester() }
     val categoryListFocusRequester = remember { FocusRequester() }
     val playButtonFocusRequester = remember { FocusRequester() }
@@ -1103,9 +1104,8 @@ fun PlayerScreen(
             playButtonFocusRequester = playButtonFocusRequester,
             quickActionsFocusRequester = quickActionsFocusRequester,
             modifier = Modifier.fillMaxSize(),
-            // The visible top-bar button exits fullscreen playback. Remote/system
-            // Back still uses handleBackPress(), which dismisses overlays first.
-            onClose = onBack,
+            // Remote/system Back still dismisses overlays before leaving playback.
+            onClose = onHome,
             onTogglePlayPause = { if (isPlaying) viewModel.pause() else viewModel.play() },
             onSeekBackward = viewModel::seekBackward,
             onSeekForward = viewModel::seekForward,

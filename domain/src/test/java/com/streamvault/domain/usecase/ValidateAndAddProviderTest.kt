@@ -23,6 +23,11 @@ import org.junit.Test
 class ValidateAndAddProviderTest {
 
     @Test
+    fun `repository without ID credential capability defaults to unknown`() = runTest {
+        assertThat(FakeProviderRepository().getProviderCredentials(7L)).isNull()
+    }
+
+    @Test
     fun `validateXtreamInput returns null when input is valid without calling repository`() {
         val repository = FakeProviderRepository()
         val useCase = ValidateAndAddProvider(

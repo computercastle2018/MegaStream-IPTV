@@ -7,6 +7,7 @@
 //   ...&action=get_series_info&series_id=ID                     -> episodes
 //   {server}/live|movie|series/{user}/{pass}/{id}.{ext}         -> playback
 import type { ContentItem, Episode, XtreamProvider } from "../types";
+import { episodeTimestamp } from "./episodes";
 
 interface XtreamAuthResponse {
   user_info?: { auth?: number; status?: string; message?: string; exp_date?: string | number | null };
@@ -63,6 +64,9 @@ interface EpisodeDto {
   episode_num?: string | number;
   season?: string | number;
   container_extension?: string;
+  added?: string | number;
+  release_date?: string;
+  info?: { releasedate?: string; release_date?: string; air_date?: string };
 }
 
 function trimServer(serverUrl: string): string {
@@ -240,6 +244,11 @@ export async function getEpisodes(
         episode: number,
         streamUrl: `${trimServer(p.serverUrl)}/series/${seg(p.username)}/${seg(p.password)}/${seg(String(ep.id))}.${ext}`,
         streamFormat: "auto",
+        newestAt: episodeTimestamp(ep.added)
+          ?? episodeTimestamp(ep.info?.releasedate)
+          ?? episodeTimestamp(ep.info?.release_date)
+          ?? episodeTimestamp(ep.info?.air_date)
+          ?? episodeTimestamp(ep.release_date),
       });
     }
   }

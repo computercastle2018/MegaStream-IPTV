@@ -8,9 +8,12 @@ import androidx.media3.common.Format
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.MegaStream.player.PLAYER_TRACK_AUTO_ID
 import com.MegaStream.player.PlayerTrack
 import com.MegaStream.player.TrackType
+import com.MegaStream.domain.model.DEFAULT_PLAYBACK_MAX_VIDEO_HEIGHT
+import com.MegaStream.domain.model.PlaybackVideoQualityPolicy
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,8 +34,9 @@ class PlayerTrackController(
 
     private var selectedVideoTrackId: String = PLAYER_TRACK_AUTO_ID
     private var preferredAudioLanguageTag: String? = null
-    private var preferredWifiMaxVideoHeight: Int? = null
-    private var preferredEthernetMaxVideoHeight: Int? = null
+    private var preferredWifiMaxVideoHeight: Int? = DEFAULT_PLAYBACK_MAX_VIDEO_HEIGHT
+    private var preferredEthernetMaxVideoHeight: Int? = DEFAULT_PLAYBACK_MAX_VIDEO_HEIGHT
+    private var qualityPolicy = PlaybackVideoQualityPolicy()
 
     fun resetSelections() {
         _availableAudioTracks.value = emptyList()
@@ -58,6 +62,7 @@ class PlayerTrackController(
                 } ?: clearVideoSizeConstraints()
             }
             .build()
+        applyVideoQualityParameters(player, constrainResolutionForMultiView)
     }
 
     fun setPreferredAudioLanguage(player: ExoPlayer?, languageTag: String?) {
@@ -72,6 +77,31 @@ class PlayerTrackController(
     fun setNetworkQualityPreferences(wifiMaxHeight: Int?, ethernetMaxHeight: Int?) {
         preferredWifiMaxVideoHeight = wifiMaxHeight?.takeIf { it > 0 }
         preferredEthernetMaxVideoHeight = ethernetMaxHeight?.takeIf { it > 0 }
+    }
+
+    fun setAdminMaxVideoHeight(maxHeight: Int?): Boolean {
+        val next = PlaybackVideoQualityPolicy(maxHeight)
+        if (next == qualityPolicy) return false
+        qualityPolicy = next
+        return true
+    }
+
+    fun applyVideoQualityParameters(player: ExoPlayer, constrainResolution: Boolean) {
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon().apply {
+            resolvedMaxVideoHeightForCurrentNetwork(constrainResolution)?.let {
+                setMaxVideoSize(Int.MAX_VALUE, it)
+            } ?: clearVideoSizeConstraints()
+            if (qualityPolicy.adminMaxVideoHeight != null) {
+                clearOverridesOfType(C.TRACK_TYPE_VIDEO)
+                selectedVideoTrackId = PLAYER_TRACK_AUTO_ID
+            }
+        }.build()
+        (player.trackSelector as? DefaultTrackSelector)?.let { selector ->
+            selector.parameters = selector.parameters.buildUpon()
+                .setExceedVideoConstraintsIfNecessary(qualityPolicy.adminMaxVideoHeight == null)
+                .build()
+        }
+        onTracksChanged(player.currentTracks)
     }
 
     fun onTracksChanged(tracks: Tracks) {
@@ -103,7 +133,7 @@ class PlayerTrackController(
                     when {
                         isAudio && group.isTrackSupported(index, false) -> audioTracks += track
                         isText && group.isTrackSupported(index, false) -> subtitleTracks += track
-                        isVideo && group.isTrackSupported(index, false) -> videoTracks += track
+                        isVideo && group.isTrackSupported(index, false) && qualityPolicy.permitsManualTrack(format.height) -> videoTracks += track
                     }
                 }
             }
@@ -150,6 +180,7 @@ class PlayerTrackController(
             selectedVideoTrackId = PLAYER_TRACK_AUTO_ID
         } else {
             val override = findOverride(player.currentTracks, C.TRACK_TYPE_VIDEO, trackId) ?: return
+            if (!qualityPolicy.permitsManualTrack(override.mediaTrackGroup.getFormat(override.trackIndices.first()).height)) return
             player.trackSelectionParameters = player.trackSelectionParameters
                 .buildUpon()
                 .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
@@ -197,18 +228,14 @@ class PlayerTrackController(
 
     private fun resolvedMaxVideoHeightForCurrentNetwork(constrainResolutionForMultiView: Boolean): Int? {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-        val network = connectivityManager?.activeNetwork ?: return null
-        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return null
+        val network = connectivityManager?.activeNetwork
+        val capabilities = network?.let { connectivityManager.getNetworkCapabilities(it) }
         val networkPreference = when {
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> preferredEthernetMaxVideoHeight
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> preferredWifiMaxVideoHeight
-            else -> null
+            capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true -> preferredEthernetMaxVideoHeight
+            capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> preferredWifiMaxVideoHeight
+            else -> DEFAULT_PLAYBACK_MAX_VIDEO_HEIGHT
         }
-        return when {
-            constrainResolutionForMultiView && networkPreference != null -> minOf(720, networkPreference)
-            constrainResolutionForMultiView -> 720
-            else -> networkPreference
-        }
+        return qualityPolicy.maxVideoHeight(networkPreference, constrainResolutionForMultiView)
     }
 
     private fun buildTrackName(format: Format, trackType: Int, index: Int): String {

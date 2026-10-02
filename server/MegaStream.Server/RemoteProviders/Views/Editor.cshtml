@@ -7,7 +7,13 @@
 @if (Model.Metadata is { } metadata)
 {
     <dl><dt>الاسم</dt><dd>@metadata.DisplayName</dd><dt>النوع</dt><dd><bdi>@metadata.Type</bdi></dd><dt>الحالة</dt><dd>@(metadata.Status == "active" ? "نشط" : "ملغى")</dd><dt>المراجعة</dt><dd>@metadata.Revision</dd><dt>الإعدادات</dt><dd>@(metadata.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</dd></dl>
+    @if (metadata.Status == "active" && !metadata.DeletedAt.HasValue)
+    {
+        var access = new MegaStream.Server.RemoteProviders.Http.ProviderAccess($"/admin/providers/{metadata.Id}", metadata.Type != "STALKER_PORTAL");
+        <partial name="~/RemoteProviders/Views/_ProviderAccess.cshtml" model="access" />
+    }
 }
+@section Scripts { <script src="~/js/provider-credentials.js" asp-append-version="true" defer></script> }
 <p>يستبدل الحفظ الإعدادات كاملة. تبدأ حقول الإعدادات فارغة؛ ترك الأسرار فارغة لا يحتفظ بالقيم السابقة. لا تضع بيانات الدخول أو روابط المزود في الاسم المعروض.</p>
 <form method="post" action="@(Model.ProfileId.HasValue ? $"/admin/providers/{Model.ProfileId}" : "/admin/providers/create")" autocomplete="off">
     @Html.AntiForgeryToken()

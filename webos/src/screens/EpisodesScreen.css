@@ -1,0 +1,20 @@
+.episodes-screen .episodes-toolbar {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.episodes-toolbar .search-box {
+  flex: 1 1 280px;
+  width: auto;
+  margin: 0;
+}
+
+.episodes-toolbar .sort-control {
+  flex-wrap: wrap;
+}
+
+.episodes-screen .channel-card .num {
+  min-width: 5.5em;
+  font-size: 0.8em;
+}

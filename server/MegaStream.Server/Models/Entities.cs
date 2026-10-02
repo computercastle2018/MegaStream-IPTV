@@ -37,6 +37,7 @@ public class Installation
     public bool AllowSubscriptionDetails { get; set; } = true;
     public string? MacAddress { get; set; }
     public string? UiStyle { get; set; }
+    public string? PlaybackQuality { get; set; }
     public InstallationStatus Status { get; set; } = InstallationStatus.Active;
     public Guid? LicenseId { get; set; }
     public License? License { get; set; }
@@ -47,6 +48,11 @@ public class Installation
     public DateTime? LastLeaseExpiresAt { get; set; }
     public string? LocalSubscriptionsJson { get; set; }
     public DateTime? LocalSubscriptionsReportedAt { get; set; }
+}
+public class PlaybackQualityDefault
+{
+    public int Id { get; set; } = 1;
+    public string Quality { get; set; } = "1080";
 }
 public class AdminNotification
 {

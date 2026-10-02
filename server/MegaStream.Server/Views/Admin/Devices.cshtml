@@ -1,3 +1,35 @@
 @model DevicesViewModel
 @{ ViewData["Title"] = "الأجهزة"; }
+@if (TempData["PlaybackQualityResult"] is string result) { <p class="notice" role="status">@result</p> }
+<section class="panel">
+    <h2>جودة التشغيل الافتراضية</h2>
+    <form asp-action="SetGlobalPlaybackQuality" method="post">
+        <label for="global-playback-quality">الجودة للأجهزة التي ترث السياسة العامة</label>
+        <select id="global-playback-quality" name="PlaybackQuality" required>
+            @foreach (var quality in MegaStream.Server.Services.PlaybackQualityPolicy.Values)
+            { <option value="@quality" selected="@(Model.GlobalPlaybackQuality == quality)">@(quality == "auto" ? "تلقائية" : quality + "p")</option> }
+        </select>
+        <button type="submit">حفظ الافتراضي العام</button>
+    </form>
+</section>
+<section class="panel">
+    <h2>تطبيق الجودة على جميع الأجهزة النشطة</h2>
+    <form asp-action="SetAllPlaybackQuality" method="post">
+        <input type="hidden" name="Scope" value="all" />
+        <input type="hidden" name="Mode" value="apply" />
+        <label for="all-playback-quality">تجاوز جودة جميع الأجهزة النشطة</label>
+        <select id="all-playback-quality" name="PlaybackQuality" required>
+            @foreach (var quality in MegaStream.Server.Services.PlaybackQualityPolicy.Values)
+            { <option value="@quality" selected="@(quality == Model.GlobalPlaybackQuality)">@(quality == "auto" ? "تلقائية" : quality + "p")</option> }
+        </select>
+        <label><input type="checkbox" name="Confirm" value="true" required /> تأكيد استبدال تجاوزات الجودة لجميع الأجهزة النشطة، بما فيها غير المعروضة في الجدول</label>
+        <button type="submit">تطبيق على جميع الأجهزة النشطة</button>
+    </form>
+    <form asp-action="SetAllPlaybackQuality" method="post">
+        <input type="hidden" name="Scope" value="all" />
+        <input type="hidden" name="Mode" value="inherit" />
+        <label><input type="checkbox" name="Confirm" value="true" required /> تأكيد إزالة تجاوزات الجودة لجميع الأجهزة النشطة</label>
+        <button type="submit">وراثة الافتراضي العام لجميع الأجهزة النشطة</button>
+    </form>
+</section>
 <p class="muted">أحدث 500 جهاز حسب آخر ظهور. الاتصال يتطلب جهازاً نشطاً ونشاطاً حديثاً.</p><section class="panel"><partial name="_DevicesTable" model="Model" /></section>

@@ -1,5 +1,7 @@
 package com.MegaStream.app.ui.screens.settings
 
+import com.MegaStream.app.navigation.Routes
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -208,7 +210,7 @@ fun SettingsScreen(
             showScreenHeader = false,
             topBarActions = {
                 AppTopBarCloseAction(
-                    onClick = { mainActivity?.finishAffinity() }
+                    onClick = { onNavigate(Routes.HOME) }
                 )
             }
         ) {

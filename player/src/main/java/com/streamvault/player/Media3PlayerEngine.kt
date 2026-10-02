@@ -70,6 +70,7 @@ import com.MegaStream.player.timeshift.LiveTimeshiftState
 import com.MegaStream.player.timeshift.LiveTimeshiftStatus
 import com.MegaStream.player.timeshift.TimeshiftConfig
 import com.MegaStream.player.tracks.PlayerTrackController
+import com.MegaStream.player.tracks.ManagedPlaybackQualityPreferences
 import com.MegaStream.player.ui.PlayerViewBinder
 import com.MegaStream.player.ui.SubtitleStyleController
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -228,6 +229,12 @@ class Media3PlayerEngine @Inject constructor(
     private val subtitleStyleController = SubtitleStyleController()
     private val viewBinder = PlayerViewBinder(subtitleStyleController)
     private val trackController = PlayerTrackController(context)
+    private val qualityPreferences = context.getSharedPreferences(ManagedPlaybackQualityPreferences.FILE_NAME, Context.MODE_PRIVATE)
+    private val qualityPreferenceListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
+        if (key == ManagedPlaybackQualityPreferences.QUALITY_KEY) scope.launch {
+            setAdminMaxVideoHeight(ManagedPlaybackQualityPreferences.readMaxHeight(preferences))
+        }
+    }
     private val ffmpegExtensionSupport = FfmpegExtensionSupport()
     private var ffmpegAvailability = ffmpegExtensionSupport.availability()
     override val availableAudioTracks: StateFlow<List<PlayerTrack>> = trackController.availableAudioTracks
@@ -280,6 +287,8 @@ class Media3PlayerEngine @Inject constructor(
     )
 
     init {
+        trackController.setAdminMaxVideoHeight(ManagedPlaybackQualityPreferences.readMaxHeight(qualityPreferences))
+        qualityPreferences.registerOnSharedPreferenceChangeListener(qualityPreferenceListener)
         startEngineCollectors()
     }
 
@@ -598,7 +607,15 @@ class Media3PlayerEngine @Inject constructor(
 
     override fun setNetworkQualityPreferences(wifiMaxHeight: Int?, ethernetMaxHeight: Int?) {
         trackController.setNetworkQualityPreferences(wifiMaxHeight, ethernetMaxHeight)
-        exoPlayer?.let { player -> trackController.applyInitialParameters(player, constrainResolutionForMultiView) }
+        exoPlayer?.let { player -> trackController.applyVideoQualityParameters(player,
+            constrainResolutionForMultiView || activeDecoderPolicy == ActiveDecoderPolicy.COMPATIBILITY) }
+    }
+
+    override fun setAdminMaxVideoHeight(maxHeight: Int?) {
+        if (trackController.setAdminMaxVideoHeight(maxHeight)) exoPlayer?.let { player ->
+            trackController.applyVideoQualityParameters(player,
+                constrainResolutionForMultiView || activeDecoderPolicy == ActiveDecoderPolicy.COMPATIBILITY)
+        }
     }
 
     override fun selectAudioTrack(trackId: String) {
@@ -704,6 +721,7 @@ class Media3PlayerEngine @Inject constructor(
     override fun release() {
         if (isDisposed) return
         isDisposed = true
+        qualityPreferences.unregisterOnSharedPreferenceChangeListener(qualityPreferenceListener)
         resetEngineState(restartCollectors = false)
     }
 
@@ -872,7 +890,7 @@ class Media3PlayerEngine @Inject constructor(
             if (activeDecoderPolicy == ActiveDecoderPolicy.COMPATIBILITY) {
                 player.trackSelectionParameters = player.trackSelectionParameters
                     .buildUpon()
-                    .setMaxVideoSize(Int.MAX_VALUE, 720)
+                    .setMaxVideoSize(Int.MAX_VALUE, minOf(720, player.trackSelectionParameters.maxVideoHeight))
                     .build()
             }
             player.playbackParameters = PlaybackParameters(_playbackSpeed.value)

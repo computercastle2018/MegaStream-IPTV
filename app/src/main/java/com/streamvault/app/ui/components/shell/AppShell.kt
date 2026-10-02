@@ -26,7 +26,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
@@ -514,7 +513,7 @@ fun AppTopBarLanguageAction(modifier: Modifier = Modifier) {
 fun AppTopBarCloseAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    contentDescription: String = stringResource(R.string.settings_close_app)
+    contentDescription: String = stringResource(R.string.return_to_home)
 ) {
     TvIconButton(
         onClick = onClick,
@@ -533,7 +532,7 @@ fun AppTopBarCloseAction(
         )
     ) {
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+            imageVector = Icons.Default.Home,
             contentDescription = contentDescription,
             modifier = Modifier.size(18.dp)
         )

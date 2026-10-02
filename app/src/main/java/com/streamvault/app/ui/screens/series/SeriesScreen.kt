@@ -60,7 +60,6 @@ import androidx.compose.ui.res.stringResource
 import com.MegaStream.app.R
 import androidx.compose.foundation.border
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import com.MegaStream.app.ui.components.ReorderTopBar
@@ -100,8 +99,16 @@ import com.MegaStream.app.ui.screens.vod.ProtectedVodPinDialog
 import com.MegaStream.app.ui.screens.vod.VodBrowseDefaults
 import com.MegaStream.app.ui.screens.vod.vodActiveFilterSortDetail
 import kotlinx.coroutines.delay
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SeriesScreen(
     onSeriesClick: (Long) -> Unit,
@@ -116,6 +123,16 @@ fun SeriesScreen(
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     LaunchedEffect(studio, viewModel) { viewModel.enterStudioCatalog(studio) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val syncLabel = stringResource(R.string.series_sync_catalog)
+    val syncProgress = stringResource(R.string.vod_catalog_sync_in_progress)
+    val syncSuccess = stringResource(R.string.series_catalog_synced)
+    var observedSyncRevision by remember(viewModel) { mutableLongStateOf(uiState.catalogSyncRevision) }
+    LaunchedEffect(uiState.catalogSyncRevision, syncSuccess) {
+        if (uiState.catalogSyncRevision > observedSyncRevision) {
+            observedSyncRevision = uiState.catalogSyncRevision
+            snackbarHostState.showSnackbar(syncSuccess)
+        }
+    }
     val initialContentFocusRequester = remember { FocusRequester() }
     var showPinDialog by remember { mutableStateOf(false) }
     var pinError by remember { mutableStateOf<String?>(null) }
@@ -172,16 +189,27 @@ fun SeriesScreen(
             compactHeader = true,
             showScreenHeader = false,
             topBarActions = {
-                if (studio) TvIconButton(onClick = viewModel::refreshStudioCatalog, enabled = !uiState.isCatalogRefreshing) {
-                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.studio_refresh_catalog))
+                TooltipBox(positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip { Text(syncLabel) } }, state = rememberTooltipState()) {
+                    TvIconButton(onClick = viewModel::syncCatalog,
+                        enabled = uiState.hasActiveProvider && !uiState.isCatalogRefreshing,
+                        modifier = Modifier.size(48.dp).semantics {
+                            contentDescription = syncLabel
+                            if (uiState.isCatalogRefreshing) stateDescription = syncProgress
+                        }) {
+                        if (uiState.isCatalogRefreshing) {
+                            CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                        } else Icon(Icons.Default.Refresh, contentDescription = null)
+                    }
                 }
             }
         ) {
-        if (studio && uiState.isCatalogRefreshing) {
+        if (uiState.isCatalogRefreshing) {
             androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary)
         }
-        if (studio && uiState.catalogRefreshError != null) {
-            Text(uiState.catalogRefreshError.orEmpty(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp))
+        if (uiState.catalogRefreshError != null) {
+            Text(stringResource(R.string.vod_catalog_sync_failed, uiState.catalogRefreshError.orEmpty()),
+                color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp))
         }
         if (uiState.isReorderMode && uiState.reorderCategory != null) {
             ReorderTopBar(

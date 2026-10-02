@@ -40,7 +40,7 @@ public sealed class RemoteProviderService(AppDbContext db, ProviderPayloadCipher
         {
             var profile = await Profile(profileId, ct);
             Active(profile);
-            // Complete replacement: existing credentials are never read for an administrative operation.
+            // Complete replacement never reads or retains previous credentials.
             profile.DisplayName = request.DisplayName; profile.Type = request.Type;
             profile.Revision = revision; profile.UpdatedAt = DateTime.UtcNow; profile.KeyVersion = cipher.KeyVersion;
             profile.EncryptedPayload = cipher.Encrypt(profile.Id, profile.Type, revision, request.Configuration);
@@ -77,6 +77,13 @@ public sealed class RemoteProviderService(AppDbContext db, ProviderPayloadCipher
         await db.Set<RemoteProviderProfile>().AsNoTracking().Where(x => x.Id == profileId)
             .Select(x => new RemoteProviderProfileMetadata { Id = x.Id, DisplayName = x.DisplayName, Type = x.Type, Status = x.Status,
                 Revision = x.Revision, CreatedAt = x.CreatedAt, UpdatedAt = x.UpdatedAt, DeletedAt = x.DeletedAt }).SingleOrDefaultAsync(ct) ?? throw NotFound());
+
+    public Task<RemoteProviderConfiguration> RevealConfigurationAsync(Guid profileId, CancellationToken ct = default) => SafeRead(async () =>
+    {
+        var profile = await db.Set<RemoteProviderProfile>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == profileId, ct) ?? throw NotFound();
+        Active(profile);
+        return cipher.Decrypt(profile);
+    });
 
     public Task<RemoteProviderAssignment> AssignAsync(Guid profileId, Guid installationId, AssignRemoteProvider request, CancellationToken ct = default)
     {

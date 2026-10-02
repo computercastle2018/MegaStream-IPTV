@@ -71,6 +71,10 @@ internal fun DeviceNotificationsDialog(
     onRefresh: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    if (!inboxOpen) {
+        notices.firstOrNull()?.let { DeviceNotificationPopup(it, onDismiss) }
+        return
+    }
     var canInteract by remember { mutableStateOf(false) }
     var selectedId by remember(inboxOpen) { mutableStateOf<String?>(null) }
     val blockOpenGesture = rememberDialogOpenGestureBlocker(canInteract)
@@ -221,6 +225,91 @@ internal fun DeviceNotificationsDialog(
                         scale = ButtonDefaults.scale(focusedScale = 1f)) {
                         Text(stringResource(R.string.device_notifications_close))
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceNotificationPopup(notice: DeviceNotice, onDismiss: () -> Unit) {
+    var canInteract by remember { mutableStateOf(false) }
+    val closeFocus = remember { FocusRequester() }
+    val messageFocus = remember { FocusRequester() }
+    val blockOpenGesture = rememberDialogOpenGestureBlocker(canInteract)
+    val scroll = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val scrollStep = with(LocalDensity.current) { 96.dp.toPx() }
+    val locale = LocalConfiguration.current.locales[0]
+    var messageFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { delay(500); canInteract = true }
+    LaunchedEffect(canInteract) {
+        if (canInteract) closeFocus.requestFocusSafely(tag = "Notifications", target = "Popup close")
+    }
+    LaunchedEffect(notice.id) { scroll.scrollTo(0) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = canInteract,
+            dismissOnClickOutside = canInteract,
+            usePlatformDefaultWidth = false,
+        ),
+    ) {
+        BoxWithConstraints(Modifier.fillMaxSize().padding(20.dp), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.widthIn(max = 640.dp).fillMaxWidth()
+                    .heightIn(max = minOf(440.dp, maxHeight * 0.8f))
+                    .testTag("notification_popup")
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f), RoundedCornerShape(8.dp))
+                    .onPreviewKeyEvent(blockOpenGesture).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Default.Notifications, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+                    Text(stringResource(R.string.device_notifications),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f))
+                    TvIconButton(onClick = onDismiss, enabled = canInteract,
+                        modifier = Modifier.focusRequester(closeFocus).focusProperties { down = messageFocus }) {
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.device_notifications_close))
+                    }
+                }
+                Column(
+                    Modifier.weight(1f, fill = false).fillMaxWidth()
+                        .testTag("notification_popup_content")
+                        .focusRequester(messageFocus).focusProperties { up = closeFocus }
+                        .onFocusChanged { messageFocused = it.isFocused }
+                        .border(1.dp, if (messageFocused) MaterialTheme.colorScheme.primary
+                            else androidx.compose.ui.graphics.Color.Transparent, RoundedCornerShape(4.dp))
+                        .onPreviewKeyEvent {
+                            val event = it.nativeKeyEvent
+                            val delta = when {
+                                event.keyCode == AndroidKeyEvent.KEYCODE_DPAD_DOWN && scroll.canScrollForward -> scrollStep
+                                event.keyCode == AndroidKeyEvent.KEYCODE_DPAD_UP && scroll.canScrollBackward -> -scrollStep
+                                else -> return@onPreviewKeyEvent false
+                            }
+                            if (event.action == AndroidKeyEvent.ACTION_DOWN) scope.launch {
+                                scroll.animateScrollTo((scroll.value + delta.toInt()).coerceIn(0, scroll.maxValue))
+                            }
+                            true
+                        }.focusable(enabled = canInteract).verticalScroll(scroll).padding(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Text(notice.title, style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.testTag("notification_popup_title").semantics { heading() })
+                    Box(Modifier.fillMaxWidth().height(1.dp)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)))
+                    Text(notice.message, style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.testTag("notification_popup_message"))
+                    Text(formatNoticeDate(notice.createdAt, locale), style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

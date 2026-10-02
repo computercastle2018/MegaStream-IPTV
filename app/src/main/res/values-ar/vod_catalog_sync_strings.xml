@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="movies_sync_catalog">مزامنة قائمة الأفلام</string>
+    <string name="series_sync_catalog">مزامنة قائمة المسلسلات</string>
+    <string name="vod_catalog_sync_in_progress">جارٍ مزامنة القائمة</string>
+    <string name="movies_catalog_synced">تم تحديث قائمة الأفلام</string>
+    <string name="series_catalog_synced">تم تحديث قائمة المسلسلات</string>
+    <string name="vod_catalog_sync_failed">تعذرت مزامنة القائمة: %1$s</string>
+</resources>

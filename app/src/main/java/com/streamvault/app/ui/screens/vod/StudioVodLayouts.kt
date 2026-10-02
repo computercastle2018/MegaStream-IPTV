@@ -65,7 +65,7 @@ internal fun StudioCatalogLayout(
                 }
                 LazyVerticalGrid(
                     state = gridState,
-                    columns = GridCells.Adaptive(if (compact) 128.dp else 142.dp),
+                    columns = GridCells.Adaptive(112.dp),
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -130,14 +130,14 @@ internal fun StudioDetailLayout(
 ) {
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val compact = maxWidth < 600.dp
-        val heroHeight = if (compact) 390.dp else (maxHeight * 0.74f).coerceIn(320.dp, 440.dp)
+        val heroHeight = if (compact) 240.dp else 200.dp
         LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp),
             contentPadding = PaddingValues(bottom = 32.dp)) {
             item(key = "studio_detail_hero") {
-                Box(Modifier.fillMaxWidth().height(heroHeight)) {
+                Box(Modifier.fillMaxWidth().heightIn(min = heroHeight)) {
                     AsyncImage(model = imageUrl, contentDescription = title, contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize())
-                    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+                        modifier = Modifier.matchParentSize())
+                    Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(
                         MaterialTheme.colorScheme.background.copy(alpha = 0.12f),
                         MaterialTheme.colorScheme.background.copy(alpha = 0.76f),
                         MaterialTheme.colorScheme.background
@@ -145,10 +145,15 @@ internal fun StudioDetailLayout(
                     TvIconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart).padding(16.dp)) {
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.movie_detail_back))
                     }
-                    Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(if (compact) 20.dp else 32.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(
+                        start = if (compact) 16.dp else 24.dp,
+                        end = if (compact) 16.dp else 24.dp,
+                        top = 64.dp,
+                        bottom = 16.dp
+                    ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(title, color = MaterialTheme.colorScheme.onBackground,
-                            style = MaterialTheme.typography.headlineLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(metadata.filter { it.isNotBlank() }.joinToString("  |  "),
                             color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.bodyMedium,
                             maxLines = 2, overflow = TextOverflow.Ellipsis)

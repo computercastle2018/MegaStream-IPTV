@@ -87,6 +87,17 @@ class ProviderRepositoryImpl @Inject constructor(
         Result.error("Failed to update provider: ${e.message}", e)
     }
 
+    override suspend fun getProviderCredentials(providerId: Long): ProviderCredentials? {
+        if (providerId <= 0) return null
+        val entity = providerDao.getById(providerId) ?: return null
+        if (entity.username.isBlank() || entity.password.isBlank()) return null
+        val password = try {
+            credentialCrypto.decryptIfNeeded(entity.password)
+        } catch (_: CredentialDecryptionException) { return null }
+        if (password.isBlank()) return null
+        return ProviderCredentials(entity.serverUrl, entity.username, password)
+    }
+
     override suspend fun getAllProviderCredentials(): List<ProviderCredentials> {
         return providerDao.getAllSync()
             .map { entity ->

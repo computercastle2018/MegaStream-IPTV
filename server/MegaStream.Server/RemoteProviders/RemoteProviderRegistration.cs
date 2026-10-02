@@ -10,6 +10,8 @@ public static class RemoteProviderRegistration
         var cipher = new ProviderPayloadCipher(configuration);
         services.AddSingleton<ProviderPayloadCipher>(_ => cipher);
         services.AddScoped<IRemoteProviderService, RemoteProviderService>();
+        services.AddScoped<LocalSubscriptionCredentialsStore>();
+        services.AddSingleton<ProviderPlaylistExporter>();
         return services;
     }
 }

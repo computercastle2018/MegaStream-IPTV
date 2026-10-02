@@ -3,8 +3,15 @@ import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import type { ContentItem, Episode, Playable, Provider } from "../types";
 import { getEpisodes } from "../services/xtreamClient";
 import { onBack } from "../remote/keys";
-import { BackButton } from "../components/Focusable";
+import { BackButton, FocusButton, SearchInput } from "../components/Focusable";
 import { useLang } from "../i18n/LanguageContext";
+import { selectEpisodes, type EpisodeOrder } from "../services/episodes";
+import "./EpisodesScreen.css";
+
+const episodeLabels = {
+  en: { newest: "Newest first", oldest: "Oldest first", search: "Search episodes…", empty: "No matching episodes" },
+  ar: { newest: "الأحدث أولًا", oldest: "الأقدم أولًا", search: "ابحث عن الحلقات…", empty: "لا توجد حلقات مطابقة" },
+};
 
 interface Props {
   provider: Provider;
@@ -14,11 +21,15 @@ interface Props {
 }
 
 export default function EpisodesScreen({ provider, series, onPlay, onBack: goBack }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const labels = episodeLabels[lang];
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [season, setSeason] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [order, setOrder] = useState<EpisodeOrder>("newest");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => onBack(goBack), [goBack]);
 
@@ -29,12 +40,17 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
       return;
     }
     const controller = new AbortController();
+    setEpisodes([]);
+    setSeason(null);
+    setQuery("");
+    setOrder("newest");
+    setSearchOpen(false);
     setLoading(true);
     setError(null);
     getEpisodes(provider, series.seriesId, controller.signal)
       .then((list) => {
+        if (controller.signal.aborted) return;
         setEpisodes(list);
-        setSeason(list[0]?.season ?? null);
         setLoading(false);
       })
       .catch((e: unknown) => {
@@ -48,10 +64,11 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
   const seasons = useMemo(() => {
     const set = new Set<number>();
     episodes.forEach((e) => set.add(e.season));
-    return [...set].sort((a, b) => a - b);
+    return [...set].sort((a, b) => b - a);
   }, [episodes]);
 
-  const visible = season == null ? episodes : episodes.filter((e) => e.season === season);
+  const visible = useMemo(() => selectEpisodes(episodes, season, query, order),
+    [episodes, season, query, order]);
 
   const toPlayable = (ep: Episode): Playable => ({
     name: `${series.name} · S${ep.season}E${ep.episode}${ep.title ? ` — ${ep.title}` : ""}`,
@@ -61,7 +78,7 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
   });
 
   return (
-    <div className="screen">
+    <div className="screen episodes-screen">
       <header className="app-header">
         <BackButton onEnter={goBack} autoFocus />
         <h1 className="series-title">{series.name}</h1>
@@ -77,29 +94,50 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
       )}
 
       {!loading && !error && (
-        <div className="channels-body">
-          <nav className="category-rail">
-            <div className="rail-label">{t("episodes.seasons")}</div>
-            {seasons.map((s) => (
-              <SeasonItem
-                key={s}
-                label={t("episodes.season", { n: s })}
-                count={episodes.filter((e) => e.season === s).length}
-                active={s === season}
-                onSelect={() => setSeason(s)}
-              />
-            ))}
-          </nav>
-          <div className="content-grid live">
-            {visible.length === 0 ? (
-              <div className="center-msg">{t("episodes.none")}</div>
+        <>
+          <div className="browse-toolbar episodes-toolbar">
+            {searchOpen ? (
+              <SearchInput value={query} onChange={setQuery} placeholder={labels.search} autoFocus />
             ) : (
-              visible.map((ep, i) => (
-                <EpisodeCard key={ep.id} episode={ep} autoFocus={i === 0} onPlay={() => onPlay(toPlayable(ep))} />
-              ))
+              <FocusButton className="search-toggle" onEnter={() => setSearchOpen(true)}>
+                {t("common.search")}
+              </FocusButton>
             )}
+            <div className="sort-control" role="group" aria-label={t("common.sort")}>
+              <span className="sort-label">{t("common.sort")}</span>
+              <FocusButton className={`sort-pill ${order === "newest" ? "active" : ""}`}
+                onEnter={() => setOrder("newest")}>{labels.newest}</FocusButton>
+              <FocusButton className={`sort-pill ${order === "oldest" ? "active" : ""}`}
+                onEnter={() => setOrder("oldest")}>{labels.oldest}</FocusButton>
+            </div>
+            <span className="subtitle" aria-live="polite">{visible.length} / {episodes.length}</span>
           </div>
-        </div>
+          <div className="channels-body">
+            <nav className="category-rail">
+              <div className="rail-label">{t("episodes.seasons")}</div>
+              <SeasonItem label={t("common.all")} count={episodes.length}
+                active={season === null} onSelect={() => setSeason(null)} />
+              {seasons.map((s) => (
+                <SeasonItem
+                  key={s}
+                  label={t("episodes.season", { n: s })}
+                  count={episodes.filter((e) => e.season === s).length}
+                  active={s === season}
+                  onSelect={() => setSeason(s)}
+                />
+              ))}
+            </nav>
+            <div className="content-grid live">
+              {visible.length === 0 ? (
+                <div className="center-msg">{episodes.length === 0 ? t("episodes.none") : labels.empty}</div>
+              ) : (
+                visible.map((ep) => (
+                  <EpisodeCard key={ep.id} episode={ep} onPlay={() => onPlay(toPlayable(ep))} />
+                ))
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -117,11 +155,17 @@ function SeasonItem({
   onSelect: () => void;
 }) {
   const { ref, focused } = useFocusable({ onEnterPress: onSelect });
+  useEffect(() => {
+    if (focused) ref.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [focused, ref]);
   return (
     <div
       ref={ref}
       className={`category-item ${active ? "active" : ""} ${focused ? "focused" : ""}`}
       onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      aria-pressed={active}
     >
       <span className="cat-name">{label}</span>
       <span className="cat-count">{count}</span>
@@ -131,20 +175,19 @@ function SeasonItem({
 
 function EpisodeCard({
   episode,
-  autoFocus,
   onPlay,
 }: {
   episode: Episode;
-  autoFocus: boolean;
   onPlay: () => void;
 }) {
-  const { ref, focused, focusSelf } = useFocusable({ onEnterPress: onPlay });
+  const { ref, focused } = useFocusable({ onEnterPress: onPlay });
   useEffect(() => {
-    if (autoFocus) focusSelf();
-  }, [autoFocus, focusSelf]);
+    if (focused) ref.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [focused, ref]);
   return (
-    <div ref={ref} className={`channel-card focusable ${focused ? "focused" : ""}`} onClick={onPlay}>
-      <span className="num">E{episode.episode}</span>
+    <div ref={ref} className={`channel-card focusable ${focused ? "focused" : ""}`} onClick={onPlay}
+      role="button" tabIndex={0}>
+      <span className="num" dir="ltr">S{episode.season} · E{episode.episode}</span>
       <span className="name" title={episode.title}>
         {episode.title}
       </span>

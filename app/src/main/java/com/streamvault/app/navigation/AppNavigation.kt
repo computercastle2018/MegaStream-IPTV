@@ -354,7 +354,12 @@ fun AppNavigation(mainActivity: MainActivity) {
             }
 
             is ExternalNavigationRequest.Destination -> {
-                if (navigateIfResumed(request.destination.toRoute()) { launchSingleTop = true }) {
+                if (navigateIfResumed(request.destination.toRoute()) {
+                    if (request.destination == ExternalDestination.Home) {
+                        popUpTo(navController.graph.id) { inclusive = false }
+                    }
+                    launchSingleTop = true
+                }) {
                     mainActivity.clearExternalNavigationRequest()
                 }
             }

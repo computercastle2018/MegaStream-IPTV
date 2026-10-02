@@ -1,5 +1,8 @@
 package com.MegaStream.app.ui.notifications
 
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -12,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import com.MegaStream.app.R
@@ -19,6 +25,7 @@ import com.MegaStream.app.controlplane.DeviceExperienceViewModel
 import com.MegaStream.app.controlplane.DeviceNotice
 import com.MegaStream.app.ui.interaction.TvIconButton
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -48,7 +55,16 @@ fun DeviceNotificationsHost() {
     val state by viewModel.repository.state.collectAsState()
     val readIds by viewModel.repository.readIds.collectAsState()
     val inboxOpen by viewModel.repository.inboxOpen.collectAsState()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val lifecycleState by lifecycle.currentStateAsState()
+    val resumed = lifecycleState == Lifecycle.State.RESUMED
     val visible = visibleDeviceNotices(state.notifications, readIds, inboxOpen)
+    val popupId = visible.firstOrNull()?.id
+    LaunchedEffect(lifecycleState, inboxOpen, state.notifications.size, readIds.size, popupId) {
+        Log.i("DeviceNoticeState", "lifecycle=${lifecycleState.name} inboxOpen=$inboxOpen " +
+            "notices=${state.notifications.size} unread=${state.notifications.count { it.id !in readIds }} " +
+            "popupEligible=${resumed && !inboxOpen && popupId != null}")
+    }
     val scope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
     var refreshFailed by remember { mutableStateOf(false) }
@@ -69,10 +85,37 @@ fun DeviceNotificationsHost() {
     LaunchedEffect(inboxOpen) {
         if (inboxOpen) refreshInbox()
     }
-    if (inboxOpen || visible.isNotEmpty()) {
+    LaunchedEffect(popupId, inboxOpen, resumed) {
+        if (claimDeviceNoticeTone(popupId, inboxOpen, resumed, DeviceNoticeToneHistory.soundedIds)) {
+            var tone: ToneGenerator? = null
+            try {
+                tone = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 80)
+                tone.startTone(ToneGenerator.TONE_PROP_BEEP, 200)
+                delay(250)
+            } catch (_: RuntimeException) {
+                // Audio may be unavailable; the notification remains visible.
+            } finally {
+                tone?.release()
+            }
+        }
+    }
+    LaunchedEffect(popupId, inboxOpen, resumed) {
+        awaitDeviceNoticeTimeout(popupId, inboxOpen, resumed,
+            stillEligible = {
+                val repository = viewModel.repository
+                lifecycle.currentState == Lifecycle.State.RESUMED && !repository.inboxOpen.value &&
+                    visibleDeviceNotices(repository.state.value.notifications, repository.readIds.value,
+                        inboxOpen = false).firstOrNull()?.id == popupId
+            },
+            onTimeout = { viewModel.repository.markRead(setOf(it)) },
+        )
+    }
+    if (resumed && (inboxOpen || visible.isNotEmpty())) {
         val dismiss = {
-            viewModel.repository.markRead(visible.map { it.id }.toSet())
-            viewModel.repository.closeInbox()
+            if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                viewModel.repository.markRead(visible.map { it.id }.toSet())
+                viewModel.repository.closeInbox()
+            }
         }
         DeviceNotificationsDialog(
             notices = visible,

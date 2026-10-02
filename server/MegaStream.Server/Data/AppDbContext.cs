@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<DiagnosticEvent> DiagnosticEvents => Set<DiagnosticEvent>();
     public DbSet<DevicePolicyAudit> DevicePolicyAudits => Set<DevicePolicyAudit>();
     public DbSet<AdminNotification> AdminNotifications => Set<AdminNotification>();
+    public DbSet<PlaybackQualityDefault> PlaybackQualityDefaults => Set<PlaybackQualityDefault>();
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
@@ -27,6 +28,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             e.HasIndex(x=>new {x.Status,x.ValidUntil});
         });
         b.Entity<Installation>(e => {
+            e.Property(x=>x.PlaybackQuality).HasMaxLength(4);
             e.Property(x=>x.UiStyle).HasMaxLength(7);
             e.Property(x=>x.LocalSubscriptionsJson).HasColumnType("longtext");
             e.Property(x=>x.TokenHash).HasMaxLength(64).IsRequired(); e.HasIndex(x=>x.TokenHash).IsUnique();
@@ -42,6 +44,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             e.Property(x=>x.Status).HasConversion<string>().HasMaxLength(16);
             e.HasIndex(x=>new {x.LicenseId,x.Status}); e.HasIndex(x=>x.LastSeenAt);
             e.HasOne(x=>x.License).WithMany().HasForeignKey(x=>x.LicenseId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<PlaybackQualityDefault>(e => {
+            e.Property(x=>x.Id).ValueGeneratedNever();
+            e.Property(x=>x.Quality).HasMaxLength(4).IsRequired();
+            e.HasData(new PlaybackQualityDefault { Id = 1, Quality = "1080" });
         });
         b.Entity<AdminNotification>(e => {
             e.Property(x=>x.Title).HasMaxLength(128).IsRequired();

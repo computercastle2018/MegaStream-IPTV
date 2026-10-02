@@ -79,6 +79,11 @@ import com.MegaStream.app.ui.design.requestFocusSafely
 import com.MegaStream.app.ui.screens.vod.StudioDetailLayout
 import com.MegaStream.app.ui.screens.vod.StudioCategoryButton
 import com.MegaStream.app.ui.components.shell.VodCategoryOption
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.MegaStream.domain.util.EpisodeBrowseQuery
+import com.MegaStream.domain.util.EpisodeOrder
+import com.MegaStream.domain.util.EpisodeWatchFilter
+import com.MegaStream.domain.util.browseSeriesEpisodes
 
 private const val EPISODE_DETAIL_PAGE_SIZE = 100
 
@@ -149,6 +154,22 @@ private fun SeriesDetailContent(
     onBack: () -> Unit
 ) {
     val isTelevisionDevice = rememberIsTelevisionDevice()
+    var seasonFilter by rememberSaveable(series.id) { mutableStateOf<Int?>(null) }
+    var episodeSearch by rememberSaveable(series.id) { mutableStateOf("") }
+    var episodeFilter by rememberSaveable(series.id) { mutableStateOf(EpisodeWatchFilter.ALL.name) }
+    var episodeOrder by rememberSaveable(series.id) { mutableStateOf(EpisodeOrder.NEWEST.name) }
+    val browseQuery = EpisodeBrowseQuery(seasonFilter, episodeSearch,
+        EpisodeWatchFilter.valueOf(episodeFilter), EpisodeOrder.valueOf(episodeOrder))
+    val onBrowseChange: (EpisodeBrowseQuery) -> Unit = { query ->
+        seasonFilter = query.seasonNumber
+        episodeSearch = query.search
+        episodeFilter = query.watchFilter.name
+        episodeOrder = query.order.name
+    }
+    val onBrowseSeason: (Season) -> Unit = { season ->
+        seasonFilter = season.seasonNumber
+        onSeasonSelected(season)
+    }
     if (LocalAppUiStyle.current == AppUiStyle.STUDIO) {
         val actionFocus = remember { FocusRequester() }
         LaunchedEffect(series.id, resumeEpisode?.id) {
@@ -186,7 +207,7 @@ private fun SeriesDetailContent(
             }
         ) {
             item(key = "studio_series_episodes") {
-                StudioEpisodePicker(series, selectedSeason, onSeasonSelected, onEpisodeClick)
+                StudioEpisodePicker(series, browseQuery, onBrowseChange, onBrowseSeason, onEpisodeClick)
             }
             item(key = "studio_series_information") {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -199,6 +220,7 @@ private fun SeriesDetailContent(
         }
         return
     }
+    val filteredEpisodes = remember(series, browseQuery) { browseSeriesEpisodes(series, browseQuery) }
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -216,10 +238,10 @@ private fun SeriesDetailContent(
             PaddingValues(horizontal = 56.dp, vertical = 36.dp)
         }
         val posterWidth = if (compactLayout) 132.dp else 220.dp
-        var visibleEpisodeLimit by remember(selectedSeason?.seasonNumber) {
+        var visibleEpisodeLimit by remember(series.id, browseQuery) {
             mutableStateOf(EPISODE_DETAIL_PAGE_SIZE)
         }
-        val visibleEpisodes = selectedSeason?.episodes.orEmpty().take(visibleEpisodeLimit)
+        val visibleEpisodes = filteredEpisodes.take(visibleEpisodeLimit)
 
         AsyncImage(
             model = rememberCrossfadeImageModel(series.backdropUrl ?: series.posterUrl),
@@ -315,7 +337,7 @@ private fun SeriesDetailContent(
                                 values = listOf(
                                     series.releaseDate.orEmpty(),
                                     series.genre.orEmpty(),
-                                    selectedSeason?.name.orEmpty()
+                                    series.seasons.firstOrNull { it.seasonNumber == seasonFilter }?.name.orEmpty()
                                 )
                             )
                             ExternalRatingsStrip(
@@ -395,7 +417,7 @@ private fun SeriesDetailContent(
                                 values = listOf(
                                     series.releaseDate.orEmpty(),
                                     series.genre.orEmpty(),
-                                    selectedSeason?.name.orEmpty()
+                                    series.seasons.firstOrNull { it.seasonNumber == seasonFilter }?.name.orEmpty()
                                 )
                             )
                             ExternalRatingsStrip(
@@ -439,11 +461,18 @@ private fun SeriesDetailContent(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             contentPadding = PaddingValues(vertical = 2.dp)
                         ) {
+                            item(key = "all_seasons") {
+                                TvButton(onClick = { onBrowseChange(browseQuery.copy(seasonNumber = null)) },
+                                    colors = ButtonDefaults.colors(containerColor = if (seasonFilter == null)
+                                        AppColors.BrandMuted else AppColors.SurfaceElevated)) {
+                                    Text(stringResource(R.string.series_episode_all_seasons))
+                                }
+                            }
                             items(series.seasons, key = { it.seasonNumber }) { season ->
                                 SeasonChip(
                                     season = season,
-                                    isSelected = season == selectedSeason,
-                                    onClick = { onSeasonSelected(season) }
+                                    isSelected = season.seasonNumber == seasonFilter,
+                                    onClick = { onBrowseSeason(season) }
                                 )
                             }
                         }
@@ -451,41 +480,29 @@ private fun SeriesDetailContent(
                 }
             }
 
-            selectedSeason?.let { season ->
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = stringResource(R.string.series_episodes, season.episodes.size),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = AppColors.TextPrimary
-                        )
-                        Text(
-                            text = season.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.TextTertiary
-                        )
-                    }
+            item(key = "episode_filters") {
+                EpisodeBrowseControls(browseQuery, onBrowseChange)
+            }
+            item(key = "episode_count") {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.series_episodes, filteredEpisodes.size),
+                        style = MaterialTheme.typography.titleLarge, color = AppColors.TextPrimary)
+                    Text(series.seasons.firstOrNull { it.seasonNumber == seasonFilter }?.name
+                        ?: stringResource(R.string.series_episode_all_seasons),
+                        style = MaterialTheme.typography.bodyMedium, color = AppColors.TextTertiary)
                 }
-                items(visibleEpisodes, key = { it.id }) { episode ->
-                    EpisodeItem(episode = episode, onClick = { onEpisodeClick(episode) })
-                }
-                if (visibleEpisodes.size < season.episodes.size) {
-                    item {
-                        TvButton(
-                            onClick = {
-                                visibleEpisodeLimit = (visibleEpisodeLimit + EPISODE_DETAIL_PAGE_SIZE)
-                                    .coerceAtMost(season.episodes.size)
-                            }
-                        ) {
-                            Text(
-                                text = stringResource(
-                                    R.string.library_load_more,
-                                    visibleEpisodes.size,
-                                    season.episodes.size
-                                )
-                            )
-                        }
-                    }
+            }
+            if (filteredEpisodes.isEmpty()) item(key = "episode_empty") {
+                Text(stringResource(R.string.library_filter_empty), color = AppColors.TextSecondary)
+            }
+            items(visibleEpisodes, key = { it.id }) { episode ->
+                EpisodeItem(episode = episode, onClick = { onEpisodeClick(episode) })
+            }
+            if (visibleEpisodes.size < filteredEpisodes.size) item(key = "episode_more") {
+                TvButton(onClick = {
+                    visibleEpisodeLimit = (visibleEpisodeLimit + EPISODE_DETAIL_PAGE_SIZE).coerceAtMost(filteredEpisodes.size)
+                }) {
+                    Text(stringResource(R.string.library_load_more, visibleEpisodes.size, filteredEpisodes.size))
                 }
             }
         }
@@ -495,49 +512,61 @@ private fun SeriesDetailContent(
 @Composable
 private fun StudioEpisodePicker(
     series: Series,
-    selectedSeason: Season?,
+    query: EpisodeBrowseQuery,
+    onQueryChange: (EpisodeBrowseQuery) -> Unit,
     onSeasonSelected: (Season) -> Unit,
     onEpisodeClick: (Episode) -> Unit
 ) {
-    var visibleLimit by remember(series.id, selectedSeason?.seasonNumber) { mutableStateOf(EPISODE_DETAIL_PAGE_SIZE) }
-    val episodes = selectedSeason?.episodes.orEmpty()
+    var visibleLimit by remember(series.id, query) { mutableStateOf(EPISODE_DETAIL_PAGE_SIZE) }
+    val episodes = remember(series, query) { browseSeriesEpisodes(series, query) }
     val episodeState = androidx.compose.foundation.lazy.rememberLazyListState()
-    LaunchedEffect(series.id, selectedSeason?.seasonNumber) { episodeState.scrollToItem(0) }
-    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
-        val compact = maxWidth < 600.dp
-        Column(Modifier.fillMaxWidth().height(if (compact) 440.dp else 360.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.series_episodes, episodes.size),
-                style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-            if (compact) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 4.dp)) {
-                items(series.seasons, key = { it.seasonNumber }) { season ->
-                    StudioCategoryButton(VodCategoryOption(season.name, season.episodes.size, { onSeasonSelected(season) }),
-                        season.seasonNumber == selectedSeason?.seasonNumber, Modifier.width(156.dp))
-                }
-            }
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                if (!compact) LazyColumn(Modifier.width(160.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+    LaunchedEffect(series.id, query) { episodeState.scrollToItem(0) }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        EpisodeBrowseControls(query, onQueryChange)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val compact = maxWidth < 600.dp
+            val allSeasonsOption = VodCategoryOption(stringResource(R.string.series_episode_all_seasons),
+                series.seasons.sumOf { it.episodes.size }, { onQueryChange(query.copy(seasonNumber = null)) })
+            Column(Modifier.fillMaxWidth().height(if (compact) 440.dp else 360.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.series_episodes, episodes.size),
+                    style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                if (compact) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 4.dp)) {
-                    item { Text(stringResource(R.string.series_seasons), color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelLarge) }
-                    items(series.seasons, key = { it.seasonNumber }) { season ->
+                    item(key = "all_seasons") {
+                        StudioCategoryButton(allSeasonsOption, query.seasonNumber == null, Modifier.width(156.dp))
+                    }
+                    items(series.seasons.sortedByDescending { it.seasonNumber }, key = { it.seasonNumber }) { season ->
                         StudioCategoryButton(VodCategoryOption(season.name, season.episodes.size, { onSeasonSelected(season) }),
-                            season.seasonNumber == selectedSeason?.seasonNumber, Modifier.fillMaxWidth())
+                            season.seasonNumber == query.seasonNumber, Modifier.width(156.dp))
                     }
                 }
-                LazyColumn(state = episodeState, modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
-                    if (episodes.isEmpty()) item {
-                        Text(stringResource(R.string.studio_catalog_no_episodes),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (!compact) LazyColumn(Modifier.width(160.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp)) {
+                        item { Text(stringResource(R.string.series_seasons), color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelLarge) }
+                        item(key = "all_seasons") {
+                            StudioCategoryButton(allSeasonsOption, query.seasonNumber == null, Modifier.fillMaxWidth())
+                        }
+                        items(series.seasons.sortedByDescending { it.seasonNumber }, key = { it.seasonNumber }) { season ->
+                            StudioCategoryButton(VodCategoryOption(season.name, season.episodes.size, { onSeasonSelected(season) }),
+                                season.seasonNumber == query.seasonNumber, Modifier.fillMaxWidth())
+                        }
                     }
-                    items(episodes.take(visibleLimit), key = { it.id }) { episode ->
-                        EpisodeItem(episode, onClick = { onEpisodeClick(episode) })
-                    }
-                    if (visibleLimit < episodes.size) item {
-                        TvButton(onClick = { visibleLimit = (visibleLimit + EPISODE_DETAIL_PAGE_SIZE).coerceAtMost(episodes.size) }) {
-                            Text(stringResource(R.string.library_load_more, visibleLimit, episodes.size))
+                    LazyColumn(state = episodeState, modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
+                        if (episodes.isEmpty()) item {
+                            Text(stringResource(R.string.library_filter_empty),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                        }
+                        items(episodes.take(visibleLimit), key = { it.id }) { episode ->
+                            EpisodeItem(episode, onClick = { onEpisodeClick(episode) })
+                        }
+                        if (visibleLimit < episodes.size) item {
+                            TvButton(onClick = { visibleLimit = (visibleLimit + EPISODE_DETAIL_PAGE_SIZE).coerceAtMost(episodes.size) }) {
+                                Text(stringResource(R.string.library_load_more, visibleLimit, episodes.size))
+                            }
                         }
                     }
                 }

@@ -118,11 +118,21 @@ class ProductionRuntime @Inject internal constructor(
                 }
                 if (!exitRequested) withContext(Dispatchers.IO) { scheduleBackgroundWork() }
                 scope.launch {
+                    android.util.Log.i("DeviceExperiencePoll", "pollStarted=true")
                     while (!exitRequested) {
                         if (ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                            experience.refresh()
+                            try {
+                                val refreshed = experience.refresh()
+                                android.util.Log.i("DeviceExperiencePoll", "refreshSuccess=$refreshed " +
+                                    "notices=${experience.state.value.notifications.size}")
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                // A failed experience poll must not stop later polls or heartbeat.
+                                android.util.Log.i("DeviceExperiencePoll", "refreshSuccess=false unexpectedFailure=true")
+                            }
                         }
-                        kotlinx.coroutines.delay(60_000)
+                        kotlinx.coroutines.delay(5_000)
                     }
                 }
             } catch (cancelled: CancellationException) {

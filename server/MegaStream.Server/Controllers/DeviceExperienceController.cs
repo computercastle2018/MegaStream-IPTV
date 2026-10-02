@@ -20,7 +20,7 @@ public sealed class DeviceExperienceController(AppDbContext db) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken ct, [FromQuery] int version = 1)
     {
-        if (version is not (1 or 2)) return BadRequest();
+        if (version is not (1 or 2 or 3)) return BadRequest();
         if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id)) return Unauthorized();
         var device = await db.Installations.AsNoTracking().Include(x => x.License).SingleOrDefaultAsync(x => x.Id == id && x.Status == InstallationStatus.Active, ct);
         if (device is null) throw Disabled();
@@ -32,6 +32,10 @@ public sealed class DeviceExperienceController(AppDbContext db) : ControllerBase
         var response = new DeviceExperienceResponse(device.AllowSubscriptionDetails, notifications.Select(x =>
             new DeviceNotificationResponse(x.Id.ToString("D"), Sanitizer.CleanDiagnostic(x.Title, 128),
                 Sanitizer.CleanDiagnostic(x.Message, 2000), DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc).ToString("O", CultureInfo.InvariantCulture))).ToList(), device.MacAddress);
+        if (version == 3)
+            return Ok(new DeviceExperienceV3Response(response.AllowSubscriptionDetails, response.Notifications, response.MacAddress,
+                device.UiStyle ?? device.License?.UiStyle,
+                PlaybackQualityPolicy.Resolve(device.PlaybackQuality, await PlaybackQualityPolicy.GlobalAsync(db, ct))));
         return version == 2
             ? Ok(new DeviceExperienceV2Response(response.AllowSubscriptionDetails, response.Notifications, response.MacAddress,
                 device.UiStyle ?? device.License?.UiStyle))

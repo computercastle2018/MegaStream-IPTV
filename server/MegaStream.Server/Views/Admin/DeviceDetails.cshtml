@@ -1,6 +1,73 @@
 @model DeviceDetailsViewModel
-@{ ViewData["Title"] = "تفاصيل الجهاز"; }
-<section class="panel">
+@{
+    ViewData["Title"] = "تفاصيل الجهاز";
+    var now = DateTime.UtcNow;
+    var licenseHealthy = Model.Device.Status == InstallationStatus.Active && Model.Device.License is { Status: LicenseStatus.Active } license
+        && license.ValidFrom <= now && license.ValidUntil > now;
+    var licenseBadge = Model.Device.Status == InstallationStatus.Revoked ? "danger" : licenseHealthy ? "active" : "warning";
+    var effectiveQuality = MegaStream.Server.Services.PlaybackQualityPolicy.Resolve(Model.Device.PlaybackQuality, Model.GlobalPlaybackQuality);
+}
+<div class="device-detail">
+    <header id="device-summary" class="device-heading">
+        <div class="device-heading-row">
+            <h2>@(string.IsNullOrWhiteSpace(Model.Device.DeviceModel) ? "الجهاز" : Model.Device.DeviceModel)</h2>
+            <span class="badge @AdminDisplay.DeviceConnectionClass(Model.Device, Model.OnlineCutoff)">@AdminDisplay.DeviceState(Model.Device, Model.OnlineCutoff)</span>
+            <span class="badge @licenseBadge">@AdminDisplay.DeviceLicenseState(Model.Device)</span>
+            <a asp-action="Devices">جميع الأجهزة</a>
+        </div>
+        <div class="device-summary-grid">
+            <dl class="device-facts">
+                <dt>المعرّف</dt><dd><bdi>@Model.Device.Id</bdi></dd>
+                <dt>المنصة / النظام</dt><dd><bdi>@Model.Device.Platform / @Model.Device.OsVersion</bdi></dd>
+                <dt>الشركة</dt><dd>@Model.Device.Manufacturer</dd>
+                <dt>إصدار التطبيق</dt><dd><bdi>@Model.Device.AppVersion</bdi></dd>
+                <dt>عنوان MAC</dt><dd><bdi>@(Model.Device.MacAddress ?? "غير متوفر")</bdi></dd>
+                <dt>آخر ظهور UTC</dt><dd><bdi>@Model.Device.LastSeenAt.ToString("yyyy-MM-dd HH:mm:ss")</bdi></dd>
+                <dt>آخر تصريح ينتهي UTC</dt><dd><bdi>@(Model.Device.LastLeaseExpiresAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "غير متوفر")</bdi></dd>
+            </dl>
+            <div class="device-report">
+    <dl data-device-version-refresh data-device-version-url="@Url.Action("DeviceDetails", "Admin", new { id = Model.Device.Id })" aria-live="polite">
+        <dt>الإصدار الفعلي المبلغ عنه</dt><dd><bdi data-device-version-value>@(Model.VersionReport is { } version ? $"{version.AppVersionName ?? Model.Device.AppVersion} ({version.AppVersionCode})" : "لم يصل بلاغ إصدار من عميل V1")</bdi></dd>
+        <dt>آخر بلاغ إصدار UTC</dt><dd><bdi data-device-version-reported-at>@(Model.VersionReport?.VersionReportedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "غير متوفر")</bdi></dd>
+    </dl>
+                <dl class="device-facts">
+                    <dt>الترخيص</dt><dd>@if (Model.Device.LicenseId.HasValue) { <a asp-action="LicenseDetails" asp-route-id="@Model.Device.LicenseId">@Model.Device.License?.Label</a> } else { <span>غير مرتبط</span> }</dd>
+                    <dt>جودة التشغيل</dt><dd><bdi>@(effectiveQuality == "auto" ? "تلقائية" : effectiveQuality + "p")</bdi></dd>
+                    <dt>تصميم الواجهة</dt><dd>@AdminDisplay.UiStyleName(Model.Device.UiStyle ?? Model.Device.License?.UiStyle)</dd>
+                </dl>
+            </div>
+        </div>
+    </header>
+    <nav class="device-section-nav" aria-label="أقسام تفاصيل الجهاز">
+        <a href="#device-quality">الجودة والتصميم</a>
+        <a href="#device-updates">التحديثات</a>
+        <a href="#device-license">الترخيص</a>
+        <a href="#device-subscriptions">الاشتراكات</a>
+        <a href="#device-subscription-policy">معلومات الاشتراك</a>
+        <a href="#device-policy">سياسة الجهاز</a>
+        <a href="#device-history">السجلات</a>
+    </nav>
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+    <div class="device-control-grid">
+<section id="device-quality" class="panel">
+    <h2>جودة التشغيل</h2>
+    <p class="muted">الجودة الفعّالة: <bdi>@(effectiveQuality == "auto" ? "تلقائية" : effectiveQuality + "p")</bdi></p>
+    @if (Model.Device.Status == InstallationStatus.Active)
+    {
+        <form asp-action="SetDevicePlaybackQuality" method="post">
+            <input type="hidden" name="Id" value="@Model.Device.Id" />
+            <label for="device-playback-quality">جودة هذا الجهاز</label>
+            <select id="device-playback-quality" name="PlaybackQuality">
+                <option value="" selected="@(Model.Device.PlaybackQuality == null)">وراثة الافتراضي العام</option>
+                @foreach (var quality in MegaStream.Server.Services.PlaybackQualityPolicy.Values)
+                { <option value="@quality" selected="@(Model.Device.PlaybackQuality == quality)">@(quality == "auto" ? "تلقائية" : quality + "p")</option> }
+            </select>
+            <button type="submit">حفظ جودة الجهاز</button>
+        </form>
+    }
+    <p><a asp-action="Devices">إدارة الجودة الافتراضية وجميع الأجهزة</a></p>
+</section>
+<section id="device-appearance" class="panel">
     <h2>تصميم واجهة الجهاز</h2>
     <p>التصميم الفعّال: <bdi>@AdminDisplay.UiStyleName(Model.Device.UiStyle ?? Model.Device.License?.UiStyle)</bdi></p>
     @if (Model.Device.Status == InstallationStatus.Active)
@@ -17,12 +84,10 @@
         </form>
     }
 </section>
-<section class="panel">
+</div>
+<section id="device-updates" class="panel">
     <h2>إصدار التطبيق والتحديث عن بُعد</h2>
-    <dl data-device-version-refresh data-device-version-url="@Url.Action("DeviceDetails", "Admin", new { id = Model.Device.Id })" aria-live="polite">
-        <dt>الإصدار الفعلي المبلغ عنه</dt><dd><bdi data-device-version-value>@(Model.VersionReport is { } version ? $"{version.AppVersionName ?? Model.Device.AppVersion} ({version.AppVersionCode})" : "لم يصل بلاغ إصدار من عميل V1")</bdi></dd>
-        <dt>آخر بلاغ إصدار UTC</dt><dd><bdi data-device-version-reported-at>@(Model.VersionReport?.VersionReportedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "غير متوفر")</bdi></dd>
-    </dl>
+
     <p><a asp-action="DeviceDetails" asp-route-id="@Model.Device.Id">فحص أحدث إصدار متوافق</a> · <a href="/admin/updates">إدارة إصدارات التطبيق</a></p>
     @if (Model.AvailableUpdates.Count > 0)
     {
@@ -41,15 +106,19 @@
     }
     else { <p class="empty">لا يوجد إصدار أحدث منشور ومتوافق بحسب آخر بلاغ.</p> }
     <p class="notice">إرسال الأمر لا يعني تثبيت الإصدار. يظل الإصدار الفعلي حسب بلاغ الجهاز؛ قد يتطلب التثبيت موافقة المستخدم.</p>
+    <details id="device-update-commands" class="device-table-card">
+        <summary>أوامر التحديث <span class="badge">@Model.UpdateCommands.Count</span></summary>
     <div class="table-wrap"><table><thead><tr><th>الإصدار المطلوب</th><th>حالة الأمر</th><th>آخر تحديث UTC</th></tr></thead><tbody>
         @foreach (var command in Model.UpdateCommands)
         { <tr><td><bdi>@command.Release.VersionName (@command.Release.VersionCode)</bdi></td><td><bdi>@command.Status</bdi></td><td>@command.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td></tr> }
     </tbody></table></div>
+    </details>
 </section>
 @section Scripts {
     <script src="~/js/device-version-refresh.js" asp-append-version="true" defer></script>
+    <script src="~/js/provider-credentials.js" asp-append-version="true" defer></script>
 }
-<section class="panel">
+<section id="device-subscription-policy" class="panel">
     <h2>سياسة معلومات الاشتراك</h2>
     <dl><dt>عنوان MAC المبلغ عنه</dt><dd><bdi>@(Model.Device.MacAddress ?? "غير متوفر")</bdi></dd></dl>
     @if (Model.Device.Status == InstallationStatus.Active)
@@ -63,7 +132,7 @@
         <p><a asp-action="Notifications" asp-route-targetInstallationId="@Model.Device.Id">إرسال إشعار لهذا الجهاز</a></p>
     }
 </section>
-<section class="panel">
+<section id="device-license" class="panel">
     <h2>ترخيص الجهاز</h2>
     <dl><dt>حالة الترخيص</dt><dd>@AdminDisplay.DeviceLicenseState(Model.Device)</dd></dl>
     @if (Model.Device.License is { } assignedLicense)
@@ -74,8 +143,8 @@
     {
         <form asp-action="AssignDeviceLicense" method="post">
             <input type="hidden" name="Id" value="@Model.Device.Id" />
-            <label for="device-license">الترخيص</label>
-            <select id="device-license" name="LicenseId" required>
+            <label for="device-license-choice">الترخيص</label>
+            <select id="device-license-choice" name="LicenseId" required>
                 <option value="">اختر الترخيص</option>
                 @foreach (var license in Model.AvailableLicenses)
                 {
@@ -90,13 +159,17 @@
         }
     }
 </section>
-<p><a class="button secondary" href="/admin/providers/installations/@Model.Device.Id">إدارة الاشتراكات المخصصة لهذا الجهاز</a></p>
-<section class="panel">
-    <h2>الاشتراكات الموجودة على الجهاز</h2>
+<section id="device-subscriptions" class="panel">
+    <div class="device-section-heading">
+        <h2>الاشتراكات الموجودة على الجهاز</h2>
+        <a class="button secondary" href="/admin/providers/installations/@Model.Device.Id">إدارة اشتراكات الجهاز</a>
+    </div>
     <p>اتصال الجهاز: <span class="badge @AdminDisplay.DeviceConnectionClass(Model.Device, Model.OnlineCutoff)">@AdminDisplay.DeviceState(Model.Device, Model.OnlineCutoff)</span></p>
     @if (Model.Device.LocalSubscriptionsReportedAt is { } reportedAt)
     {
         <p class="muted">آخر بلاغ UTC: @reportedAt.ToString("yyyy-MM-dd HH:mm:ss")</p>
+        <details id="device-subscriptions-table" class="device-table-card" open>
+            <summary>اشتراكات الجهاز <span class="badge">@Model.LocalSubscriptions.Count</span></summary>
         <div class="table-wrap"><table><thead><tr><th>الاشتراك</th><th>النوع</th><th>الحالة</th><th>المعلومات</th></tr></thead><tbody>
         @foreach (var subscription in Model.LocalSubscriptions)
         {
@@ -105,10 +178,17 @@
                     <dl><dt>بداية الاشتراك UTC</dt><dd>@(subscription.StartedAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.StartedAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير معروفة")</dd>
                     <dt>الصلاحية UTC</dt><dd>@(subscription.ExpiresAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.ExpiresAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير محددة")</dd>
                     <dt>حد الاتصالات</dt><dd>@subscription.MaxConnections</dd><dt>مفعّل على الجهاز</dt><dd>@(subscription.Enabled ? "نعم" : "لا")</dd></dl>
+                    @if (Model.Device.Status == InstallationStatus.Active && Model.LocalCredentialIds.Contains(subscription.LocalId))
+                    {
+                        var access = new MegaStream.Server.RemoteProviders.Http.ProviderAccess($"/admin/providers/installations/{Model.Device.Id}/subscriptions/{subscription.LocalId}", subscription.Type != "stalker_portal");
+                        <partial name="~/RemoteProviders/Views/_ProviderAccess.cshtml" model="access" />
+                    }
+                    else { <p class="muted">بيانات الدخول غير متاحة في آخر بلاغ من الجهاز.</p> }
                 </details>
             </td></tr>
         }
         </tbody></table></div>
+        </details>
         @if (Model.LocalSubscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات محفوظة بحسب آخر بلاغ.</p> }
     }
     else
@@ -116,14 +196,28 @@
         <p class="empty">لم تصل بيانات الاشتراكات من الجهاز بعد.</p>
     }
 </section>
-<section class="panel">
+<section id="device-policy" class="panel">
     <h2>سياسة الكشك</h2>
     <p class="notice">@(Model.ManagedDevice ? "جهاز مُدار بحسب آخر بلاغ — التطبيق الفعلي يعتمد على قدرات الجهاز" : "غير مدعوم — لا يفرض على الجهاز")</p>
     <dl><dt>الوضع المطلوب</dt><dd>@AdminDisplay.KioskState(Model.Device.KioskMode)</dd><dt>الخروج المحلي</dt><dd>@(Model.Device.AllowLocalExit ? "مسموح" : "غير مسموح بحسب السياسة المطلوبة")</dd></dl>
     <partial name="_DevicePolicyForm" model="@(new DevicePolicyForm { Id = Model.Device.Id, KioskMode = Enum.TryParse<AdminKioskMode>(Model.Device.KioskMode, out var kioskMode) ? kioskMode : null, AllowLocalExit = Model.Device.AllowLocalExit })" />
+    @if (Model.Device.Status == InstallationStatus.Active)
+    {
+        <details class="device-log device-danger">
+            <summary>إجراءات الجهاز</summary>
+            <form asp-action="RevokeDevice" method="post">
+                <input type="hidden" name="Id" value="@Model.Device.Id" />
+                <p class="notice">الإلغاء يمنع إصدار تصاريح جديدة، مع بقاء السعة محجوزة حتى انتهاء التصريح الحالي.</p>
+                <button class="danger" type="submit">إلغاء الجهاز</button>
+            </form>
+        </details>
+    }
 </section>
-<section class="panel">
-    <h2>سجل تغييرات سياسة الجهاز</h2>
+
+<section id="device-history" class="panel">
+    <h2>السجلات</h2>
+<details id="device-audit" class="device-table-card">
+    <summary>سجل تغييرات السياسة <span class="badge">@Model.PolicyAudit.Count</span></summary>
     <p class="muted">أحدث 100 تغيير. للقراءة فقط.</p>
     <div class="table-wrap"><table><thead><tr><th>الوقت UTC</th><th>المسؤول</th><th>الوضع السابق</th><th>الوضع الجديد</th><th>الخروج المحلي سابقاً</th><th>الخروج المحلي الآن</th></tr></thead><tbody>
     @foreach (var audit in Model.PolicyAudit)
@@ -132,5 +226,14 @@
     }
     </tbody></table></div>
     @if (Model.PolicyAudit.Count == 0) { <p class="empty">لا توجد تغييرات مسجلة.</p> }
+</details>
+    <details id="device-sessions" class="device-table-card">
+        <summary>الجلسات الأخيرة <span class="badge">@Model.Sessions.Count</span></summary>
+<div class="table-wrap"><table><thead><tr><th>بدأت UTC</th><th>آخر نبضة UTC</th><th>انتهت UTC</th><th>الذاكرة بالبايت</th><th>سبب الخروج</th><th>الإصدار</th></tr></thead><tbody>@foreach(var s in Model.Sessions) { <tr><td>@s.StartedAt.ToString("u")</td><td>@s.LastHeartbeatAt.ToString("u")</td><td>@s.EndedAt?.ToString("u")</td><td>@s.MemoryBytes</td><td>@s.ExitReason</td><td>@s.AppVersion</td></tr> }</tbody></table></div>
+    </details>
+    <details id="device-diagnostics" class="device-table-card">
+        <summary>أحدث أحداث التشخيص <span class="badge">@Model.Diagnostics.Count</span></summary>
+        <partial name="_DiagnosticsTable" model="Model.Diagnostics" />
+    </details>
 </section>
-<div asp-validation-summary="All" class="validation" role="alert"></div><section class="panel"><h2>@Model.Device.DeviceModel</h2><dl><dt>المعرّف</dt><dd>@Model.Device.Id</dd><dt>المنصة / النظام</dt><dd>@Model.Device.Platform / @Model.Device.OsVersion</dd><dt>الشركة</dt><dd>@Model.Device.Manufacturer</dd><dt>إصدار التطبيق</dt><dd>@Model.Device.AppVersion</dd><dt>الحالة</dt><dd>@AdminDisplay.DeviceState(Model.Device, Model.OnlineCutoff)</dd><dt>آخر ظهور UTC</dt><dd>@Model.Device.LastSeenAt.ToString("yyyy-MM-dd HH:mm:ss")</dd><dt>آخر تصريح ينتهي UTC</dt><dd>@(Model.Device.LastLeaseExpiresAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "—")</dd><dt>الترخيص</dt><dd>@if(Model.Device.LicenseId.HasValue) { <a asp-action="LicenseDetails" asp-route-id="@Model.Device.LicenseId">@Model.Device.License?.Label</a> } else { <span>غير مرتبط</span> }</dd></dl>@if(Model.Device.Status == InstallationStatus.Active) { <form asp-action="RevokeDevice" method="post"><input type="hidden" name="Id" value="@Model.Device.Id" /><p class="notice">الإلغاء يمنع إصدار تصاريح جديدة، مع بقاء السعة محجوزة حتى انتهاء التصريح الحالي.</p><button class="danger" type="submit">إلغاء الجهاز</button></form> }</section><section class="panel"><h2>الجلسات الأخيرة</h2><div class="table-wrap"><table><thead><tr><th>بدأت UTC</th><th>آخر نبضة UTC</th><th>انتهت UTC</th><th>الذاكرة بالبايت</th><th>سبب الخروج</th><th>الإصدار</th></tr></thead><tbody>@foreach(var s in Model.Sessions) { <tr><td>@s.StartedAt.ToString("u")</td><td>@s.LastHeartbeatAt.ToString("u")</td><td>@s.EndedAt?.ToString("u")</td><td>@s.MemoryBytes</td><td>@s.ExitReason</td><td>@s.AppVersion</td></tr> }</tbody></table></div></section><section class="panel"><h2>أحدث أحداث التشخيص</h2><partial name="_DiagnosticsTable" model="Model.Diagnostics" /></section>
+</div>

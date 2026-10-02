@@ -106,6 +106,7 @@ public interface IRemoteProviderService
     Task RevokeProfileAsync(Guid profileId, CancellationToken ct = default);
     Task<IReadOnlyList<RemoteProviderProfileMetadata>> ListProfilesAsync(CancellationToken ct = default);
     Task<RemoteProviderProfileMetadata> GetProfileAsync(Guid profileId, CancellationToken ct = default);
+    Task<RemoteProviderConfiguration> RevealConfigurationAsync(Guid profileId, CancellationToken ct = default);
     Task<RemoteProviderAssignment> AssignAsync(Guid profileId, Guid installationId, AssignRemoteProvider request, CancellationToken ct = default);
     Task RevokeAssignmentAsync(Guid assignmentId, CancellationToken ct = default);
     Task<IReadOnlyList<RemoteProviderAssignment>> ListAssignmentsAsync(Guid installationId, CancellationToken ct = default);

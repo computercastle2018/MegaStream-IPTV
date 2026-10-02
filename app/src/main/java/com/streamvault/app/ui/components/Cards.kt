@@ -196,7 +196,8 @@ fun ChannelCard(
     isReorderMode: Boolean = false,
     isDragging: Boolean = false,
     isRecording: Boolean = false,
-    isScheduledRecording: Boolean = false
+    isScheduledRecording: Boolean = false,
+    compact: Boolean = false
 ) {
     val nowMs by ChannelProgressTicker.nowMs.collectAsStateWithLifecycle()
     val channelCardShape = if (com.MegaStream.app.ui.theme.LocalAppUiStyle.current == com.MegaStream.app.ui.model.AppUiStyle.STUDIO) mediaCardShape(8.dp) else LocalAppShapes.current.small
@@ -225,8 +226,8 @@ fun ChannelCard(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = modifier,
-        width = 220.dp,
-        height = 124.dp,
+        width = if (compact) 180.dp else 220.dp,
+        height = if (compact) 104.dp else 124.dp,
         isReorderMode = isReorderMode,
         isDragging = isDragging,
         semanticsDescription = channelDescription,
@@ -239,7 +240,10 @@ fun ChannelCard(
                 shape = channelCardShape,
                 textStyle = MaterialTheme.typography.titleMedium,
                 textColor = TextSecondary,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize().then(
+                    if (compact) Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 36.dp)
+                    else Modifier
+                )
             )
         }
 

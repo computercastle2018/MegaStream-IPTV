@@ -18,7 +18,8 @@ namespace MegaStream.Server.RemoteProviders.Http;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [RequestSizeLimit(32768)]
 [RequestFormLimits(ValueCountLimit = 40, KeyLengthLimit = 64, ValueLengthLimit = 16384, MultipartBodyLengthLimit = 32768)]
-public sealed class ProvidersAdminController(IRemoteProviderService service, AppDbContext db, IConfiguration configuration) : Controller
+public sealed class ProvidersAdminController(IRemoteProviderService service, AppDbContext db, IConfiguration configuration,
+    LocalSubscriptionCredentialsStore credentials, ProviderPlaylistExporter exporter) : Controller
 {
     private const string Views = "~/RemoteProviders/Views/";
 
@@ -44,15 +45,16 @@ public sealed class ProvidersAdminController(IRemoteProviderService service, App
 
     private static IReadOnlyList<ReportedSubscription> ActiveSubscriptions(Installation device, DateTime now)
     {
-        var snapshot = JsonSerializer.Deserialize<List<LocalSubscription?>>(device.LocalSubscriptionsJson!)
-            ?? throw new JsonException();
+        var snapshot = LocalSubscriptionCredentialsStore.Summaries(device.LocalSubscriptionsJson!);
+        var credentialIds = LocalSubscriptionCredentialsStore.CredentialIds(device.LocalSubscriptionsJson!);
         if (snapshot.Count > 100 || snapshot.Any(x => x is null || !Validator.TryValidateObject(x, new ValidationContext(x), null, true)))
             throw new JsonException();
         return snapshot.Where(x => x!.Enabled && x.Status == "active" &&
                 (!x.ExpiresAt.HasValue || x.ExpiresAt > new DateTimeOffset(now).ToUnixTimeMilliseconds()))
             .Select(x => new ReportedSubscription(device.Id, Sanitizer.CleanDiagnostic(device.DeviceModel, 128),
                 device.LicenseId, Sanitizer.CleanDiagnostic(device.License?.Label, 128), device.LocalSubscriptionsReportedAt!.Value,
-                Sanitizer.CleanDiagnostic(x!.Name, 128), x.Type, x.StartedAt, x.ExpiresAt, x.MaxConnections)).ToList();
+                Sanitizer.CleanDiagnostic(x!.Name, 128), x.Type, x.StartedAt, x.ExpiresAt, x.MaxConnections,
+                x.LocalId, credentialIds.Contains(x.LocalId))).ToList();
     }
 
     [HttpGet("installations")]
@@ -75,6 +77,37 @@ public sealed class ProvidersAdminController(IRemoteProviderService service, App
     }
 
     // No posted fields are MVC action parameters: configuration must never enter ModelState.
+    [HttpPost("{profileId:guid}/reveal")]
+    public async Task<IActionResult> Reveal([FromRoute] Guid profileId, CancellationToken ct) =>
+        Json(await service.RevealConfigurationAsync(profileId, ct));
+
+    [HttpPost("{profileId:guid}/export")]
+    public async Task<IActionResult> Export([FromRoute] Guid profileId, CancellationToken ct)
+    {
+        var profile = await service.GetProfileAsync(profileId, ct);
+        return await Download(await service.RevealConfigurationAsync(profileId, ct), profile.DisplayName, ct);
+    }
+
+    [HttpPost("installations/{installationId:guid}/subscriptions/{localId:long}/reveal")]
+    public async Task<IActionResult> RevealLocal([FromRoute] Guid installationId, [FromRoute] long localId, CancellationToken ct) =>
+        Json(await credentials.RevealAsync(installationId, localId, ct));
+
+    [HttpPost("installations/{installationId:guid}/subscriptions/{localId:long}/export")]
+    public async Task<IActionResult> ExportLocal([FromRoute] Guid installationId, [FromRoute] long localId, CancellationToken ct)
+    {
+        var name = await db.Installations.AsNoTracking().Where(x => x.Id == installationId && x.Status == InstallationStatus.Active)
+            .Select(x => x.DeviceModel).SingleOrDefaultAsync(ct);
+        if (name is null) return NotFound();
+        return await Download(await credentials.RevealAsync(installationId, localId, ct), name, ct);
+    }
+
+    private async Task<IActionResult> Download(RemoteProviderConfiguration value, string name, CancellationToken ct)
+    {
+        var safeName = System.Text.RegularExpressions.Regex.Replace(Sanitizer.CleanDiagnostic(name, 64), @"[^\p{L}\p{Nd}_-]+", "-").Trim('-');
+        return File(await exporter.OpenAsync(value, ct), "audio/x-mpegurl; charset=utf-8",
+            (safeName.Length == 0 ? "subscription" : safeName) + ".m3u");
+    }
+
     [HttpPost("create")]
     public Task<IActionResult> CreatePost(CancellationToken ct) => Save(null, ct);
 
@@ -182,6 +215,7 @@ public sealed record ProviderDevice(Guid Id, string DeviceModel);
 public sealed record ProviderIndex(IReadOnlyList<RemoteProviderProfileMetadata> Profiles, IReadOnlyList<ProviderDevice> Devices,
     IReadOnlyList<ReportedSubscription> Subscriptions, int OnlineWindowMinutes, bool HasInvalidReports);
 public sealed record ReportedSubscription(Guid InstallationId, string DeviceModel, Guid? LicenseId, string LicenseLabel,
-    DateTime ReportedAt, string Name, string Type, long? StartedAt, long? ExpiresAt, int MaxConnections);
+    DateTime ReportedAt, string Name, string Type, long? StartedAt, long? ExpiresAt, int MaxConnections, long LocalId, bool HasCredentials);
+public sealed record ProviderAccess(string BaseUrl, bool CanExport);
 public sealed record ProviderAssignments(Guid InstallationId, IReadOnlyList<RemoteProviderProfileMetadata> Profiles,
     IReadOnlyList<RemoteProviderAssignment> Assignments, IReadOnlyList<ProviderAssignmentReport> Reports);

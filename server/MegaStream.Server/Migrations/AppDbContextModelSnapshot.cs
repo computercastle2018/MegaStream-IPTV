@@ -383,6 +383,10 @@ namespace MegaStream.Server.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
 
+                    b.Property<string>("PlaybackQuality")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)");
+
                     b.Property<DateTime?>("RevokedAt")
                         .HasColumnType("datetime(6)");
 
@@ -475,6 +479,28 @@ namespace MegaStream.Server.Migrations
                     b.HasIndex("Status", "ValidUntil");
 
                     b.ToTable("Licenses");
+                });
+
+            modelBuilder.Entity("MegaStream.Server.Models.PlaybackQualityDefault", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Quality")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PlaybackQualityDefaults");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Quality = "1080"
+                        });
                 });
 
             modelBuilder.Entity("MegaStream.Server.RemoteProviders.Core.ProviderAssignmentReport", b =>

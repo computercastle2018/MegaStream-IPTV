@@ -85,7 +85,7 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
     }
 
     fun deviceExperience(credential: String): ControlPlaneResult<DeviceExperience> = safely {
-        perform(buildRequest("/api/v1/devices/experience?version=2", credential, null), DeviceExperience.serializer())
+        perform(buildRequest("/api/v1/devices/experience?version=3", credential, null), DeviceExperience.serializer())
     }
 
     fun reportDeviceMac(credential: String, request: DeviceMacReport): ControlPlaneResult<Unit> = safely {

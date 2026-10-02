@@ -8,7 +8,13 @@
 <tbody>
 @foreach (var profile in Model.Profiles)
 {
-    <tr><td>@profile.DisplayName</td><td><bdi>@profile.Type</bdi></td><td>@(profile.Status == "active" ? "نشط" : "ملغى")</td><td>@profile.Revision</td><td>@(profile.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</td><td><a href="/admin/providers/@profile.Id">التفاصيل / استبدال الإعدادات</a></td></tr>
+    <tr><td>@profile.DisplayName</td><td><bdi>@profile.Type</bdi></td><td>@(profile.Status == "active" ? "نشط" : "ملغى")</td><td>@profile.Revision</td><td>@(profile.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</td><td><a href="/admin/providers/@profile.Id">التفاصيل / استبدال الإعدادات</a>
+        @if (profile.Status == "active" && !profile.DeletedAt.HasValue)
+        {
+            var access = new MegaStream.Server.RemoteProviders.Http.ProviderAccess($"/admin/providers/{profile.Id}", profile.Type != "STALKER_PORTAL");
+            <partial name="~/RemoteProviders/Views/_ProviderAccess.cshtml" model="access" />
+        }
+    </td></tr>
 }
 </tbody>
 </table>
@@ -48,9 +54,16 @@ else { <p class="empty">لا توجد أجهزة مسجلة متاحة.</p> }
             <dl><dt>بداية الاشتراك UTC</dt><dd>@(subscription.StartedAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.StartedAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير معروفة")</dd>
                 <dt>حد الاتصالات</dt><dd>@subscription.MaxConnections</dd></dl>
             <a href="/admin/providers/installations/@subscription.InstallationId">إدارة اشتراكات الجهاز</a>
+            @if (subscription.HasCredentials)
+            {
+                var access = new MegaStream.Server.RemoteProviders.Http.ProviderAccess($"/admin/providers/installations/{subscription.InstallationId}/subscriptions/{subscription.LocalId}", subscription.Type != "stalker_portal");
+                <partial name="~/RemoteProviders/Views/_ProviderAccess.cshtml" model="access" />
+            }
+            else { <p class="muted">بيانات الدخول غير متاحة في آخر بلاغ من الجهاز.</p> }
         </details></td>
     </tr>
 }
 </tbody></table>
 @if (Model.Subscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات نشطة مبلغ عنها على أجهزة متصلة.</p> }
 </div>
+@section Scripts { <script src="~/js/provider-credentials.js" asp-append-version="true" defer></script> }

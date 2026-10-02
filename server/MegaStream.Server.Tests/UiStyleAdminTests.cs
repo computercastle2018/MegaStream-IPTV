@@ -144,7 +144,7 @@ public sealed class UiStyleAdminTests
         await HttpSecurityTests.LoginAdmin(app, client);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync(Experience + "?version=2")).StatusCode);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", device.BearerToken);
-        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync(Experience + "?version=3")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync(Experience + "?version=4")).StatusCode);
         using (var scope = app.Services.CreateScope()) await scope.ServiceProvider.GetRequiredService<IAdminService>().RevokeInstallationAsync(device.InstallationId);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync(Experience + "?version=2")).StatusCode);
     }

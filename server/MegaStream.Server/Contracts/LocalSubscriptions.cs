@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using MegaStream.Server.RemoteProviders.Core;
 
 namespace MegaStream.Server.Contracts;
 
@@ -20,6 +21,8 @@ public sealed class LocalSubscription
     [Range(0L, 253402300799999L)] public long? ExpiresAt { get; set; }
     [Range(0L, 253402300799999L)] public long? StartedAt { get; set; }
     [Range(1, int.MaxValue)] public int MaxConnections { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RemoteProviderConfiguration? Credentials { get; set; }
 
     [JsonIgnore] public string DisplayState => ExpiresAt <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() || Status == "expired"
         ? "منتهي" : !Enabled ? "غير مفعّل" : Status switch

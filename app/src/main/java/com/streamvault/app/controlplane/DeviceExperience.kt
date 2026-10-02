@@ -15,6 +15,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import com.MegaStream.domain.model.isSupportedAdminPlaybackQuality
+import com.MegaStream.player.tracks.ManagedPlaybackQualityPreferences
 
 @Serializable
 data class DeviceNotice(val id: String, val title: String, val message: String, val createdAt: String) {
@@ -31,11 +33,13 @@ data class DeviceExperience(
     val notifications: List<DeviceNotice> = emptyList(),
     val macAddress: String? = null,
     val uiStyle: String? = null,
+    val playbackQuality: String? = null,
 ) {
     init {
         require(notifications.size <= 50 && notifications.map { it.id }.distinct().size == notifications.size)
         require(macAddress == null || com.MegaStream.app.ui.screens.settings.normalizeDeviceMacAddress(macAddress) == macAddress)
         require(uiStyle == null || AppUiStyle.entries.any { it.storageValue == uiStyle })
+        require(playbackQuality == null || isSupportedAdminPlaybackQuality(playbackQuality))
     }
 
     fun effectiveAppUiStyle(localStyle: String?): AppUiStyle = AppUiStyle.fromStorage(uiStyle ?: localStyle)
@@ -49,14 +53,15 @@ class DeviceExperienceRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val credentials: Provider<InstallationCredentials>,
 ) {
-    private val preferences = context.getSharedPreferences("device-experience", Context.MODE_PRIVATE)
+    private val preferences = context.getSharedPreferences(ManagedPlaybackQualityPreferences.FILE_NAME, Context.MODE_PRIVATE)
     private val client = ControlPlaneClient()
     private val lane = Mutex()
     private val mutableState = MutableStateFlow(DeviceExperience(
         allowSubscriptionDetails = preferences.getBoolean("details", false),
         uiStyle = preferences.getString("ui-style", null)?.takeIf { stored ->
             AppUiStyle.entries.any { it.storageValue == stored }
-        }
+        },
+        playbackQuality = ManagedPlaybackQualityPreferences.readQuality(preferences)
     ))
     val state = mutableState.asStateFlow()
     private val mutableReadIds = MutableStateFlow(preferences.getStringSet("read-notices", emptySet()).orEmpty().toSet())
@@ -75,6 +80,7 @@ class DeviceExperienceRepository @Inject constructor(
                     if (!preferences.edit()
                         .putBoolean("details", result.value.allowSubscriptionDetails)
                         .putString("ui-style", result.value.uiStyle)
+                        .putString(ManagedPlaybackQualityPreferences.QUALITY_KEY, result.value.playbackQuality)
                         .commit()) return@withLock false
                     mutableState.value = result.value
                     com.MegaStream.app.ui.screens.settings.readDeviceMacAddressForReport(context)?.address?.let { mac ->

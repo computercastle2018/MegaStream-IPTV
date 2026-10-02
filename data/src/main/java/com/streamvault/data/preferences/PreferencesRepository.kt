@@ -347,11 +347,11 @@ class PreferencesRepository @Inject constructor(
     }
 
     val playerWifiMaxVideoHeight: Flow<Int?> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.PLAYER_WIFI_MAX_VIDEO_HEIGHT]?.takeIf { it > 0 }
+        storedPlaybackMaxVideoHeight(preferences[PreferencesKeys.PLAYER_WIFI_MAX_VIDEO_HEIGHT])
     }
 
     val playerEthernetMaxVideoHeight: Flow<Int?> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.PLAYER_ETHERNET_MAX_VIDEO_HEIGHT]?.takeIf { it > 0 }
+        storedPlaybackMaxVideoHeight(preferences[PreferencesKeys.PLAYER_ETHERNET_MAX_VIDEO_HEIGHT])
     }
 
     val playerTimeshiftEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -885,23 +885,13 @@ class PreferencesRepository @Inject constructor(
 
     suspend fun setPlayerWifiMaxVideoHeight(maxHeight: Int?) {
         context.dataStore.edit { preferences ->
-            val normalized = maxHeight?.takeIf { it > 0 }
-            if (normalized == null) {
-                preferences.remove(PreferencesKeys.PLAYER_WIFI_MAX_VIDEO_HEIGHT)
-            } else {
-                preferences[PreferencesKeys.PLAYER_WIFI_MAX_VIDEO_HEIGHT] = normalized
-            }
+            preferences[PreferencesKeys.PLAYER_WIFI_MAX_VIDEO_HEIGHT] = encodePlaybackMaxVideoHeight(maxHeight)
         }
     }
 
     suspend fun setPlayerEthernetMaxVideoHeight(maxHeight: Int?) {
         context.dataStore.edit { preferences ->
-            val normalized = maxHeight?.takeIf { it > 0 }
-            if (normalized == null) {
-                preferences.remove(PreferencesKeys.PLAYER_ETHERNET_MAX_VIDEO_HEIGHT)
-            } else {
-                preferences[PreferencesKeys.PLAYER_ETHERNET_MAX_VIDEO_HEIGHT] = normalized
-            }
+            preferences[PreferencesKeys.PLAYER_ETHERNET_MAX_VIDEO_HEIGHT] = encodePlaybackMaxVideoHeight(maxHeight)
         }
     }
 
