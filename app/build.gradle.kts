@@ -115,8 +115,8 @@ android {
         applicationId = "com.megastream.app"
         minSdk = 27
         targetSdk = 36
-        versionCode = 42
-        versionName = "3.0.9"
+        versionCode = 43
+        versionName = "3.0.10"
         resValue("string", "app_display_name", "MegaStream $versionName")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OFFICIAL_APPLICATION_ID", "\"com.megastream.app\"")

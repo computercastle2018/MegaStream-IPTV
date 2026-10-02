@@ -113,6 +113,7 @@ class XtreamProvider(
                     password = password,
                     maxConnections = response.userInfo.maxConnections.toIntOrNull() ?: 1,
                     expirationDate = expDate,
+                    subscriptionStartedAt = parseXtreamSubscriptionStartedAt(response.userInfo.createdAt),
                     apiVersion = response.serverInfo.apiVersion?.takeIf { it.isNotBlank() }
                         ?: response.serverInfo.version?.takeIf { it.isNotBlank() },
                     allowedOutputFormats = liveOutputFormats,
@@ -1274,6 +1275,12 @@ class XtreamProvider(
         return char.isLetterOrDigit() || char.isWhitespace() || char in XTREAM_READABLE_TEXT_PUNCTUATION
     }
 }
+
+internal fun parseXtreamSubscriptionStartedAt(rawValue: String?): Long? =
+    rawValue?.trim()?.toLongOrNull()
+        // Xtream supplies epoch seconds; cap at year 9999 to reject millisecond values and overflow.
+        ?.takeIf { it in 1L..253_402_300_799L }
+        ?.times(1000L)
 
 internal fun parseXtreamExpirationDate(rawValue: String?): Long? {
     val value = rawValue?.trim()?.takeIf { it.isNotEmpty() } ?: return null

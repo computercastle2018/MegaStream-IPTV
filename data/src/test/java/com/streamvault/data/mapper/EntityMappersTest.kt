@@ -44,7 +44,8 @@ class EntityMappersTest {
             allowedOutputFormats = listOf("m3u8", "ts"),
             status = ProviderStatus.ACTIVE,
             lastSyncedAt = 1_700_000_000_000L,
-            createdAt = 1_600_000_000_000L
+            createdAt = 1_600_000_000_000L,
+            subscriptionStartedAt = 1_500_000_000_000L
         )
 
         val roundTripped = original.toEntity().toDomain()
@@ -65,6 +66,24 @@ class EntityMappersTest {
         assertThat(roundTripped.status).isEqualTo(original.status)
         assertThat(roundTripped.lastSyncedAt).isEqualTo(original.lastSyncedAt)
         assertThat(roundTripped.createdAt).isEqualTo(original.createdAt)
+        assertThat(roundTripped.subscriptionStartedAt).isEqualTo(original.subscriptionStartedAt)
+    }
+
+    @Test
+    fun `provider without source start stays unknown through mapping and backup parsing`() {
+        val gson = com.google.gson.Gson()
+        ProviderType.entries.forEach { type ->
+            val provider = Provider(name = "Provider", type = type, serverUrl = "https://example.com", createdAt = 123L)
+            assertThat(provider.toEntity().toDomain().subscriptionStartedAt).isNull()
+            val legacyJson = gson.toJsonTree(provider).asJsonObject.apply { remove("subscriptionStartedAt") }
+            val restored = gson.fromJson(legacyJson, Provider::class.java)
+            assertThat(restored.toEntity().toDomain().subscriptionStartedAt).isNull()
+            assertThat(restored.createdAt).isEqualTo(123L)
+        }
+        val provider = Provider(name = "Provider", type = ProviderType.XTREAM_CODES,
+            serverUrl = "https://example.com", subscriptionStartedAt = 1710801000000L)
+        val restored = gson.fromJson(gson.toJson(provider), Provider::class.java).toEntity().toDomain()
+        assertThat(restored.subscriptionStartedAt).isEqualTo(1710801000000L)
     }
 
     @Test

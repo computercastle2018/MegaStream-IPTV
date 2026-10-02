@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<DeviceSession> DeviceSessions => Set<DeviceSession>();
     public DbSet<DiagnosticEvent> DiagnosticEvents => Set<DiagnosticEvent>();
     public DbSet<DevicePolicyAudit> DevicePolicyAudits => Set<DevicePolicyAudit>();
+    public DbSet<AdminNotification> AdminNotifications => Set<AdminNotification>();
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
@@ -34,9 +35,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             e.Property(x=>x.Manufacturer).HasMaxLength(128); e.Property(x=>x.Locale).HasMaxLength(32);
             e.Property(x=>x.KioskMode).HasMaxLength(16).HasDefaultValue("off");
             e.Property(x=>x.AllowLocalExit).HasDefaultValue(true).HasSentinel(true);
+            e.Property(x=>x.AllowSubscriptionDetails).HasDefaultValue(true).HasSentinel(true);
+            e.Property(x=>x.MacAddress).HasMaxLength(17);
             e.Property(x=>x.Status).HasConversion<string>().HasMaxLength(16);
             e.HasIndex(x=>new {x.LicenseId,x.Status}); e.HasIndex(x=>x.LastSeenAt);
             e.HasOne(x=>x.License).WithMany().HasForeignKey(x=>x.LicenseId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<AdminNotification>(e => {
+            e.Property(x=>x.Title).HasMaxLength(128).IsRequired();
+            e.Property(x=>x.Message).HasMaxLength(2000).IsRequired();
+            e.HasIndex(x=>new{x.TargetInstallationId,x.CreatedAt});
+            e.HasOne(x=>x.TargetInstallation).WithMany().HasForeignKey(x=>x.TargetInstallationId).OnDelete(DeleteBehavior.Restrict);
         });
         b.Entity<DevicePolicyAudit>(e => {
             e.Property(x=>x.ActorId).HasMaxLength(128).IsRequired();

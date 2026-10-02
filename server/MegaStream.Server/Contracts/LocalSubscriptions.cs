@@ -18,6 +18,7 @@ public sealed class LocalSubscription
     public bool Enabled { get; set; }
     [Required, RegularExpression("active|partial|expired|disabled|error|unknown")] public string Status { get; set; } = "";
     [Range(0L, 253402300799999L)] public long? ExpiresAt { get; set; }
+    [Range(0L, 253402300799999L)] public long? StartedAt { get; set; }
     [Range(1, int.MaxValue)] public int MaxConnections { get; set; }
 
     [JsonIgnore] public string DisplayState => ExpiresAt <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() || Status == "expired"

@@ -77,6 +77,14 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
         postUnit("/api/v1/devices/subscriptions", credential, encode(request, LocalSubscriptionsRequest.serializer()))
     }
 
+    fun deviceExperience(credential: String): ControlPlaneResult<DeviceExperience> = safely {
+        perform(buildRequest("/api/v1/devices/experience", credential, null), DeviceExperience.serializer())
+    }
+
+    fun reportDeviceMac(credential: String, request: DeviceMacReport): ControlPlaneResult<Unit> = safely {
+        postUnit("/api/v1/devices/experience", credential, encode(request, DeviceMacReport.serializer()))
+    }
+
     private fun <T> encode(value: T, serializer: KSerializer<T>): String {
         val encoded = json.encodeToString(serializer, value)
         require(encoded.toByteArray(Charsets.UTF_8).size <= MAX_BODY_BYTES)
@@ -174,10 +182,10 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
         val UUID_PATTERN = Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
         val STATUS_PATH = Regex("/api/v1/(?:updates/commands|providers/assignments)/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/status")
         val POST_PATHS = setOf("/api/v1/installations/register", "/api/v1/licenses/activate", "/api/v1/activation-codes/request",
-            "/api/v1/activation-codes/status", "/api/v1/devices/heartbeat", "/api/v1/diagnostics/batch", "/api/v1/devices/subscriptions")
+            "/api/v1/activation-codes/status", "/api/v1/devices/heartbeat", "/api/v1/diagnostics/batch", "/api/v1/devices/subscriptions", "/api/v1/devices/experience")
         val json = Json { ignoreUnknownKeys = false; isLenient = false; coerceInputValues = false; encodeDefaults = true }
         fun allowedEndpoint(path: String, method: String): Boolean =
-            (method == "GET" && path == "/api/v1/providers/assignments") ||
+            (method == "GET" && path in setOf("/api/v1/providers/assignments", "/api/v1/devices/experience")) ||
                 (method == "POST" && (path in POST_PATHS || STATUS_PATH.matches(path)))
 
         fun productionExecutor(): CallExecutor {

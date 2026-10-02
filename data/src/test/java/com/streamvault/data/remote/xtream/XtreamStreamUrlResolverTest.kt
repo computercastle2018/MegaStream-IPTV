@@ -399,6 +399,7 @@ class XtreamStreamUrlResolverTest {
         override suspend fun deactivateAll() = Unit
         override suspend fun activate(id: Long) = Unit
         override suspend fun updateSyncTime(id: Long, timestamp: Long) = Unit
+        override suspend fun updateSubscriptionStartedAt(id: Long, timestamp: Long) = Unit
         override suspend fun updateEpgUrl(id: Long, epgUrl: String) = Unit
     }
 

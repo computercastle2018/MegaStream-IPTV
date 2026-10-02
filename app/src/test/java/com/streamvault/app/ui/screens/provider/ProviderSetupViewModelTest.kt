@@ -41,11 +41,13 @@ class ProviderSetupViewModelTest {
     private val validateAndAddProvider: ValidateAndAddProvider = mock()
     private val importBackup: ImportBackup = mock()
     private val driveBackupSyncManager: DriveBackupSyncManager = mock()
+    private val experience: com.MegaStream.app.controlplane.DeviceExperienceRepository = mock()
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        whenever(experience.state).thenReturn(kotlinx.coroutines.flow.MutableStateFlow(com.MegaStream.app.controlplane.DeviceExperience(true)))
         whenever(providerRepository.getActiveProvider()).thenReturn(flowOf(null))
         whenever(providerRepository.getProviders()).thenReturn(flowOf(emptyList()))
         whenever(combinedM3uRepository.getActiveLiveSource()).thenReturn(flowOf(null))
@@ -55,6 +57,20 @@ class ProviderSetupViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `disabled subscription policy blocks all setup types and loading secrets`() = runTest {
+        whenever(experience.state).thenReturn(kotlinx.coroutines.flow.MutableStateFlow(com.MegaStream.app.controlplane.DeviceExperience(false)))
+        val viewModel = ProviderSetupViewModel(providerRepository, combinedM3uRepository, validateAndAddProvider, importBackup, driveBackupSyncManager, experience)
+        viewModel.loginXtream("https://example.com", "user", "password", "Name", "", "")
+        viewModel.loginStalker("https://example.com", "00:1A:79:01:02:03", "Name", "", "", "")
+        viewModel.addM3u("https://example.com/list.m3u", "Name", "", "")
+        viewModel.loadProvider(7)
+        advanceUntilIdle()
+        org.mockito.kotlin.verifyNoInteractions(validateAndAddProvider)
+        org.mockito.kotlin.verify(providerRepository, org.mockito.kotlin.never()).getProvider(any())
+        assertThat(viewModel.uiState.value.error).contains("disabled")
     }
 
     @Test
@@ -82,6 +98,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.addM3u("https://example.com/list.m3u", "Playlist 7", "", "")
@@ -116,6 +133,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.loginXtream("https://example.com", "alice", "secret", "Premium", "", "")
@@ -148,6 +166,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
         val field = ProviderSetupViewModel::class.java.getDeclaredField("_uiState").apply { isAccessible = true }
         @Suppress("UNCHECKED_CAST")
@@ -174,6 +193,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         val seededState = viewModel.uiState.value.copy(
@@ -225,6 +245,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.addM3u("https://example.com/list.m3u", "Playlist 7", "", "")
@@ -246,6 +267,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.applySourceDefaults(ProviderSetupViewModel.SetupSourceType.STALKER)
@@ -263,6 +285,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.applySourceDefaults(ProviderSetupViewModel.SetupSourceType.XTREAM)
@@ -280,6 +303,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.applySourceDefaults(ProviderSetupViewModel.SetupSourceType.M3U)
@@ -297,6 +321,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.updateEpgSyncMode(ProviderEpgSyncMode.SKIP)
@@ -329,6 +354,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         // Simulate being in edit mode for provider 7.
@@ -361,6 +387,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.addM3u("https://example.com/list.m3u", "Playlist", "", "")
@@ -385,6 +412,7 @@ class ProviderSetupViewModelTest {
             validateAndAddProvider = validateAndAddProvider,
             importBackup = importBackup,
             driveBackupSyncManager = driveBackupSyncManager,
+            experience = experience,
         )
 
         viewModel.loginStalker(

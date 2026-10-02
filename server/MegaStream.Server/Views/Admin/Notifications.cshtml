@@ -1,0 +1,30 @@
+@model NotificationsViewModel
+@{ ViewData["Title"] = "الإشعارات"; }
+<div asp-validation-summary="All" class="validation" role="alert"></div>
+<section class="panel">
+    <form asp-action="SendNotification" method="post">
+        <label for="notification-target">المستلم</label>
+        <select id="notification-target" name="TargetInstallationId">
+            <option value="">جميع الأجهزة</option>
+            @foreach (var device in Model.Devices)
+            {
+                <option value="@device.Id" selected="@(Model.Form.TargetInstallationId == device.Id)">@device.DeviceModel (@device.Id)</option>
+            }
+        </select>
+        <label for="notification-title">العنوان</label>
+        <input id="notification-title" name="Title" value="@Model.Form.Title" maxlength="128" required />
+        <label for="notification-message">الرسالة</label>
+        <textarea id="notification-message" name="Message" maxlength="2000" required>@Model.Form.Message</textarea>
+        <label for="notification-expiration">انتهاء الصلاحية UTC (الافتراضي 30 يوماً)</label>
+        <input id="notification-expiration" name="ExpiresAt" type="datetime-local" value="@Model.Form.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm")" />
+        <button type="submit">إرسال الإشعار</button>
+    </form>
+</section>
+<section class="panel table-wrap">
+    <table><thead><tr><th>العنوان</th><th>الرسالة</th><th>المستلم</th><th>أُرسل UTC</th><th>ينتهي UTC</th></tr></thead><tbody>
+    @foreach (var notification in Model.Notifications)
+    {
+        <tr><td>@notification.Title</td><td>@notification.Message</td><td>@(notification.TargetInstallationId?.ToString() ?? "جميع الأجهزة")</td><td>@notification.CreatedAt.ToString("u")</td><td>@notification.ExpiresAt?.ToString("u")</td></tr>
+    }
+    </tbody></table>
+</section>

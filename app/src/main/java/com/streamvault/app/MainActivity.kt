@@ -209,6 +209,7 @@ class MainActivity : ComponentActivity() {
                     val inPictureInPicture by pictureInPictureModeFlow.collectAsState()
                     KioskHost(kioskController, inPictureInPicture) {
                         AppNavigation(mainActivity = this@MainActivity)
+                        if (!inPictureInPicture) com.MegaStream.app.ui.notifications.DeviceNotificationsHost()
                     }
                 }
             }

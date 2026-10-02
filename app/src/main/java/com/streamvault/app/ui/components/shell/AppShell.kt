@@ -320,7 +320,15 @@ private fun TopNavigationBar(
                     )
                 }
             }
-            AppTopBarLanguageAction()
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
+                    com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+                    AppTopBarLanguageAction()
+                } else {
+                    AppTopBarLanguageAction()
+                    com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+                }
+            }
             if (actions != null) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),

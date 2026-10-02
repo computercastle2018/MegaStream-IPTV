@@ -26,7 +26,8 @@ data class Provider(
     val m3uVodClassificationEnabled: Boolean = false,
     val status: ProviderStatus = ProviderStatus.UNKNOWN,
     val lastSyncedAt: Long = 0L,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val subscriptionStartedAt: Long? = null
 ) {
     init {
         require(name.isNotBlank()) { "Provider name must not be blank" }

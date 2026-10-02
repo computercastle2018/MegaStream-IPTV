@@ -90,7 +90,8 @@ object DatabaseModule {
                 MegaStreamDatabase.MIGRATION_48_49,
                 MegaStreamDatabase.MIGRATION_49_50,
                 MegaStreamDatabase.MIGRATION_50_51,
-                MegaStreamDatabase.MIGRATION_51_52
+                MegaStreamDatabase.MIGRATION_51_52,
+                MegaStreamDatabase.MIGRATION_52_53
             )
             // NOTE: fallbackToDestructiveMigration() intentionally removed.
             // All future schema changes MUST add a corresponding Migration in MegaStreamDatabase.

@@ -709,6 +709,10 @@ class SyncManager @Inject constructor(
         val hiddenLiveCategoryIds = preferencesRepository.getHiddenCategoryIds(provider.id, ContentType.LIVE).first()
         val api = createXtreamSyncProvider(provider, useTextClassification, enableBase64TextCompatibility)
         val runtimeProfile = CatalogSyncRuntimeProfile.from(applicationContext)
+        // Metadata refresh is best-effort; an unavailable start date must not erase a known one.
+        api.authenticate().getOrNull()?.subscriptionStartedAt?.let { startedAt ->
+            providerDao.updateSubscriptionStartedAt(provider.id, startedAt)
+        }
         val now = System.currentTimeMillis()
         var metadata = syncMetadataRepository.getMetadata(provider.id) ?: SyncMetadata(provider.id)
 

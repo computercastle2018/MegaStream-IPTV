@@ -55,6 +55,7 @@ class ProviderSetupViewModel @Inject constructor(
     private val validateAndAddProvider: ValidateAndAddProvider,
     private val importBackup: ImportBackup,
     private val driveBackupSyncManager: DriveBackupSyncManager,
+    private val experience: com.MegaStream.app.controlplane.DeviceExperienceRepository,
 ) : ViewModel() {
 
     enum class OnboardingCompletion {
@@ -181,6 +182,7 @@ class ProviderSetupViewModel @Inject constructor(
     }
 
     fun loadProvider(id: Long) {
+        if (!subscriptionManagementAllowed()) return
         viewModelScope.launch {
             val provider = providerRepository.getProvider(id)
             if (provider != null) {
@@ -251,6 +253,7 @@ class ProviderSetupViewModel @Inject constructor(
         timezone: String,
         locale: String
     ) {
+        if (!subscriptionManagementAllowed()) return
         _uiState.update {
             it.copy(
                 validationError = null,
@@ -332,6 +335,7 @@ class ProviderSetupViewModel @Inject constructor(
         httpUserAgent: String,
         httpHeaders: String
     ) {
+        if (!subscriptionManagementAllowed()) return
         _uiState.update {
             it.copy(
                 validationError = null,
@@ -408,6 +412,7 @@ class ProviderSetupViewModel @Inject constructor(
     }
 
     fun addM3u(url: String, name: String, httpUserAgent: String, httpHeaders: String) {
+        if (!subscriptionManagementAllowed()) return
         _uiState.update {
             it.copy(
                 validationError = null,
@@ -582,6 +587,7 @@ class ProviderSetupViewModel @Inject constructor(
     }
 
     fun confirmBackupImport() {
+        if (_uiState.value.backupImportPlan.importProviders && !subscriptionManagementAllowed()) return
         var capturedUri: String? = null
         var capturedPlan: BackupImportPlan? = null
         _uiState.update { state ->
@@ -763,6 +769,12 @@ class ProviderSetupViewModel @Inject constructor(
 
     private inline fun <reified T : Throwable> Throwable?.hasCause(): Boolean =
         findCause<T>() != null
+
+    private fun subscriptionManagementAllowed(): Boolean {
+        if (experience.state.value.allowSubscriptionDetails) return true
+        _uiState.update { it.copy(error = "Subscription management is disabled by the administrator") }
+        return false
+    }
 
     private companion object {
         private const val PROVIDER_LOGIN_SYNC_FAILED_PREFIX =

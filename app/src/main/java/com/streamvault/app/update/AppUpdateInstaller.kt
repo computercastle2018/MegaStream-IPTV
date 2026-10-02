@@ -341,7 +341,7 @@ class AppUpdateInstaller @Inject constructor(
         if (!file.isFile) return "Downloaded update file is missing"
         val pm = context.packageManager
         val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            PackageManager.GET_SIGNING_CERTIFICATES
+            PackageManager.GET_SIGNING_CERTIFICATES or PackageManager.GET_SIGNATURES
         } else PackageManager.GET_SIGNATURES
         val installed = pm.getPackageInfo(BuildConfig.APPLICATION_ID, flags)
         val candidate = pm.getPackageArchiveInfo(file.absolutePath, flags)
@@ -355,8 +355,8 @@ class AppUpdateInstaller @Inject constructor(
             persistedSha256 = persisted.sha256,
             actualSha256 = computeSha256Hex(file),
             argumentSha256 = argumentHash,
-            installedCertificates = signatureSha256Set(installed),
-            candidateCertificates = signatureSha256Set(candidate),
+            installedCertificates = signatureSha256Set(installed, Build.VERSION.SDK_INT),
+            candidateCertificates = signatureSha256Set(candidate, Build.VERSION.SDK_INT),
             expectedCertificate = persisted.signingCertificateSha256
         ))
     }
@@ -487,18 +487,6 @@ class AppUpdateInstaller @Inject constructor(
         info.longVersionCode
     } else info.versionCode.toLong()
 
-    @Suppress("DEPRECATION")
-    private fun signatureSha256Set(info: PackageInfo?): Set<String> {
-        if (info == null) return emptySet()
-        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val signing = info.signingInfo ?: return emptySet()
-            if (signing.hasMultipleSigners()) signing.apkContentsSigners else signing.signingCertificateHistory
-        } else info.signatures
-        return signatures.orEmpty().map { signature ->
-            MessageDigest.getInstance("SHA-256").digest(signature.toByteArray()).toHex()
-        }.toSet()
-    }
-
     private fun matchesIdentity(first: GitHubReleaseInfo?, second: GitHubReleaseInfo): Boolean =
         first != null && first.versionName == second.versionName && first.versionCode == second.versionCode &&
             first.downloadUrl == second.downloadUrl
@@ -592,4 +580,20 @@ class AppUpdateInstaller @Inject constructor(
         const val APK_MIME = "application/vnd.android.package-archive"
         const val MAX_APK_BYTES = 512L * 1024 * 1024
     }
+}
+
+@Suppress("DEPRECATION")
+internal fun signatureSha256Set(info: PackageInfo?, sdkInt: Int): Set<String> {
+    if (info == null) return emptySet()
+    val signatures = if (sdkInt >= Build.VERSION_CODES.P) {
+        val modern = info.signingInfo?.let { signing ->
+            if (signing.hasMultipleSigners()) signing.apkContentsSigners else signing.signingCertificateHistory
+        }
+        // Some TV firmware exposes only the legacy signing field. Empty evidence still fails closed.
+        modern?.takeIf { it.isNotEmpty() } ?: info.signatures
+    } else info.signatures
+    return signatures.orEmpty().map { signature ->
+        MessageDigest.getInstance("SHA-256").digest(signature.toByteArray())
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    }.toSet()
 }

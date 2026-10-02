@@ -114,6 +114,45 @@ public sealed class AdminController(AppDbContext db, IAdminService admin, IConfi
         });
     }
     [HttpPost]
+    public async Task<IActionResult> SetSubscriptionDetailsPolicy(SubscriptionDetailsPolicyForm form, CancellationToken ct)
+    {
+        if (form.Id == Guid.Empty || !ModelState.IsValid) return BadRequest();
+        var changed = await db.Installations.Where(x => x.Id == form.Id && x.Status == InstallationStatus.Active)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.AllowSubscriptionDetails, form.AllowSubscriptionDetails!.Value), ct);
+        if (changed != 1) return BadRequest();
+        return RedirectToAction(nameof(DeviceDetails), new { id = form.Id });
+    }
+    [HttpGet]
+    public async Task<IActionResult> Notifications(Guid? targetInstallationId, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+        return View(await NotificationsModel(new AdminNotificationForm { TargetInstallationId = targetInstallationId }, ct));
+    }
+    private async Task<NotificationsViewModel> NotificationsModel(AdminNotificationForm form, CancellationToken ct) => new(form,
+        await db.Installations.AsNoTracking().Where(x => x.Status == InstallationStatus.Active).OrderBy(x => x.DeviceModel).ToListAsync(ct),
+        await db.AdminNotifications.AsNoTracking().OrderByDescending(x => x.CreatedAt).Take(100).ToListAsync(ct));
+    [HttpPost]
+    public async Task<IActionResult> SendNotification(AdminNotificationForm form, CancellationToken ct)
+    {
+        var title = Sanitizer.CleanDiagnostic(form.Title, 128);
+        var message = Sanitizer.CleanDiagnostic(form.Message, 2000);
+        if (string.IsNullOrWhiteSpace(title)) ModelState.AddModelError(nameof(form.Title), "أدخل عنواناً صالحاً");
+        if (string.IsNullOrWhiteSpace(message)) ModelState.AddModelError(nameof(form.Message), "أدخل رسالة صالحة");
+        if (form.TargetInstallationId is { } target &&
+            !await db.Installations.AnyAsync(x => x.Id == target && x.Status == InstallationStatus.Active, ct))
+            ModelState.AddModelError(nameof(form.TargetInstallationId), "اختر جهازاً نشطاً");
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = 400;
+            return View("Notifications", await NotificationsModel(form, ct));
+        }
+        db.AdminNotifications.Add(new AdminNotification { TargetInstallationId = form.TargetInstallationId,
+            Title = title, Message = message,
+            ExpiresAt = form.ExpiresAt.HasValue ? DateTime.SpecifyKind(form.ExpiresAt.Value, DateTimeKind.Utc) : DateTime.UtcNow.AddDays(30) });
+        await db.SaveChangesAsync(ct);
+        return RedirectToAction(nameof(Notifications));
+    }
+    [HttpPost]
     public async Task<IActionResult> AssignDeviceLicense(AssignDeviceLicenseForm form, CancellationToken ct)
     {
         if (form.Id == Guid.Empty) return BadRequest();

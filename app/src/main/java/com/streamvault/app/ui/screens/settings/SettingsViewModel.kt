@@ -95,6 +95,7 @@ class SettingsViewModel @Inject constructor(
     private val seriesRepository: SeriesRepository,
     private val preferencesRepository: PreferencesRepository,
     private val internetSpeedTestRunner: InternetSpeedTestRunner,
+    private val experience: com.MegaStream.app.controlplane.DeviceExperienceRepository,
     private val backupManager: BackupManager,
     private val driveBackupSyncManager: DriveBackupSyncManager,
     private val recordingManager: RecordingManager,
@@ -908,6 +909,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun deleteProvider(providerId: Long, onSuccess: () -> Unit = {}) {
+        if (!experience.state.value.allowSubscriptionDetails) return
         providerActions.deleteProvider(viewModelScope, providerId, onSuccess)
     }
 
@@ -916,6 +918,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun exportConfig(uriString: String, onSuccess: (() -> Unit)? = null) {
+        if (!experience.state.value.allowSubscriptionDetails) return
         backupActions.exportConfig(viewModelScope, uriString, onSuccess)
     }
 
@@ -956,6 +959,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun confirmBackupImport() {
+        if (_uiState.value.backupImportPlan.importProviders && !experience.state.value.allowSubscriptionDetails) return
         backupActions.confirmBackupImport(viewModelScope) {
             driveBackupActions.applyPendingCredentials(viewModelScope)
         }

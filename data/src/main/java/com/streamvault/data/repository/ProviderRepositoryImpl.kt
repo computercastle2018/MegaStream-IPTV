@@ -231,6 +231,12 @@ class ProviderRepositoryImpl @Inject constructor(
                         isActive = false,
                         status = ProviderStatus.PARTIAL,
                         lastSyncedAt = 0,
+                        subscriptionStartedAt = authResult.data.subscriptionStartedAt
+                            ?: existingProvider.subscriptionStartedAt.takeIf {
+                                existingProvider.type == ProviderType.XTREAM_CODES &&
+                                    existingProvider.serverUrl == normalizedServerUrl &&
+                                    existingProvider.username == normalizedUsername
+                            },
                         createdAt = existingProvider.createdAt
                     )
                     providerDao.update(updated.toSecureEntity())
@@ -311,6 +317,9 @@ class ProviderRepositoryImpl @Inject constructor(
                 httpHeaders = httpHeaders,
                 epgSyncMode = epgSyncMode,
                 m3uVodClassificationEnabled = m3uVodClassificationEnabled,
+                subscriptionStartedAt = existingProvider.subscriptionStartedAt.takeIf {
+                    existingProvider.type == ProviderType.M3U && existingProvider.serverUrl == normalizedUrl
+                },
                 isActive = false,
                 status = ProviderStatus.PARTIAL,
                 lastSyncedAt = 0
@@ -412,6 +421,12 @@ class ProviderRepositoryImpl @Inject constructor(
                         isActive = false,
                         status = ProviderStatus.PARTIAL,
                         lastSyncedAt = 0L,
+                        subscriptionStartedAt = authResult.data.subscriptionStartedAt
+                            ?: existingProvider.subscriptionStartedAt.takeIf {
+                                existingProvider.type == ProviderType.STALKER_PORTAL &&
+                                    existingProvider.serverUrl == normalizedPortalUrl &&
+                                    existingProvider.stalkerMacAddress.equals(normalizedMacAddress, ignoreCase = true)
+                            },
                         createdAt = existingProvider.createdAt
                     )
                     providerDao.update(updated.toSecureEntity())

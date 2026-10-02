@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_details_title">الشبكة والجهاز</string>
+    <string name="network_details_open">تفاصيل الشبكة</string>
+    <string name="network_transport">نوع الاتصال</string>
+    <string name="network_validation">التحقق من اتصال الإنترنت</string>
+    <string name="network_local_ip">عناوين IP المحلية</string>
+    <string name="network_dns">خوادم DNS</string>
+    <string name="network_gateway">البوابات الافتراضية</string>
+    <string name="network_public_ip">عنوان IP العام</string>
+    <string name="network_isp">مزود خدمة الإنترنت</string>
+    <string name="network_public_ip_not_checked">لم يتم الفحص</string>
+    <string name="network_public_ip_failed">غير متاح: تعذّر الاستعلام من Cloudflare</string>
+    <string name="network_public_ip_lookup">فحص IP العام عبر Cloudflare</string>
+    <string name="network_isp_unavailable">غير متاح: لا يوجد مشغّل جوال قابل للقراءة أو استعلام مصرح عن مزود الإنترنت</string>
+    <string name="network_isp_cellular_source">المصدر: مشغّل شبكة الجوال، وليس ملكية عنوان IP العام</string>
+    <string name="network_speed_provider">مزود اختبار السرعة</string>
+    <string name="network_readable_mac">عنوان MAC لواجهة الاتصال الحالية</string>
+    <string name="network_saved_mac">عنوان MAC المحفوظ للجهاز</string>
+    <string name="network_manual_mac">عنوان MAC اليدوي للجهاز</string>
+    <string name="network_mac_manual">المصدر: إدخال يدوي، غير موثّق من الجهاز</string>
+    <string name="network_mac_readable">المصدر: واجهة الاتصال القابلة للقراءة، وقد يكون عشوائياً</string>
+    <string name="network_mac_limit">قد يخفي Android عنوان MAC الفعلي. العنوان المحفوظ يدوياً ليس هوية موثّقة للجهاز ولا يغيّر عنوان الشبكة.</string>
+    <string name="network_mac_invalid">أدخل ستة أزواج ست عشرية تفصلها نقطتان أو شرطات. لا تُقبل العناوين الصفرية أو متعددة الوجهات أو عنوان Android البديل.</string>
+    <string name="network_mac_save_error">تعذّر حفظ التغيير. حاول مرة أخرى.</string>
+    <string name="network_mac_save">حفظ MAC</string>
+    <string name="network_mac_clear">إزالة MAC المحفوظ</string>
+    <string name="network_refresh">تحديث تفاصيل الشبكة</string>
+    <string name="network_close">إغلاق</string>
+    <string name="network_unavailable">غير متاح</string>
+    <string name="network_wifi">واي فاي</string>
+    <string name="network_ethernet">إيثرنت</string>
+    <string name="network_cellular">شبكة الجوال</string>
+    <string name="network_vpn">VPN</string>
+    <string name="network_other">أخرى</string>
+    <string name="network_validated">تم التحقق بواسطة Android</string>
+    <string name="network_captive_portal">يلزم تسجيل الدخول للشبكة</string>
+    <string name="network_not_validated">لم يتم التحقق من اتصال الإنترنت</string>
+    <string name="network_disconnected">لا يوجد اتصال نشط</string>
+</resources>

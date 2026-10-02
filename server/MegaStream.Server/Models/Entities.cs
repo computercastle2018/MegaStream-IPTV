@@ -33,6 +33,8 @@ public class Installation
     public string Locale { get; set; } = "";
     public string KioskMode { get; set; } = "off";
     public bool AllowLocalExit { get; set; } = true;
+    public bool AllowSubscriptionDetails { get; set; } = true;
+    public string? MacAddress { get; set; }
     public InstallationStatus Status { get; set; } = InstallationStatus.Active;
     public Guid? LicenseId { get; set; }
     public License? License { get; set; }
@@ -43,6 +45,16 @@ public class Installation
     public DateTime? LastLeaseExpiresAt { get; set; }
     public string? LocalSubscriptionsJson { get; set; }
     public DateTime? LocalSubscriptionsReportedAt { get; set; }
+}
+public class AdminNotification
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid? TargetInstallationId { get; set; }
+    public Installation? TargetInstallation { get; set; }
+    public string Title { get; set; } = "";
+    public string Message { get; set; } = "";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ExpiresAt { get; set; }
 }
 public class DevicePolicyAudit
 {

@@ -40,6 +40,25 @@ public sealed class LicenseStatusForm
 public sealed class ApproveCodeForm { public Guid Id { get; set; } public Guid LicenseId { get; set; } }
 public sealed class AssignDeviceLicenseForm { public Guid Id { get; set; } public Guid LicenseId { get; set; } }
 public sealed class RevokeDeviceForm { public Guid Id { get; set; } }
+public sealed class SubscriptionDetailsPolicyForm
+{
+    public Guid Id { get; set; }
+    [Required] public bool? AllowSubscriptionDetails { get; set; }
+}
+public sealed class AdminNotificationForm : IValidatableObject
+{
+    public Guid? TargetInstallationId { get; set; }
+    [Required, StringLength(128)] public string Title { get; set; } = "";
+    [Required, StringLength(2000)] public string Message { get; set; } = "";
+    public DateTime? ExpiresAt { get; set; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext context)
+    {
+        if (ExpiresAt is { } expires && (expires <= DateTime.UtcNow || expires.Year > 2100))
+            yield return new ValidationResult("اختر تاريخ انتهاء مستقبلي حتى عام 2100", [nameof(ExpiresAt)]);
+    }
+}
+public sealed record NotificationsViewModel(AdminNotificationForm Form, IReadOnlyList<Installation> Devices,
+    IReadOnlyList<AdminNotification> Notifications);
 public sealed record DashboardViewModel(int LicenseCount, int DeviceCount, int OnlineDeviceCount, int IncidentCount, int OnlineWindowMinutes, IReadOnlyList<DiagnosticEvent> RecentIncidents);
 public sealed record LicenseCreatedViewModel(License License, string FullKey);
 public sealed record LicenseDetailsViewModel(License License, IReadOnlyList<Installation> Devices, LicenseLimitsForm Limits);

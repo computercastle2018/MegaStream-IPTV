@@ -16,6 +16,33 @@ class MegaStreamDatabaseMigrationTest {
 
     private val testDbName = "MegaStream-migration-test"
 
+    @Test
+    fun migrate52To53_preservesLocalCreationAndLeavesSubscriptionStartUnknown() {
+        migrationTestHelper.createDatabase("MegaStream-52-53-test", 52).apply {
+            execSQL(
+                """
+                INSERT INTO providers (
+                    id, name, type, server_url, username, password, m3u_url, epg_url,
+                    http_user_agent, http_headers, stalker_mac_address, stalker_device_profile,
+                    stalker_device_timezone, stalker_device_locale, is_active, max_connections,
+                    allowed_output_formats_json, epg_sync_mode, xtream_fast_sync_enabled,
+                    xtream_live_sync_mode, m3u_vod_classification_enabled, status, last_synced_at, created_at
+                ) VALUES (1, 'Provider', 'XTREAM_CODES', 'https://example.com', 'user', 'pass', '', '',
+                    '', '', '', '', '', '', 1, 1, '[]', 'UPFRONT', 0, 'AUTO', 0, 'ACTIVE', 0, 123456)
+                """.trimIndent()
+            )
+            close()
+        }
+        val db = migrationTestHelper.runMigrationsAndValidate(
+            "MegaStream-52-53-test", 53, true, MegaStreamDatabase.MIGRATION_52_53
+        )
+        assertEquals(1, countRows(db,
+            "SELECT COUNT(*) FROM providers WHERE created_at = 123456 AND subscription_started_at IS NULL"))
+        db.execSQL("UPDATE providers SET subscription_started_at = 1710801000000 WHERE id = 1")
+        assertEquals(1710801000000L, firstLong(db, "SELECT subscription_started_at FROM providers WHERE id = 1"))
+        db.close()
+    }
+
     @get:Rule
     val migrationTestHelper: MigrationTestHelper = MigrationTestHelper(
         InstrumentationRegistry.getInstrumentation(),

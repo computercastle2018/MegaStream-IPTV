@@ -1,6 +1,20 @@
 @model DeviceDetailsViewModel
 @{ ViewData["Title"] = "تفاصيل الجهاز"; }
 <section class="panel">
+    <h2>سياسة معلومات الاشتراك</h2>
+    <dl><dt>عنوان MAC المبلغ عنه</dt><dd><bdi>@(Model.Device.MacAddress ?? "غير متوفر")</bdi></dd></dl>
+    @if (Model.Device.Status == InstallationStatus.Active)
+    {
+        <form asp-action="SetSubscriptionDetailsPolicy" method="post">
+            <input type="hidden" name="Id" value="@Model.Device.Id" />
+            <label><input type="checkbox" name="AllowSubscriptionDetails" value="true" checked="@Model.Device.AllowSubscriptionDetails" /> السماح بعرض معلومات الاشتراك وإدخالها</label>
+            <input type="hidden" name="AllowSubscriptionDetails" value="false" />
+            <button type="submit">حفظ سياسة الاشتراك</button>
+        </form>
+        <p><a asp-action="Notifications" asp-route-targetInstallationId="@Model.Device.Id">إرسال إشعار لهذا الجهاز</a></p>
+    }
+</section>
+<section class="panel">
     <h2>ترخيص الجهاز</h2>
     <dl><dt>حالة الترخيص</dt><dd>@AdminDisplay.DeviceLicenseState(Model.Device)</dd></dl>
     @if (Model.Device.License is { } assignedLicense)
@@ -39,7 +53,8 @@
         {
             <tr><td>@subscription.Name</td><td><bdi>@(subscription.Type switch { "xtream_codes" => "Xtream", "m3u" => "M3U", _ => "Stalker" })</bdi></td><td>@subscription.DisplayState</td><td>
                 <details class="subscription-information"><summary>إظهار / إخفاء معلومات الاشتراك</summary>
-                    <dl><dt>الصلاحية UTC</dt><dd>@(subscription.ExpiresAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.ExpiresAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير محددة")</dd>
+                    <dl><dt>بداية الاشتراك UTC</dt><dd>@(subscription.StartedAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.StartedAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير معروفة")</dd>
+                    <dt>الصلاحية UTC</dt><dd>@(subscription.ExpiresAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.ExpiresAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير محددة")</dd>
                     <dt>حد الاتصالات</dt><dd>@subscription.MaxConnections</dd><dt>مفعّل على الجهاز</dt><dd>@(subscription.Enabled ? "نعم" : "لا")</dd></dl>
                 </details>
             </td></tr>

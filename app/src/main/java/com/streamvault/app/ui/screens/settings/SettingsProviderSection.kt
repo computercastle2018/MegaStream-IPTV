@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,6 +53,9 @@ internal fun LazyListScope.providerSection(
         }
     } else {
         item {
+            val experienceViewModel: com.MegaStream.app.controlplane.DeviceExperienceViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+            val experience by experienceViewModel.repository.state.collectAsState()
+            val detailsAllowed = experience.allowSubscriptionDetails
             var selectedProviderId by rememberSaveable(uiState.providers, uiState.activeProviderId) {
                 mutableStateOf(uiState.activeProviderId ?: uiState.providers.first().id)
             }
@@ -64,13 +68,13 @@ internal fun LazyListScope.providerSection(
             val selectedProvider = uiState.providers.firstOrNull { it.id == selectedProviderId }
                 ?: uiState.providers.first()
 
-            Text(
+            if (detailsAllowed) Text(
                 text = stringResource(R.string.settings_provider_selector_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = OnSurfaceDim,
                 modifier = Modifier.padding(bottom = 10.dp)
             )
-            LazyRow(
+            if (detailsAllowed) LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 14.dp)
             ) {
@@ -119,7 +123,7 @@ internal fun LazyListScope.providerSection(
             )
 
             Spacer(modifier = Modifier.height(18.dp))
-            CombinedM3uProfilesCard(
+            if (detailsAllowed) CombinedM3uProfilesCard(
                 profiles = uiState.combinedProfiles,
                 availableProviders = uiState.availableM3uProviders,
                 selectedProfileId = providerState.selectedCombinedProfileId,
@@ -155,7 +159,9 @@ internal fun LazyListScope.providerSection(
     }
 
     item {
-        TvClickableSurface(
+        val experienceViewModel: com.MegaStream.app.controlplane.DeviceExperienceViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+        val experience by experienceViewModel.repository.state.collectAsState()
+        if (experience.allowSubscriptionDetails) TvClickableSurface(
             onClick = onAddProvider,
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(

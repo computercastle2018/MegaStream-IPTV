@@ -26,6 +26,38 @@ import org.junit.Test
 class XtreamProviderTest {
 
     @Test
+    fun `subscription start accepts bounded epoch seconds only`() {
+        assertThat(parseXtreamSubscriptionStartedAt(" 1710801000 ")).isEqualTo(1710801000000L)
+        assertThat(parseXtreamSubscriptionStartedAt("253402300799")).isEqualTo(253402300799000L)
+        listOf(null, "", "null", "Unlimited", "invalid", "2026-03-20", "0", "-1",
+            "1710801000000", "253402300800", Long.MAX_VALUE.toString(), "9223372036854775808"
+        ).forEach { raw ->
+            assertThat(parseXtreamSubscriptionStartedAt(raw)).isNull()
+        }
+    }
+
+    @Test
+    fun `authenticate keeps source start separate from local creation and never fabricates it`() = runBlocking {
+        listOf("1710801000" to 1710801000000L, "" to null, "invalid" to null).forEach { (raw, expected) ->
+            val provider = XtreamProvider(
+                providerId = 42,
+                api = FakeXtreamApiService(
+                    authResponse = XtreamAuthResponse(
+                        userInfo = XtreamUserInfo(auth = 1, status = "Active", createdAt = raw),
+                        serverInfo = XtreamServerInfo()
+                    )
+                ),
+                serverUrl = "https://example.com",
+                username = "user",
+                password = "pass"
+            )
+            val authenticated = requireNotNull(provider.authenticate().getOrNull())
+            assertThat(authenticated.subscriptionStartedAt).isEqualTo(expected)
+            assertThat(authenticated.createdAt).isNotEqualTo(expected)
+        }
+    }
+
+    @Test
     fun `parseXtreamExpirationDate handles slash separated local date times`() {
         assertThat(parseXtreamExpirationDate("2026/03/20 14:30:00")).isEqualTo(1774017000000L)
     }

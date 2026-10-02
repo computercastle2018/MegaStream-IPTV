@@ -1,0 +1,10 @@
+<resources>
+    <string name="device_notifications">Notifications</string>
+    <string name="device_notifications_empty">No notifications</string>
+    <string name="device_notifications_refresh">Refresh</string>
+    <string name="device_notifications_close">Close</string>
+    <string name="device_subscription_start">Start: %1$s</string>
+    <string name="device_subscription_start_unknown">Start date unavailable</string>
+    <string name="device_subscription_restricted">Subscription management is disabled by the administrator</string>
+    <string name="device_subscription_details">Subscription details</string>
+</resources>

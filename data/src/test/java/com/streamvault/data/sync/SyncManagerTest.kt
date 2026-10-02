@@ -93,12 +93,15 @@ class SyncManagerTest {
     // ── In-memory fake ──────────────────────────────────────────────
 
     private class FakeProviderDao(
-        private val provider: ProviderEntity? = sampleProvider()
+        private var provider: ProviderEntity? = sampleProvider()
     ) : ProviderDao() {
         override suspend fun getById(id: Long): ProviderEntity? = provider
         override suspend fun getByIds(ids: List<Long>): List<ProviderEntity> =
             listOfNotNull(provider).filter { it.id in ids }
         override suspend fun updateSyncTime(id: Long, timestamp: Long) = Unit
+        override suspend fun updateSubscriptionStartedAt(id: Long, timestamp: Long) {
+            provider = provider?.copy(subscriptionStartedAt = timestamp)
+        }
         override fun getAll() = kotlinx.coroutines.flow.flowOf(listOfNotNull(provider))
         override suspend fun getAllSync(): List<ProviderEntity> = listOfNotNull(provider)
         override fun getActive() = kotlinx.coroutines.flow.flowOf(provider)
@@ -302,10 +305,11 @@ class SyncManagerTest {
     private fun buildManager(
         providerType: ProviderType = ProviderType.XTREAM_CODES,
         providerPresent: Boolean = true,
-        providerEntity: ProviderEntity? = null
+        providerEntity: ProviderEntity? = null,
+        providerDao: ProviderDao? = null
     ): SyncManager = SyncManager(
         applicationContext = applicationContext,
-        providerDao = FakeProviderDao(
+        providerDao = providerDao ?: FakeProviderDao(
             if (providerPresent) {
                 providerEntity ?: sampleProvider(providerType)
             } else {
@@ -359,6 +363,25 @@ class SyncManagerTest {
     private fun stubXtreamEmptyVodAndSeriesCategories() {
         xtreamBackend.respond(action = "get_vod_categories", body = "[]")
         xtreamBackend.respond(action = "get_series_categories", body = "[]")
+    }
+
+    @Test
+    fun `sync preserves source subscription start even when later auth omits it`() = runTest {
+        val dao = FakeProviderDao(sampleProvider().copy(createdAt = 123L))
+        val manager = buildManager(providerDao = dao)
+        stubXtreamLiveCatalog()
+        stubXtreamEmptyVodAndSeriesCategories()
+        xtreamBackend.respond("", """{"user_info":{"auth":1,"status":"Active","created_at":"invalid"},"server_info":{}}""")
+        xtreamBackend.respond("", """{"user_info":{"auth":1,"status":"Active","created_at":"1710801000"},"server_info":{}}""")
+        xtreamBackend.respond("", """{"user_info":{"auth":1,"status":"Active","created_at":"invalid"},"server_info":{}}""")
+
+        assertThat(manager.sync(1L).isSuccess).isTrue()
+        assertThat(dao.getById(1L)?.subscriptionStartedAt).isNull()
+        repeat(2) {
+            assertThat(manager.sync(1L).isSuccess).isTrue()
+            assertThat(dao.getById(1L)?.subscriptionStartedAt).isEqualTo(1710801000000L)
+            assertThat(dao.getById(1L)?.createdAt).isEqualTo(123L)
+        }
     }
 
     @Test
@@ -668,7 +691,7 @@ class SyncManagerTest {
 
         assertThat(result.isSuccess).isTrue()
         assertThat(xtreamBackend.requestedActions.count { it == "get_live_streams" }).isEqualTo(2)
-        assertThat(xtreamBackend.requestedActions.first()).isEqualTo("get_live_categories")
+        assertThat(xtreamBackend.requestedActions.first { it.isNotBlank() }).isEqualTo("get_live_categories")
     }
 
     @Test

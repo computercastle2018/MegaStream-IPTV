@@ -1,0 +1,10 @@
+<resources>
+    <string name="device_notifications">الإشعارات</string>
+    <string name="device_notifications_empty">لا توجد إشعارات</string>
+    <string name="device_notifications_refresh">تحديث</string>
+    <string name="device_notifications_close">إغلاق</string>
+    <string name="device_subscription_start">بداية الاشتراك: %1$s</string>
+    <string name="device_subscription_start_unknown">تاريخ بداية الاشتراك غير متاح</string>
+    <string name="device_subscription_restricted">إدارة الاشتراكات غير متاحة بحسب إعداد المسؤول</string>
+    <string name="device_subscription_details">تفاصيل الاشتراك</string>
+</resources>

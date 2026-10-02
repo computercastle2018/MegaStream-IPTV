@@ -37,6 +37,7 @@ class ProductionRuntime @Inject internal constructor(
     @ApplicationContext private val context: Context,
     private val factory: AndroidRuntimeFactory,
     private val entitlement: Provider<LocalAppEntitlement>,
+    private val experience: com.MegaStream.app.controlplane.DeviceExperienceRepository,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val lifecycleLane = Mutex()
@@ -117,6 +118,14 @@ class ProductionRuntime @Inject internal constructor(
                     runtimeReady = !startup.isCancelled && !exitRequested
                 }
                 if (!exitRequested) withContext(Dispatchers.IO) { scheduleBackgroundWork() }
+                scope.launch {
+                    while (!exitRequested) {
+                        if (ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                            experience.refresh()
+                        }
+                        kotlinx.coroutines.delay(60_000)
+                    }
+                }
             } catch (cancelled: CancellationException) {
                 runtimeReady = false
                 throw cancelled

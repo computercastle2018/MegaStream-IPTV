@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_details_title">Network and device</string>
+    <string name="network_details_open">Network details</string>
+    <string name="network_transport">Connection type</string>
+    <string name="network_validation">Internet validation</string>
+    <string name="network_local_ip">Local IP addresses</string>
+    <string name="network_dns">DNS servers</string>
+    <string name="network_gateway">Default gateways</string>
+    <string name="network_public_ip">Public IP</string>
+    <string name="network_isp">Internet service provider</string>
+    <string name="network_public_ip_not_checked">Not checked</string>
+    <string name="network_public_ip_failed">Unavailable: Cloudflare lookup failed</string>
+    <string name="network_public_ip_lookup">Check public IP (Cloudflare)</string>
+    <string name="network_isp_unavailable">Unavailable: no readable cellular operator or authorized ISP lookup</string>
+    <string name="network_isp_cellular_source">Source: cellular network operator, not public IP ownership</string>
+    <string name="network_speed_provider">Speed-test provider</string>
+    <string name="network_readable_mac">Active interface MAC</string>
+    <string name="network_saved_mac">Saved device MAC</string>
+    <string name="network_manual_mac">Manual device MAC</string>
+    <string name="network_mac_manual">Source: manually entered, not hardware verified</string>
+    <string name="network_mac_readable">Source: readable active interface, may be randomized</string>
+    <string name="network_mac_limit">Android may hide the hardware MAC. A manually saved address is not a verified device identity and does not change the network MAC.</string>
+    <string name="network_mac_invalid">Enter six hexadecimal pairs separated by colons or hyphens. Zero, multicast and Android placeholder addresses are not accepted.</string>
+    <string name="network_mac_save_error">Unable to save the change. Please try again.</string>
+    <string name="network_mac_save">Save MAC</string>
+    <string name="network_mac_clear">Remove saved MAC</string>
+    <string name="network_refresh">Refresh network details</string>
+    <string name="network_close">Close</string>
+    <string name="network_unavailable">Unavailable</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_ethernet">Ethernet</string>
+    <string name="network_cellular">Cellular</string>
+    <string name="network_vpn">VPN</string>
+    <string name="network_other">Other</string>
+    <string name="network_validated">Validated by Android</string>
+    <string name="network_captive_portal">Sign-in required (captive portal)</string>
+    <string name="network_not_validated">Internet access not validated</string>
+    <string name="network_disconnected">No active connection</string>
+</resources>

@@ -39,7 +39,8 @@ fun ProviderEntity.toDomain() = Provider(
     m3uVodClassificationEnabled = m3uVodClassificationEnabled,
     status = status,
     lastSyncedAt = lastSyncedAt,
-    createdAt = createdAt
+    createdAt = createdAt,
+    subscriptionStartedAt = subscriptionStartedAt
 )
 
 fun Provider.toEntity() = ProviderEntity(
@@ -68,7 +69,8 @@ fun Provider.toEntity() = ProviderEntity(
     m3uVodClassificationEnabled = m3uVodClassificationEnabled,
     status = status,
     lastSyncedAt = lastSyncedAt,
-    createdAt = createdAt
+    createdAt = createdAt,
+    subscriptionStartedAt = subscriptionStartedAt
 )
 
 fun CombinedM3uProfileEntity.toDomain(

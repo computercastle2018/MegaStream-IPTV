@@ -97,6 +97,21 @@ fun ProviderSetupScreen(
     initialImportUri: String? = null,
     viewModel: ProviderSetupViewModel = hiltViewModel()
 ) {
+    val experienceViewModel: com.MegaStream.app.controlplane.DeviceExperienceViewModel = hiltViewModel()
+    val experience by experienceViewModel.repository.state.collectAsStateWithLifecycle()
+    if (!experience.allowSubscriptionDetails) {
+        com.MegaStream.app.ui.components.dialogs.PremiumDialog(
+            title = stringResource(R.string.device_subscription_details),
+            onDismissRequest = onBack,
+            content = { Text(stringResource(R.string.device_subscription_restricted)) },
+            footer = {
+                com.MegaStream.app.ui.components.dialogs.PremiumDialogFooterButton(
+                    stringResource(R.string.device_notifications_close), onClick = onBack
+                )
+            }
+        )
+        return
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val knownLocalM3uUrls by viewModel.knownLocalM3uUrls.collectAsStateWithLifecycle()
     val context = LocalContext.current

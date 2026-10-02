@@ -43,7 +43,8 @@ data class ProviderEntity(
     @ColumnInfo(name = "m3u_vod_classification_enabled") val m3uVodClassificationEnabled: Boolean = false,
     val status: ProviderStatus = ProviderStatus.UNKNOWN,
     @ColumnInfo(name = "last_synced_at") val lastSyncedAt: Long = 0,
-    @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis()
+    @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "subscription_started_at") val subscriptionStartedAt: Long? = null
 )
 
 @Entity(

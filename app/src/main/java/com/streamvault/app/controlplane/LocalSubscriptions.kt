@@ -23,6 +23,7 @@ data class LocalSubscription(
     val status: String,
     val expiresAt: Long?,
     val maxConnections: Int,
+    val startedAt: Long? = null,
 ) {
     init {
         require(localId > 0 && name.isNotBlank() && name.length <= 128)
@@ -30,6 +31,7 @@ data class LocalSubscription(
         require(status in setOf("active", "partial", "expired", "disabled", "error", "unknown"))
         require(expiresAt == null || expiresAt in 0..253402300799999L)
         require(maxConnections > 0)
+        require(startedAt == null || startedAt in 0..253402300799999L)
     }
 
     override fun toString(): String = "LocalSubscription(id=$localId, [REDACTED])"
@@ -47,6 +49,7 @@ data class LocalSubscription(
                 provider.type.name.lowercase(Locale.ROOT), provider.isActive,
                 provider.status.name.lowercase(Locale.ROOT),
                 provider.expirationDate?.takeIf { it in 0..253402300799999L }, provider.maxConnections,
+                provider.subscriptionStartedAt,
             )
         }
     }

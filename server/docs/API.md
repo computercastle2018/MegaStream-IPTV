@@ -154,6 +154,32 @@ Policies are `optional`, `auto_enabled`, and `required`; a required assignment c
 
 Administrators replace complete configurations; they cannot retrieve the stored plaintext through profile-metadata views. A lost/wrong encryption key or version returns `503 provider_configuration_unavailable`; do not "fix" that by discarding encrypted database records or generating a replacement key without a recovery plan.
 
+## Device experience
+
+Both methods on `/api/v1/devices/experience` require the existing device bearer credential and an active Installation. Identity comes only from authentication, never a request installation ID or administrator cookie. Responses are not cacheable. Missing/invalid authentication returns `401`; a revoked Installation returns `403 installation_disabled`.
+
+`GET` returns:
+
+```json
+{
+  "allowSubscriptionDetails": true,
+  "notifications": [
+    {"id": "<UUID>", "title": "Notice", "message": "Service update", "createdAt": "2026-10-02T12:00:00.0000000Z"}
+  ],
+  "macAddress": null
+}
+```
+
+`allowSubscriptionDetails` governs the client's subscription-details display/input and defaults to `true`, including existing Installations. It does not change licensing, kiosk policy, provider assignments, or telemetry. Notifications are the latest 50 active global or authenticated-device-targeted records, ordered newest first. Expired or future-created records are excluded. A null notification expiration means no expiration; administrator submissions default to 30 days or accept a chosen future UTC expiration. Notification text is sanitized before storage and delivery, never joined with provider credentials.
+
+Notification IDs are immutable record UUIDs across feed requests; fetching does not acknowledge, delete, or mark a notification read. Popup dismissal/read state belongs to the client.
+
+`POST` accepts `{"macAddress":"00:11:22:33:44:55"}` or `{"macAddress":null}` and returns empty `204`. Missing/null MAC preserves the existing record. Colon-separated and hyphen-separated six-octet hexadecimal unicast addresses are accepted and normalized to uppercase colon notation, including manual locally administered addresses. Zero, multicast/broadcast, Android's `02:00:00:00:00:00` placeholder, malformed, and over-17-character values return `400` without changing the record. This is a reported device MAC, not an authenticated hardware identity or an encrypted Stalker provider MAC.
+
+The separate `/api/v1/devices/subscriptions` report optionally accepts nullable `startedAt` per subscription, in Unix epoch milliseconds like `expiresAt`, only when supplied by the provider source. Older reports may omit it. The administrator view shows unknown when absent; Installation creation/activation dates are never substituted for provider subscription dates.
+
+Administrators use `/Admin/Notifications` for global/device notifications and the independent `/Admin/SetSubscriptionDetailsPolicy` form on device details for visibility/input policy. Both POST actions require antiforgery validation; a supplied notification target must exist and be active, otherwise the submission is rejected (never converted to a global notification). The existing strict heartbeat request and response contracts are unchanged.
+
 ## Errors and health
 
 Domain errors use `application/problem+json` with HTTP `status`, a safe `title`, `code`, and `traceId`. Model-binding failures use `400 invalid_request`. Do not log full request bodies while investigating failures.

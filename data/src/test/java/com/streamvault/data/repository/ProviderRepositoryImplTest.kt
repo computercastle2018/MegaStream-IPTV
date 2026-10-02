@@ -196,6 +196,37 @@ class ProviderRepositoryImplTest {
     }
 
     @Test
+    fun `validateM3u preserves subscription start only for the same URL and M3U type`() = runTest {
+        val url = "https://example.com/list.m3u"
+        val knownStart = 1710801000000L
+        whenever(syncManager.sync(eq(5L), eq(false), anyOrNull(), anyOrNull(), anyOrNull(), eq(false)))
+            .thenReturn(Result.error("Catalog unavailable"))
+
+        listOf(
+            Triple(ProviderType.M3U, url, knownStart),
+            Triple(ProviderType.M3U, "https://example.com/other.m3u", null),
+            Triple(ProviderType.XTREAM_CODES, url, null)
+        ).forEach { (type, previousUrl, expectedStart) ->
+            var stored = ProviderEntity(id = 5L, name = "Playlist", type = type,
+                serverUrl = previousUrl, m3uUrl = previousUrl, createdAt = 123L,
+                subscriptionStartedAt = knownStart)
+            whenever(providerDao.getById(5L)).thenAnswer { stored }
+            doAnswer { invocation ->
+                stored = invocation.getArgument<ProviderEntity>(0)
+                Unit
+            }.whenever(providerDao).update(any())
+
+            val result = repository.validateM3u(url = url, name = "Playlist",
+                epgSyncMode = ProviderEpgSyncMode.UPFRONT, m3uVodClassificationEnabled = false, id = 5L)
+            val saved = ((result as Result.Error).exception as ProviderSavedWithSyncErrorException).provider
+            assertThat(saved.subscriptionStartedAt).isEqualTo(expectedStart)
+            assertThat(stored.subscriptionStartedAt).isEqualTo(expectedStart)
+            assertThat(stored.createdAt).isEqualTo(123L)
+            assertThat(stored.type).isEqualTo(type)
+        }
+    }
+
+    @Test
     fun `validateM3u returns saved provider sync error exception when initial sync fails after save`() = runTest {
         whenever(providerDao.getByUrlAndUser("https://example.com/list.m3u", "", "")).thenReturn(null)
         whenever(credentialCrypto.encryptIfNeeded("")).thenReturn("")
@@ -474,7 +505,8 @@ class ProviderRepositoryImplTest {
                     username = "user",
                     password = "pass",
                     auth = 1,
-                    status = "Active"
+                    status = "Active",
+                    createdAt = "1710801000"
                 ),
                 serverInfo = XtreamServerInfo(
                     url = "example.com",
@@ -499,7 +531,36 @@ class ProviderRepositoryImplTest {
         )
 
         assertThat(result.isSuccess).isTrue()
+        val inserted = argumentCaptor<ProviderEntity>()
+        verify(providerDao).insert(inserted.capture())
+        assertThat(inserted.firstValue.subscriptionStartedAt).isEqualTo(1710801000000L)
         verify(providerDao).setActive(9L)
         verify(syncManager, never()).scheduleProviderSyncResume(9L)
+    }
+
+    @Test
+    fun `loginXtream preserves known start only for the same account when source is missing`() = runTest {
+        val existing = ProviderEntity(id = 9L, name = "Xtream", type = ProviderType.XTREAM_CODES,
+            serverUrl = "https://example.com", username = "user", password = "pass",
+            createdAt = 123L, subscriptionStartedAt = 1710801000000L)
+        whenever(providerDao.getByUrlAndUser("https://example.com", "user")).thenReturn(existing)
+        whenever(providerDao.getById(9L)).thenReturn(existing)
+        whenever(credentialCrypto.encryptIfNeeded("pass")).thenReturn("pass")
+        whenever(xtreamApiService.authenticate(any(), any())).thenReturn(
+            XtreamAuthResponse(XtreamUserInfo(auth = 1, status = "Active"), XtreamServerInfo())
+        )
+        whenever(syncManager.sync(eq(9L), eq(false), anyOrNull(), anyOrNull(), anyOrNull(), eq(true)))
+            .thenReturn(Result.error("Catalog unavailable"))
+
+        val saved = repository.loginXtream("https://example.com", "user", "pass", "Xtream", "", "",
+            false, ProviderEpgSyncMode.UPFRONT, ProviderXtreamLiveSyncMode.AUTO, null, 9L)
+        val provider = ((saved as Result.Error).exception as ProviderSavedWithSyncErrorException).provider
+        assertThat(provider.subscriptionStartedAt).isEqualTo(existing.subscriptionStartedAt)
+        assertThat(provider.createdAt).isEqualTo(123L)
+
+        val changed = repository.loginXtream("https://example.com", "different", "pass", "Xtream", "", "",
+            false, ProviderEpgSyncMode.UPFRONT, ProviderXtreamLiveSyncMode.AUTO, null, 9L)
+        val changedProvider = ((changed as Result.Error).exception as ProviderSavedWithSyncErrorException).provider
+        assertThat(changedProvider.subscriptionStartedAt).isNull()
     }
 }

@@ -13,6 +13,25 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ControlPlaneClientTest {
+    @Test fun experienceUsesAuthenticatedSeparateEndpointAndRejectsMalformedNotices() {
+        val payload = """{"allowSubscriptionDetails":false,"notifications":[{"id":"$ID","title":"Notice","message":"Hello","createdAt":"$TIME"}],"macAddress":null}"""
+        val client = ControlPlaneClient(CallExecutor {
+            assertEquals("/api/v1/devices/experience", it.url.encodedPath)
+            assertEquals("Bearer $CREDENTIAL", it.header("Authorization"))
+            assertEquals("GET", it.method)
+            response(it, payload)
+        })
+        val result = client.deviceExperience(CREDENTIAL) as ControlPlaneResult.Success
+        assertFalse(result.value.allowSubscriptionDetails)
+        assertEquals("Hello", result.value.notifications.single().message)
+        val malformed = ControlPlaneClient(CallExecutor { response(it, payload.replace("\"title\":\"Notice\"", "\"title\":\"\"")) })
+        assertFailure("invalid_response", malformed.deviceExperience(CREDENTIAL))
+        val invalidDate = ControlPlaneClient(CallExecutor { response(it, payload.replace(TIME, "not-a-date")) })
+        assertFailure("invalid_response", invalidDate.deviceExperience(CREDENTIAL))
+        val invalidCredential = ControlPlaneClient(CallExecutor { throw AssertionError("Must not send") })
+        assertFailure("invalid_request", invalidCredential.deviceExperience("bad"))
+    }
+
     @Test fun registrationIsAnonymousIdempotentAndChecksReturnedIdentity() {
         var captured: Request? = null
         val client = ControlPlaneClient(CallExecutor { request ->

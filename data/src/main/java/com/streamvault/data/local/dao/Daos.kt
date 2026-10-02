@@ -60,6 +60,9 @@ abstract class ProviderDao {
     @Query("UPDATE providers SET last_synced_at = :timestamp WHERE id = :id")
     abstract suspend fun updateSyncTime(id: Long, timestamp: Long)
 
+    @Query("UPDATE providers SET subscription_started_at = :timestamp WHERE id = :id")
+    abstract suspend fun updateSubscriptionStartedAt(id: Long, timestamp: Long)
+
     @Query("UPDATE providers SET epg_url = :epgUrl WHERE id = :id")
     abstract suspend fun updateEpgUrl(id: Long, epgUrl: String)
 

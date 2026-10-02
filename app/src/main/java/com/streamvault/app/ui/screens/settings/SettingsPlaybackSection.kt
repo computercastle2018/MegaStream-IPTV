@@ -67,6 +67,18 @@ internal fun LazyListScope.settingsPlaybackSection(
     onShowWifiQualityDialogChange: (Boolean) -> Unit,
     onShowEthernetQualityDialogChange: (Boolean) -> Unit
 ) {
+    val speedTestContent: @Composable () -> Unit = {
+        InternetSpeedTestCard(
+            valueLabel = lastSpeedTestLabel,
+            summary = lastSpeedTestSummary,
+            recommendationLabel = speedTestRecommendationLabel,
+            isRunning = uiState.isRunningInternetSpeedTest,
+            canApplyRecommendation = uiState.lastSpeedTest != null,
+            onRunTest = viewModel::runInternetSpeedTest,
+            onApplyWifi = viewModel::applySpeedTestRecommendationToWifi,
+            onApplyEthernet = viewModel::applySpeedTestRecommendationToEthernet
+        )
+    }
     item {
         TvClickableSurface(
             onClick = { viewModel.setPreventStandbyDuringPlayback(!uiState.preventStandbyDuringPlayback) },
@@ -366,16 +378,6 @@ internal fun LazyListScope.settingsPlaybackSection(
         )
     }
 
-    item {
-        InternetSpeedTestCard(
-            valueLabel = lastSpeedTestLabel,
-            summary = lastSpeedTestSummary,
-            recommendationLabel = speedTestRecommendationLabel,
-            isRunning = uiState.isRunningInternetSpeedTest,
-            canApplyRecommendation = uiState.lastSpeedTest != null,
-            onRunTest = viewModel::runInternetSpeedTest,
-            onApplyWifi = viewModel::applySpeedTestRecommendationToWifi,
-            onApplyEthernet = viewModel::applySpeedTestRecommendationToEthernet
-        )
-    }
+    item { speedTestContent() }
+    item { DeviceNetworkCard(speedTestContent) }
 }

@@ -78,6 +78,9 @@ internal fun ProviderSettingsCard(
     onRefreshM3uClassification: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val experienceViewModel: com.MegaStream.app.controlplane.DeviceExperienceViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+    val experience by experienceViewModel.repository.state.collectAsState()
+    val detailsAllowed = experience.allowSubscriptionDetails
     var showSubscriptionInformation by remember(provider.id) { mutableStateOf(false) }
     val subscriptionInformationLabel = stringResource(R.string.settings_subscription_information)
     val liveOnboardingIncomplete = provider.type == ProviderType.XTREAM_CODES &&
@@ -112,7 +115,7 @@ internal fun ProviderSettingsCard(
         ) {
             Column {
                 Text(
-                    text = provider.name,
+                    text = if (detailsAllowed) provider.name else stringResource(R.string.device_subscription_details),
                     style = MaterialTheme.typography.bodyLarge,
                     color = OnBackground
                 )
@@ -122,8 +125,8 @@ internal fun ProviderSettingsCard(
                     color = OnSurface
                 )
             }
-            ProviderStatusBadge(status = provider.status)
-            if (isActive) {
+            if (detailsAllowed) ProviderStatusBadge(status = provider.status)
+            if (isActive && detailsAllowed) {
                 Text(
                     text = stringResource(R.string.settings_active),
                     style = MaterialTheme.typography.labelSmall,
@@ -136,7 +139,7 @@ internal fun ProviderSettingsCard(
             }
         }
 
-        Row(
+        if (detailsAllowed) Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -149,7 +152,13 @@ internal fun ProviderSettingsCard(
             )
         }
 
-        if (showSubscriptionInformation) {
+        if (showSubscriptionInformation || !detailsAllowed) {
+            Text(
+                text = provider.subscriptionStartedAt?.let {
+                    stringResource(R.string.device_subscription_start, java.text.DateFormat.getDateInstance().format(java.util.Date(it)))
+                } ?: stringResource(R.string.device_subscription_start_unknown),
+                style = MaterialTheme.typography.bodySmall, color = OnSurfaceDim
+            )
             val expDate = provider.expirationDate
             val expirationText = remember(expDate) {
                 when (expDate) {
@@ -163,14 +172,14 @@ internal fun ProviderSettingsCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = if (expDate != null && expDate < System.currentTimeMillis() && expDate != Long.MAX_VALUE) ErrorColor else OnSurfaceDim
             )
-            Text(
+            if (detailsAllowed) Text(
                 text = stringResource(R.string.settings_subscription_connections, provider.maxConnections),
                 style = MaterialTheme.typography.bodySmall,
                 color = OnSurfaceDim
             )
         }
 
-        if (liveOnboardingMessageRes != null) {
+        if (detailsAllowed && liveOnboardingMessageRes != null) {
             Text(
                 text = stringResource(liveOnboardingMessageRes),
                 style = MaterialTheme.typography.bodySmall,
@@ -185,7 +194,7 @@ internal fun ProviderSettingsCard(
             }
         }
 
-        if (showSubscriptionInformation) diagnostics?.let { model ->
+        if (showSubscriptionInformation && detailsAllowed) diagnostics?.let { model ->
             Text(
                 text = listOf(model.sourceLabel, model.connectionSummary, model.expirySummary)
                     .filter { it.isNotBlank() }
@@ -228,7 +237,7 @@ internal fun ProviderSettingsCard(
             )
         }
 
-        if (provider.type == ProviderType.M3U) {
+        if (detailsAllowed && provider.type == ProviderType.M3U) {
             ProviderM3uOptionsPanel(
                 m3uVodClassificationEnabled = provider.m3uVodClassificationEnabled,
                 isSyncing = isSyncing,
@@ -237,7 +246,7 @@ internal fun ProviderSettingsCard(
             )
         }
 
-        if (syncWarnings.isNotEmpty()) {
+        if (detailsAllowed && syncWarnings.isNotEmpty()) {
             ProviderSyncWarningsPanel(
                 providerType = provider.type,
                 syncWarnings = syncWarnings,
@@ -246,7 +255,7 @@ internal fun ProviderSettingsCard(
             )
         }
 
-        ProviderActionButtons(
+        if (detailsAllowed) ProviderActionButtons(
             isActive = isActive,
             isSyncing = isSyncing,
             liveOnboardingIncomplete = liveOnboardingIncomplete,
@@ -331,5 +340,3 @@ internal fun sectionCatalogCount(
         ProviderCatalogCountUiModel(count, ProviderCatalogCountStatus.PENDING)
     }
 }
-
-
