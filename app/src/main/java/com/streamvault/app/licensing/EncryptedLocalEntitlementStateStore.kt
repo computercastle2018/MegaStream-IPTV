@@ -13,7 +13,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /** Deliberately contains neither a provider cause nor any stored values. */
-class LocalEntitlementStoreException : IllegalStateException("Local entitlement storage unavailable")
+typealias LocalEntitlementStoreException = com.MegaStream.data.licensing.LocalEntitlementStoreException
 
 /**
  * Blocking, single-process storage: use an IO dispatcher. Calls across instances are serialized.

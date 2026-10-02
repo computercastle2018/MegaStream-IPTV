@@ -6,6 +6,9 @@ import com.MegaStream.domain.licensing.OfflineLease
 import com.MegaStream.domain.licensing.OnlineEntitlementDecision
 import com.MegaStream.domain.licensing.TrustedTimeAnchor
 
+/** Storage failure without provider details or persisted values. */
+class LocalEntitlementStoreException : IllegalStateException("Local entitlement storage unavailable")
+
 /** One atomic persistence unit. Only authenticated leases belong in this trusted local store. */
 data class LocalEntitlementSnapshot(
     val lease: OfflineLease? = null,
@@ -27,6 +30,7 @@ data class LocalEntitlementSnapshot(
  * suspending work is performed while holding that monitor.
  */
 interface LocalEntitlementStateStore {
+    /** Throws LocalEntitlementStoreException when trusted state cannot be read. */
     fun read(): LocalEntitlementSnapshot
     fun write(snapshot: LocalEntitlementSnapshot)
 }

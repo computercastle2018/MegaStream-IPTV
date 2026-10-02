@@ -17,6 +17,35 @@ import kotlinx.serialization.json.put
 import org.junit.Test
 
 class LocalAppEntitlementTest {
+    @Test fun damagedStorageRecoversOnlyFromFreshVerifiedServerGrant() = runBlocking {
+        var saved: LocalEntitlementSnapshot? = null
+        val damaged = object : LocalEntitlementStateStore {
+            override fun read() = saved ?: throw LocalEntitlementStoreException()
+            override fun write(snapshot: LocalEntitlementSnapshot) { saved = snapshot }
+        }
+        val entitlement = entitlement(damaged)
+        assertThat(entitlement.gate().state).isEqualTo(LicenseAccessState.VERIFICATION_REQUIRED)
+        assertThat(entitlement.receive("invalid").allowed).isFalse()
+        val stale = lease().copy(issuedAtEpochSeconds = NOW - 10, notBeforeEpochSeconds = NOW - 10)
+        assertThat(entitlement.applyOnlineDecision(online(stale), token(stale)).allowed).isFalse()
+        assertThat(saved).isNull()
+        assertThat(entitlement.receive(token()).allowed).isTrue()
+        repeat(3) { assertThat(entitlement.gate().allowed).isTrue() }
+        assertThat(entitlement(damaged).gate().allowed).isTrue()
+    }
+
+    @Test fun recoveryCannotAllowPlaybackWhenVerifiedGrantCannotBePersisted() = runBlocking {
+        val damaged = object : LocalEntitlementStateStore {
+            override fun read(): LocalEntitlementSnapshot = throw LocalEntitlementStoreException()
+            override fun write(snapshot: LocalEntitlementSnapshot): Unit = throw LocalEntitlementStoreException()
+        }
+        val entitlement = entitlement(damaged)
+        assertThat(runCatching { entitlement.receive(token()) }.exceptionOrNull())
+            .isInstanceOf(LocalEntitlementStoreException::class.java)
+        assertThat(entitlement.gate().state).isEqualTo(LicenseAccessState.VERIFICATION_REQUIRED)
+        assertThat(entitlement(damaged).gate().allowed).isFalse()
+    }
+
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test fun signedLeaseWithSmallDeviceClockLagWaitsUntilValid() = runTest {
         val entitlement = LocalAppEntitlement(verifier, INSTALLATION, BINDING, store) {

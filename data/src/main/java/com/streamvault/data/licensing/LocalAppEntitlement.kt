@@ -24,9 +24,10 @@ class LocalAppEntitlement(
 ) : AppEntitlement {
     private val entitlementEvaluator = EntitlementEvaluator()
     private val trustedTimeEvaluator = TrustedTimeEvaluator()
+    private var recoveryStartedAt: Long? = null
     private val mutableDecision = MutableStateFlow(synchronized(store) {
         val reading = clock()
-        evaluate(observeClock(store.read(), reading), reading)
+        observedSnapshot(reading)?.let { evaluate(it, reading) } ?: verificationRequired()
     })
     override val decision: StateFlow<LicenseAccessDecision> = mutableDecision.asStateFlow()
 
@@ -45,7 +46,12 @@ class LocalAppEntitlement(
         }
         return synchronized(store) {
             val reading = clock()
-            val previous = observeClock(store.read(), reading)
+            val loaded = observedSnapshot(reading)
+            if (loaded == null && (candidate == null || !matchesOnlineGrant(decision, candidate) ||
+                    candidate.issuedAtEpochSeconds < requireNotNull(recoveryStartedAt) - 5)) {
+                return@synchronized publish(verificationRequired())
+            }
+            val previous = loaded ?: LocalEntitlementSnapshot(verificationRequired = true)
             val next = when {
                 candidate != null && matchesOnlineGrant(decision, candidate) && canAccept(candidate, previous, reading) ->
                     acceptedSnapshot(candidate, previous, reading)
@@ -125,8 +131,19 @@ class LocalAppEntitlement(
 
     override fun gate(): LicenseAccessDecision = synchronized(store) {
         val reading = clock()
-        publish(evaluate(observeClock(store.read(), reading), reading))
+        publish(observedSnapshot(reading)?.let { evaluate(it, reading) } ?: verificationRequired())
     }
+
+    private fun observedSnapshot(reading: ClockReading): LocalEntitlementSnapshot? = try {
+        observeClock(store.read(), reading)
+    } catch (_: LocalEntitlementStoreException) {
+        // Never replace damaged storage with a usable offline grant. Only a fresh, signed,
+        // installation-bound server response may explicitly write a replacement snapshot.
+        if (recoveryStartedAt == null) recoveryStartedAt = reading.wallEpochSeconds
+        null
+    }
+
+    private fun verificationRequired() = LicenseAccessDecision(LicenseAccessState.VERIFICATION_REQUIRED)
 
     private fun verifyOrNull(compactLease: String): OfflineLease? = try {
         verifier.verify(compactLease, expectedInstallationId, expectedCredentialBinding)
