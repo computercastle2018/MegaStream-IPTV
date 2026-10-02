@@ -78,7 +78,11 @@ import java.time.format.FormatStyle
  * cannot be zeroed; clearing drops UI references, not a promise of secure heap erasure.
  */
 @Composable
-fun LicenseActivationScreen(viewModel: LicenseActivationViewModel, modifier: Modifier = Modifier) {
+fun LicenseActivationScreen(
+    viewModel: LicenseActivationViewModel,
+    modifier: Modifier = Modifier,
+    embedded: Boolean = false,
+) {
     val state by viewModel.state.collectAsState()
     val secret = remember(viewModel) { mutableStateOf("") }
     val requesters = remember(viewModel) { LicenseFocusTarget.entries.associateWith { FocusRequester() } }
@@ -124,9 +128,9 @@ fun LicenseActivationScreen(viewModel: LicenseActivationViewModel, modifier: Mod
     LaunchedEffect(state.mode, state.disposed, state.playbackUnblocked) { secret.value = "" }
     LaunchedEffect(viewModel, order) {
         val previous = lastFocused.value
-        if (previous == null) {
+        if (previous == null && !embedded) {
             LicenseFocusPolicy.initialFocus(state)?.let { requesters.getValue(it).requestFocus() }
-        } else if (previous !in order) {
+        } else if (previous != null && previous !in order) {
             val target = LicenseFocusPolicy.recoveryTarget(state)
             if (target != null) requesters.getValue(target).requestFocus()
             else {
@@ -137,11 +141,14 @@ fun LicenseActivationScreen(viewModel: LicenseActivationViewModel, modifier: Mod
     }
 
     CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
-    BoxWithConstraints(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    BoxWithConstraints(modifier.fillMaxSize().then(
+        if (embedded) Modifier else Modifier.background(MaterialTheme.colorScheme.background)
+    )) {
         val sideBySide = maxWidth >= 600.dp
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(
-                horizontal = if (sideBySide) 48.dp else 24.dp, vertical = 32.dp,
+                horizontal = if (embedded) 20.dp else if (sideBySide) 48.dp else 24.dp,
+                vertical = if (embedded) 16.dp else 32.dp,
             ),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -150,8 +157,14 @@ fun LicenseActivationScreen(viewModel: LicenseActivationViewModel, modifier: Mod
                     .semantics { isTraversalGroup = true },
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                Text(stringResource(R.string.license_title), style = MaterialTheme.typography.headlineMedium,
+                Text(stringResource(if (embedded) R.string.settings_license else R.string.license_title),
+                    style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.semantics { heading() })
+                if (embedded) {
+                    Text(stringResource(R.string.license_settings_verified_status),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 Row(
                     Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(20.dp)
                         .semantics { liveRegion = LiveRegionMode.Polite },

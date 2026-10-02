@@ -106,7 +106,7 @@ class GetRecommendationsTest {
         override fun getMoviesByCategory(providerId: Long, categoryId: Long): Flow<List<Movie>> = unsupported()
         override fun getMoviesByCategoryPage(providerId: Long, categoryId: Long, limit: Int, offset: Int): Flow<List<Movie>> = unsupported()
         override fun getMoviesByCategoryPreview(providerId: Long, categoryId: Long, limit: Int): Flow<List<Movie>> = unsupported()
-        override fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int): Flow<Map<Long?, List<Movie>>> = unsupported()
+        override fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int, newestFirst: Boolean): Flow<Map<Long?, List<Movie>>> = unsupported()
         override fun getFreshPreview(providerId: Long, limit: Int): Flow<List<Movie>> = unsupported()
         override fun getRelatedContent(providerId: Long, movieId: Long, limit: Int): Flow<List<Movie>> = unsupported()
         override fun getMoviesByIds(ids: List<Long>): Flow<List<Movie>> = unsupported()
@@ -118,7 +118,7 @@ class GetRecommendationsTest {
         override suspend fun getMovie(movieId: Long): Movie? = error("Not used in test")
         override suspend fun getMovieDetails(providerId: Long, movieId: Long): Result<Movie> = error("Not used in test")
         override suspend fun getStreamInfo(movie: Movie): Result<StreamInfo> = error("Not used in test")
-        override suspend fun refreshMovies(providerId: Long): Result<Unit> = error("Not used in test")
+        override suspend fun refreshMovies(providerId: Long, categoryIds: List<Long>): Result<Unit> = error("Not used in test")
 
         private fun <T> unsupported(): Flow<T> = error("Not used in test")
     }

@@ -161,9 +161,11 @@ fun PlayerErrorOverlay(
     hasAlternateStream: Boolean,
     hasLastChannel: Boolean,
     onAction: (PlayerNoticeAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onHome: () -> Unit
 ) {
-    val fallbackMessage = when (playerError) {
+    // Engine messages can contain credential-bearing provider URLs.
+    val errorMessage = when (playerError) {
         is PlayerError.NetworkError -> stringResource(R.string.player_error_network)
         is PlayerError.SourceError -> stringResource(R.string.player_error_source)
         is PlayerError.DecoderError -> stringResource(R.string.player_error_decoder)
@@ -171,65 +173,26 @@ fun PlayerErrorOverlay(
         is PlayerError.UnknownError -> stringResource(R.string.player_error_unknown)
         null -> stringResource(R.string.player_error_unknown)
     }
-    // Prefer the detailed engine message (e.g. "No decoder available for codec H.265/HEVC")
-    // and fall back to the generic localised string when the message is absent or unhelpful.
-    val errorMessage = playerError?.message?.takeIf { it.isNotBlank() } ?: fallbackMessage
-    val recoveryActions = buildList {
-        add(PlayerNoticeAction.RETRY)
-        if (contentType == "LIVE" && hasAlternateStream) add(PlayerNoticeAction.ALTERNATE_STREAM)
-        if (contentType == "LIVE" && hasLastChannel) add(PlayerNoticeAction.LAST_CHANNEL)
-    }
-
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = stringResource(R.string.player_error_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = ErrorColor
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = errorMessage,
-                style = MaterialTheme.typography.bodyMedium,
-                color = OnSurface
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                recoveryActions.forEach { action ->
-                    TvClickableSurface(
-                        onClick = { onAction(action) },
-                        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
-                        colors = ClickableSurfaceDefaults.colors(
-                            containerColor = if (action == PlayerNoticeAction.RETRY) Primary else Color.White.copy(alpha = 0.08f),
-                            focusedContainerColor = if (action == PlayerNoticeAction.RETRY) PrimaryLight else Color.White.copy(alpha = 0.18f)
-                        )
-                    ) {
-                        Text(
-                            text = playerNoticeActionLabel(action),
-                            color = if (action == PlayerNoticeAction.RETRY) OnBackground else Color.White,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-                        )
-                    }
-                }
+    PlayerRecoveryDialog(
+        message = errorMessage,
+        onRetry = { onAction(PlayerNoticeAction.RETRY) },
+        onHome = onHome,
+        modifier = modifier,
+        extraActions = {
+            if (contentType == "LIVE" && hasAlternateStream) {
+                com.MegaStream.app.ui.components.dialogs.PremiumDialogActionButton(
+                    label = playerNoticeActionLabel(PlayerNoticeAction.ALTERNATE_STREAM),
+                    onClick = { onAction(PlayerNoticeAction.ALTERNATE_STREAM) }
+                )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = if (contentType == "LIVE" && hasLastChannel) {
-                    stringResource(R.string.player_error_live_hint)
-                } else {
-                    stringResource(R.string.player_error_back)
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = OnSurfaceDim
-            )
+            if (contentType == "LIVE" && hasLastChannel) {
+                com.MegaStream.app.ui.components.dialogs.PremiumDialogActionButton(
+                    label = playerNoticeActionLabel(PlayerNoticeAction.LAST_CHANNEL),
+                    onClick = { onAction(PlayerNoticeAction.LAST_CHANNEL) }
+                )
+            }
         }
-    }
+    )
 }
 
 @Composable

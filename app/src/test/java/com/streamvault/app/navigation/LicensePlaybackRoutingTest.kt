@@ -119,6 +119,48 @@ class LicensePlaybackRoutingTest {
         assertSame(newer.request, routing.activePlayerFlow.value)
     }
 
+    @Test fun staleHomeObservationCannotEraseNewPlayerRequest() {
+        val routing = LicensePlaybackRouting()
+        val newest = player(44)
+        routing.request(newest, allowed)
+        routing.clearActive(Routes.HOME, Routes.PLAYER, true)
+        assertSame(newest.request, routing.activePlayerFlow.value)
+    }
+
+    @Test fun currentPlayerObservationCannotEraseAnActiveRequest() {
+        val routing = LicensePlaybackRouting()
+        val intent = player()
+        routing.request(intent, allowed)
+        routing.clearActive(Routes.PLAYER, Routes.PLAYER, true)
+        assertSame(intent.request, routing.activePlayer)
+    }
+
+    @Test fun confirmedHomeDepartureClearsTheOldPlayer() {
+        val routing = LicensePlaybackRouting()
+        routing.request(player(), allowed)
+        routing.clearActive(Routes.HOME, Routes.HOME, false)
+        assertNull(routing.activePlayer)
+    }
+
+    @Test fun suspendedPlayerSurvivesStaleCleanupButCannotRetryWhileBlocked() {
+        val routing = LicensePlaybackRouting()
+        val intent = player()
+        routing.request(intent, allowed)
+        routing.suspendActive(Routes.PLAYER)
+        routing.clearActive(Routes.HOME, Routes.PLAYER, true)
+        assertNull(routing.activePlayer)
+        assertNull(routing.retry(denied))
+        assertSame(intent.request, (routing.retry(allowed) as PlaybackNavigationIntent.Player).request)
+    }
+
+    @Test fun guideVisitKeepsTheRetainedPlayerRequestForBackNavigation() {
+        val routing = LicensePlaybackRouting()
+        val intent = player()
+        routing.request(intent, allowed)
+        routing.clearActive(Routes.EPG, Routes.EPG, true)
+        assertSame(intent.request, routing.activePlayer)
+    }
+
     @Test fun protectedRouteVariantsCannotBypassClassification() {
         listOf("player", "player?x=1", "player/extra", "multi_view", "multi_view?x=1").forEach {
             assertTrue(it, isProtectedPlaybackRoute(it))

@@ -9,6 +9,7 @@ using MegaStream.Server.Data;
 using MegaStream.Server.Models;
 using MegaStream.Server.Services;
 using MegaStream.Server.V1;
+using MegaStream.Server.Updates;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,157 @@ namespace MegaStream.Server.Tests;
 public sealed class DeviceExperienceTests
 {
     private const string Path = "/api/v1/devices/experience";
+
+    [Fact]
+    public async Task Device_details_tags_only_report_fields_and_loads_external_refresh_script_under_existing_csp()
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        var device = await Register(app);
+        await Login(app, client);
+        using var page = await client.GetAsync("/Admin/DeviceDetails?id=" + device.InstallationId);
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.Contains("script-src 'self'", page.Headers.GetValues("Content-Security-Policy").Single());
+        var html = await page.Content.ReadAsStringAsync();
+        var report = Regex.Match(html, "<dl data-device-version-refresh[^>]*>(.*?)</dl>", RegexOptions.Singleline).Value;
+        Assert.Contains("data-device-version-url=\"/Admin/DeviceDetails/" + device.InstallationId, report);
+        Assert.Contains("data-device-version-value>1.0 (1)</bdi>", report);
+        Assert.Contains("data-device-version-reported-at>", report);
+        Assert.DoesNotContain("<form", report);
+        Assert.DoesNotContain("<select", report);
+        Assert.Matches("<script src=\"/js/device-version-refresh\\.js\\?v=[^\"]+\" defer></script>", html);
+        using var script = await client.GetAsync("/js/device-version-refresh.js");
+        Assert.Equal(HttpStatusCode.OK, script.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(20)]
+    public async Task Latest_update_paths_prefer_newer_universal_and_admin_cap_does_not_hide_it(int olderExactCount)
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        var device = await Register(app);
+        Guid latestId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            for (var i = 0; i <= olderExactCount; i++)
+            {
+                var release = new UpdateRelease { VersionCode = 10 + i, VersionName = "v" + (10 + i), Channel = "stable",
+                    PackageName = "com.megastream.app", Abi = i == olderExactCount ? "universal" : "arm64_v8a", MinSdk = 21,
+                    Status = UpdateReleaseStatus.Published, PublishedAt = DateTime.UtcNow,
+                    StorageKey = Guid.NewGuid().ToString("N") + ".apk", Sha256 = new string('A', 64) };
+                db.Set<UpdateRelease>().Add(release);
+            }
+            await db.SaveChangesAsync();
+            latestId = (await db.Set<UpdateRelease>().SingleAsync(x => x.Abi == "universal")).Id;
+        }
+        var latest = await client.GetFromJsonAsync<JsonElement>("/api/v1/public/updates/latest?channel=stable&abi=arm64_v8a");
+        Assert.Equal(latestId, latest.GetProperty("releaseId").GetGuid());
+        using var bearer = Client(app);
+        bearer.DefaultRequestHeaders.Authorization = new("Bearer", device.BearerToken);
+        using var check = await bearer.PostAsJsonAsync("/api/v1/updates/check", new UpdateCheckRequest(1, "com.megastream.app", "stable", 34, Abi: "arm64_v8a"));
+        Assert.Equal(HttpStatusCode.OK, check.StatusCode);
+        Assert.Equal(latestId, (await check.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("latest").GetProperty("releaseId").GetGuid());
+        await Login(app, client);
+        var html = await client.GetStringAsync("/Admin/DeviceDetails?id=" + device.InstallationId);
+        var select = Regex.Match(html, "<select[^>]*id=\"device-update\"[^>]*>(.*?)</select>", RegexOptions.Singleline).Groups[1].Value;
+        var options = Regex.Matches(select, "<option value=\"([^\"]+)\"");
+        Assert.Equal(Math.Min(20, olderExactCount + 1), options.Count);
+        Assert.Equal(latestId.ToString(), options[0].Groups[1].Value);
+    }
+
+    [Fact]
+    public async Task Device_update_form_queues_idempotently_without_claiming_installed_version_and_accepted_heartbeat_reports_actual_build()
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        var device = await Register(app);
+        var other = await Register(app);
+        await Login(app, client);
+        Guid latestId, olderId;
+        DateTime registeredReport;
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var latest = new UpdateRelease { VersionCode = 44, VersionName = "3.0.11", Channel = "stable", PackageName = "com.megastream.app",
+                Abi = "universal", MinSdk = 21, Status = UpdateReleaseStatus.Published, PublishedAt = DateTime.UtcNow,
+                StorageKey = Guid.NewGuid().ToString("N") + ".apk", Sha256 = new string('A', 64) };
+            var older = new UpdateRelease { VersionCode = 43, VersionName = "3.0.10", Channel = "stable", PackageName = "com.megastream.app",
+                Abi = "universal", MinSdk = 21, Status = UpdateReleaseStatus.Published, PublishedAt = DateTime.UtcNow,
+                StorageKey = Guid.NewGuid().ToString("N") + ".apk", Sha256 = new string('B', 64) };
+            db.Set<UpdateRelease>().AddRange(latest, older);
+            await db.SaveChangesAsync();
+            latestId = latest.Id; olderId = older.Id;
+            registeredReport = (await db.Set<V1InstallationMetadata>().SingleAsync(x => x.InstallationId == device.InstallationId)).VersionReportedAt!.Value;
+        }
+        var path = "/Admin/DeviceDetails?id=" + device.InstallationId;
+        var html = await client.GetStringAsync(path);
+        Assert.Contains("action=\"/admin/updates/send\"", html);
+        Assert.Contains($"name=\"InstallationIds\" value=\"{device.InstallationId}\"", html);
+        Assert.Contains($"value=\"{latestId}\"", html);
+        var form = new Dictionary<string, string> { ["InstallationIds"] = device.InstallationId.ToString(), ["ReleaseId"] = latestId.ToString(), ["Mode"] = "prompt" };
+        using var csrf = await client.PostAsync("/admin/updates/send", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.BadRequest, csrf.StatusCode);
+        form["__RequestVerificationToken"] = Token(html);
+        for (var retry = 0; retry < 2; retry++)
+        {
+            using var queued = await client.PostAsync("/admin/updates/send", new FormUrlEncodedContent(form));
+            Assert.Equal(HttpStatusCode.Redirect, queued.StatusCode);
+        }
+        Guid commandId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var command = Assert.Single(await db.Set<DeviceUpdateCommand>().ToListAsync());
+            commandId = command.Id;
+            Assert.Equal("pending", command.Status);
+            Assert.Null(command.InstalledAt);
+            var metadata = await db.Set<V1InstallationMetadata>().SingleAsync(x => x.InstallationId == device.InstallationId);
+            Assert.Equal(1, metadata.AppVersionCode);
+            Assert.Equal("1.0", metadata.AppVersionName);
+            Assert.Equal(registeredReport, metadata.VersionReportedAt);
+        }
+        html = await client.GetStringAsync(path);
+        Assert.Contains("1.0 (1)", html);
+        Assert.Contains("pending", html);
+        using var bearer = Client(app);
+        bearer.DefaultRequestHeaders.Authorization = new("Bearer", other.BearerToken);
+        using var foreign = await bearer.PostAsJsonAsync($"/api/v1/updates/commands/{commandId}/status", new { status = "ack" });
+        Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
+        bearer.DefaultRequestHeaders.Authorization = new("Bearer", device.BearerToken);
+        foreach (var status in new[] { "ack", "downloaded", "installPrompted", "installed" })
+            Assert.Equal(HttpStatusCode.NoContent, (await bearer.PostAsJsonAsync($"/api/v1/updates/commands/{commandId}/status", new { status })).StatusCode);
+        Assert.Contains("1.0 (1)", await client.GetStringAsync(path));
+        var heartbeat = new V1HeartbeatRequest { AppSessionId = Guid.NewGuid(), Sequence = 1, Mode = "foreground", AppVersionCode = 44,
+            AppVersionName = "3.0.11", PackageName = "com.megastream.app", Channel = "stable", ManagedDevice = false };
+        Assert.Equal(HttpStatusCode.OK, (await bearer.PostAsJsonAsync("/api/v1/devices/heartbeat", heartbeat)).StatusCode);
+        DateTime acceptedReport;
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var metadata = await db.Set<V1InstallationMetadata>().SingleAsync(x => x.InstallationId == device.InstallationId);
+            Assert.Equal(44, metadata.AppVersionCode);
+            Assert.Equal("3.0.11", metadata.AppVersionName);
+            acceptedReport = metadata.VersionReportedAt!.Value;
+            Assert.True(acceptedReport >= registeredReport);
+        }
+        Assert.Equal(HttpStatusCode.OK, (await bearer.PostAsJsonAsync("/api/v1/devices/heartbeat", heartbeat with { Sequence = 0, AppVersionCode = 1, AppVersionName = "1.0" })).StatusCode);
+        html = await client.GetStringAsync(path);
+        Assert.Contains("3.0.11 (44)", html);
+        Assert.Contains(acceptedReport.ToString("yyyy-MM-dd HH:mm:ss"), html);
+        Assert.DoesNotContain("id=\"device-update\"", html);
+        form["ReleaseId"] = olderId.ToString();
+        using var downgrade = await client.PostAsync("/admin/updates/send", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.BadRequest, downgrade.StatusCode);
+        using var verify = app.Services.CreateScope();
+        var final = verify.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Single(await final.Set<DeviceUpdateCommand>().ToListAsync());
+        var reported = await final.Set<V1InstallationMetadata>().SingleAsync(x => x.InstallationId == device.InstallationId);
+        Assert.Equal(acceptedReport, reported.VersionReportedAt);
+        Assert.Equal(44, reported.AppVersionCode);
+    }
 
     [Theory]
     [InlineData("GET")]

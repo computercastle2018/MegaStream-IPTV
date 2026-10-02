@@ -5,6 +5,10 @@ using MegaStream.Server.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using MegaStream.Server.Contracts;
+using MegaStream.Server.Controllers;
 
 namespace MegaStream.Server.RemoteProviders.Http;
 
@@ -14,12 +18,50 @@ namespace MegaStream.Server.RemoteProviders.Http;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [RequestSizeLimit(32768)]
 [RequestFormLimits(ValueCountLimit = 40, KeyLengthLimit = 64, ValueLengthLimit = 16384, MultipartBodyLengthLimit = 32768)]
-public sealed class ProvidersAdminController(IRemoteProviderService service, AppDbContext db) : Controller
+public sealed class ProvidersAdminController(IRemoteProviderService service, AppDbContext db, IConfiguration configuration) : Controller
 {
     private const string Views = "~/RemoteProviders/Views/";
 
     [HttpGet("")]
-    public async Task<IActionResult> Index(CancellationToken ct) => View(Views + "Index.cshtml", await service.ListProfilesAsync(ct));
+    public async Task<IActionResult> Index(CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        var window = AdminController.OnlineWindowMinutes(configuration);
+        var cutoff = now.AddMinutes(-window);
+        var devices = await db.Installations.AsNoTracking().Include(x => x.License)
+            .Where(x => x.Status == InstallationStatus.Active).OrderByDescending(x => x.LastSeenAt)
+            .ThenBy(x => x.Id).Take(500).ToListAsync(ct);
+        var subscriptions = new List<ReportedSubscription>();
+        var invalidReports = false;
+        foreach (var device in devices.Where(x => x.LastSeenAt >= cutoff && x.LocalSubscriptionsReportedAt >= cutoff && x.LocalSubscriptionsJson != null))
+        {
+            try { subscriptions.AddRange(ActiveSubscriptions(device, now)); }
+            catch (JsonException) { invalidReports = true; }
+        }
+        return View(Views + "Index.cshtml", new ProviderIndex(await service.ListProfilesAsync(ct),
+            devices.Select(x => new ProviderDevice(x.Id, Sanitizer.CleanDiagnostic(x.DeviceModel, 128))).ToList(), subscriptions, window, invalidReports));
+    }
+
+    private static IReadOnlyList<ReportedSubscription> ActiveSubscriptions(Installation device, DateTime now)
+    {
+        var snapshot = JsonSerializer.Deserialize<List<LocalSubscription?>>(device.LocalSubscriptionsJson!)
+            ?? throw new JsonException();
+        if (snapshot.Count > 100 || snapshot.Any(x => x is null || !Validator.TryValidateObject(x, new ValidationContext(x), null, true)))
+            throw new JsonException();
+        return snapshot.Where(x => x!.Enabled && x.Status == "active" &&
+                (!x.ExpiresAt.HasValue || x.ExpiresAt > new DateTimeOffset(now).ToUnixTimeMilliseconds()))
+            .Select(x => new ReportedSubscription(device.Id, Sanitizer.CleanDiagnostic(device.DeviceModel, 128),
+                device.LicenseId, Sanitizer.CleanDiagnostic(device.License?.Label, 128), device.LocalSubscriptionsReportedAt!.Value,
+                Sanitizer.CleanDiagnostic(x!.Name, 128), x.Type, x.StartedAt, x.ExpiresAt, x.MaxConnections)).ToList();
+    }
+
+    [HttpGet("installations")]
+    public async Task<IActionResult> SelectDevice([FromQuery] Guid installationId, CancellationToken ct)
+    {
+        if (!ModelState.IsValid || !await db.Installations.AnyAsync(x => x.Id == installationId && x.Status == InstallationStatus.Active, ct))
+            return BadRequest();
+        return RedirectToAction(nameof(Assignments), new { installationId });
+    }
 
     [HttpGet("create")]
     public async Task<IActionResult> Create([FromQuery] string? type, CancellationToken ct) =>
@@ -137,5 +179,9 @@ public sealed record ProviderEditor(Guid? ProfileId, string Type, RemoteProvider
     public IReadOnlyList<ProviderDevice> Devices { get; init; } = Array.Empty<ProviderDevice>();
 }
 public sealed record ProviderDevice(Guid Id, string DeviceModel);
+public sealed record ProviderIndex(IReadOnlyList<RemoteProviderProfileMetadata> Profiles, IReadOnlyList<ProviderDevice> Devices,
+    IReadOnlyList<ReportedSubscription> Subscriptions, int OnlineWindowMinutes, bool HasInvalidReports);
+public sealed record ReportedSubscription(Guid InstallationId, string DeviceModel, Guid? LicenseId, string LicenseLabel,
+    DateTime ReportedAt, string Name, string Type, long? StartedAt, long? ExpiresAt, int MaxConnections);
 public sealed record ProviderAssignments(Guid InstallationId, IReadOnlyList<RemoteProviderProfileMetadata> Profiles,
     IReadOnlyList<RemoteProviderAssignment> Assignments, IReadOnlyList<ProviderAssignmentReport> Reports);

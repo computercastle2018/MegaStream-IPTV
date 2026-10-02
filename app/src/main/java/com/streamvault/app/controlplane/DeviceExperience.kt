@@ -1,6 +1,7 @@
 package com.MegaStream.app.controlplane
 
 import android.content.Context
+import com.MegaStream.app.ui.model.AppUiStyle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -29,11 +30,15 @@ data class DeviceExperience(
     val allowSubscriptionDetails: Boolean,
     val notifications: List<DeviceNotice> = emptyList(),
     val macAddress: String? = null,
+    val uiStyle: String? = null,
 ) {
     init {
         require(notifications.size <= 50 && notifications.map { it.id }.distinct().size == notifications.size)
         require(macAddress == null || com.MegaStream.app.ui.screens.settings.normalizeDeviceMacAddress(macAddress) == macAddress)
+        require(uiStyle == null || AppUiStyle.entries.any { it.storageValue == uiStyle })
     }
+
+    fun effectiveAppUiStyle(localStyle: String?): AppUiStyle = AppUiStyle.fromStorage(uiStyle ?: localStyle)
 }
 
 @Serializable
@@ -47,7 +52,12 @@ class DeviceExperienceRepository @Inject constructor(
     private val preferences = context.getSharedPreferences("device-experience", Context.MODE_PRIVATE)
     private val client = ControlPlaneClient()
     private val lane = Mutex()
-    private val mutableState = MutableStateFlow(DeviceExperience(preferences.getBoolean("details", false)))
+    private val mutableState = MutableStateFlow(DeviceExperience(
+        allowSubscriptionDetails = preferences.getBoolean("details", false),
+        uiStyle = preferences.getString("ui-style", null)?.takeIf { stored ->
+            AppUiStyle.entries.any { it.storageValue == stored }
+        }
+    ))
     val state = mutableState.asStateFlow()
     private val mutableReadIds = MutableStateFlow(preferences.getStringSet("read-notices", emptySet()).orEmpty().toSet())
     val readIds = mutableReadIds.asStateFlow()
@@ -62,7 +72,10 @@ class DeviceExperienceRepository @Inject constructor(
             when (val result = client.deviceExperience(credential)) {
                 is ControlPlaneResult.Failure -> false
                 is ControlPlaneResult.Success -> {
-                    if (!preferences.edit().putBoolean("details", result.value.allowSubscriptionDetails).commit()) return@withLock false
+                    if (!preferences.edit()
+                        .putBoolean("details", result.value.allowSubscriptionDetails)
+                        .putString("ui-style", result.value.uiStyle)
+                        .commit()) return@withLock false
                     mutableState.value = result.value
                     com.MegaStream.app.ui.screens.settings.readDeviceMacAddressForReport(context)?.address?.let { mac ->
                         if (mac != result.value.macAddress) client.reportDeviceMac(credential, DeviceMacReport(mac))

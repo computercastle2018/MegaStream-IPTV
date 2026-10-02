@@ -60,7 +60,14 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
 
     fun reportUpdateCommandStatus(credential: String, commandId: String, request: UpdateCommandStatusRequest): ControlPlaneResult<Unit> = safely {
         requireUuid(commandId)
-        postUnit("/api/v1/updates/commands/$commandId/status", credential, encode(request, UpdateCommandStatusRequest.serializer()))
+        val fields = Json.parseToJsonElement(encode(request, UpdateCommandStatusRequest.serializer())) as JsonObject
+        val status = when (request.status) {
+            UpdateCommandStatus.ACKNOWLEDGED, UpdateCommandStatus.DOWNLOADING -> "ack"
+            UpdateCommandStatus.INSTALL_PROMPTED -> "installPrompted"
+            else -> (fields.getValue("status") as JsonPrimitive).content
+        }
+        val body = JsonObject(fields + ("status" to JsonPrimitive(status))).toString()
+        postUnit("/api/v1/updates/commands/$commandId/status", credential, body)
     }
 
     fun getProviderAssignments(credential: String, afterRevision: Long): ControlPlaneResult<ProviderAssignmentsResponse> = safely {
@@ -78,7 +85,7 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
     }
 
     fun deviceExperience(credential: String): ControlPlaneResult<DeviceExperience> = safely {
-        perform(buildRequest("/api/v1/devices/experience", credential, null), DeviceExperience.serializer())
+        perform(buildRequest("/api/v1/devices/experience?version=2", credential, null), DeviceExperience.serializer())
     }
 
     fun reportDeviceMac(credential: String, request: DeviceMacReport): ControlPlaneResult<Unit> = safely {

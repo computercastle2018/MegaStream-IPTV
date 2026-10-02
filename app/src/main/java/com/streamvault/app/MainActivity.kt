@@ -26,7 +26,7 @@ import com.MegaStream.app.navigation.PlayerNavigationRequest
 import com.MegaStream.app.tv.LauncherRecommendationsManager
 import com.MegaStream.app.tv.WatchNextManager
 import com.MegaStream.app.tvinput.TvInputChannelSyncManager
-import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.controlplane.DeviceExperienceRepository
 import com.MegaStream.app.ui.theme.MegaStreamTheme
 import com.MegaStream.app.ui.time.LocalAppTimeFormat
 import com.MegaStream.app.update.isRemoteAppVersionNewer
@@ -79,6 +79,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
+
+    @Inject
+    lateinit var deviceExperienceRepository: DeviceExperienceRepository
 
     @Inject
     lateinit var watchNextManager: WatchNextManager
@@ -134,6 +137,7 @@ class MainActivity : ComponentActivity() {
             val appLanguage by preferencesRepository.appLanguage.collectAsState(initial = "system")
             val appTimeFormat by preferencesRepository.appTimeFormat.collectAsState(initial = com.MegaStream.domain.model.AppTimeFormat.SYSTEM)
             val appUiStyleValue by preferencesRepository.appUiStyle.collectAsState(initial = "classic")
+            val deviceExperience by deviceExperienceRepository.state.collectAsState()
             val cachedAppUpdateVersionName by preferencesRepository.cachedAppUpdateVersionName.collectAsState(initial = null)
             val cachedAppUpdateVersionCode by preferencesRepository.cachedAppUpdateVersionCode.collectAsState(initial = null)
             val cachedAppUpdatePublishedAt by preferencesRepository.cachedAppUpdatePublishedAt.collectAsState(initial = null)
@@ -205,7 +209,10 @@ class MainActivity : ComponentActivity() {
                 LocalLayoutDirection provides layoutDirection,
                 LocalAppTimeFormat provides appTimeFormat
             ) {
-                MegaStreamTheme(uiStyle = AppUiStyle.fromStorage(appUiStyleValue)) {
+                MegaStreamTheme(
+                    uiStyle = deviceExperience.effectiveAppUiStyle(appUiStyleValue),
+                    uiStyleManaged = deviceExperience.uiStyle != null
+                ) {
                     val inPictureInPicture by pictureInPictureModeFlow.collectAsState()
                     KioskHost(kioskController, inPictureInPicture) {
                         AppNavigation(mainActivity = this@MainActivity)

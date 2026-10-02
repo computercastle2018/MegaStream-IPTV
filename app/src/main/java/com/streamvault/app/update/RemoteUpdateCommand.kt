@@ -4,6 +4,12 @@ import com.MegaStream.domain.model.Result
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import java.security.MessageDigest
 
 /** Transport DTO: the only supported operation is an application update. */
 @Serializable
@@ -12,15 +18,19 @@ data class RemoteUpdateCommand(
     val release: GitHubReleaseInfo,
     val preferManaged: Boolean = false,
     val action: RemoteUpdateCommandAction = RemoteUpdateCommandAction.Update
-)
+) {
+    override fun toString(): String = "RemoteUpdateCommand([REDACTED])"
+}
 
 @Serializable
 enum class RemoteUpdateCommandAction { Update }
+@Serializable
 enum class RemoteUpdateCommandStatus {
     Pending, Acknowledged, Downloading, Downloaded, InstallPrompted, Installed, Failed
 }
 
 /** Safe public diagnostics: backend/installer messages must never enter the ledger or sink. */
+@Serializable
 enum class RemoteUpdateFailureCode(val code: String) {
     InvalidRelease("invalid_release"),
     NotNewer("not_newer"),
@@ -41,19 +51,26 @@ enum class RemoteUpdateFailureCode(val code: String) {
     }
 }
 
+@Serializable
 data class RemoteUpdateCommandRecord(
+    val installationId: String,
     val commandId: String,
     val expectedVersionCode: Long?,
     val versionName: String,
     val expectedSha256: String?,
-    val downloadUrl: String?,
+    val payloadFingerprint: String,
+    val downloadFingerprint: String,
+    val expectedCertificateSha256: String?,
     val preferManaged: Boolean,
     val status: RemoteUpdateCommandStatus = RemoteUpdateCommandStatus.Pending,
     val downloadId: Long? = null,
     val downloadIdentified: Boolean = false,
     val installAttempted: Boolean = false,
-    val failure: RemoteUpdateFailureCode? = null
-)
+    val failure: RemoteUpdateFailureCode? = null,
+    val statusReported: Boolean = false
+) {
+    override fun toString(): String = "RemoteUpdateCommandRecord(commandId=$commandId, status=$status, failure=$failure)"
+}
 
 /** Implementations must durably and atomically commit before returning true.
  * Throw on persistence failure; never treat an unreadable store as empty. claim must
@@ -64,6 +81,7 @@ interface RemoteUpdateCommandStore {
     suspend fun claim(record: RemoteUpdateCommandRecord): Boolean
     suspend fun get(commandId: String): RemoteUpdateCommandRecord?
     suspend fun compareAndSet(previous: RemoteUpdateCommandRecord, next: RemoteUpdateCommandRecord): Boolean
+    suspend fun records(): List<RemoteUpdateCommandRecord>
 }
 
 fun interface RemoteUpdateCommandStatusSink {
@@ -90,20 +108,30 @@ class RemoteUpdateCommandProcessor(
     private val store: RemoteUpdateCommandStore,
     private val downloader: RemoteUpdateCommandDownloader,
     private val installedVersion: RemoteUpdateCommandInstalledVersionObserver,
-    private val sink: RemoteUpdateCommandStatusSink
+    private val sink: RemoteUpdateCommandStatusSink,
+    private val installationId: String,
 ) {
     suspend fun process(command: RemoteUpdateCommand): RemoteUpdateCommandRecord {
         require(command.commandId.isNotBlank()) { "Command ID is required" }
         val initial = RemoteUpdateCommandRecord(
+            installationId = installationId,
             commandId = command.commandId,
             expectedVersionCode = command.release.versionCode?.toLong(),
             versionName = command.release.versionName,
             expectedSha256 = command.release.sha256,
-            downloadUrl = command.release.downloadUrl,
+            payloadFingerprint = remoteUpdateFingerprint(command),
+            downloadFingerprint = remoteUpdateDownloadFingerprint(command.release),
+            expectedCertificateSha256 = command.release.signingCertificateSha256,
             preferManaged = command.preferManaged
         )
         // Persistence exceptions deliberately escape: no side effect is safe without a durable claim.
-        if (!store.claim(initial)) return observe(command.commandId)
+        if (!store.claim(initial)) {
+            val existing = requireRecord(command.commandId)
+            check(existing.installationId == installationId && existing.payloadFingerprint == initial.payloadFingerprint) {
+                "Conflicting update command"
+            }
+            return observe(command.commandId)
+        }
         return run {
             sink.report(initial)
             val currentVersion = installedVersion.installedVersionCode()
@@ -146,6 +174,10 @@ class RemoteUpdateCommandProcessor(
     suspend fun observe(commandId: String): RemoteUpdateCommandRecord = run {
         val record = requireRecord(commandId)
         val observed = installedVersion.installedVersionCode()
+        if (record.status !in setOf(RemoteUpdateCommandStatus.Pending, RemoteUpdateCommandStatus.Failed, RemoteUpdateCommandStatus.Installed) &&
+            record.expectedVersionCode != null && observed > record.expectedVersionCode) {
+            return@run fail(record, RemoteUpdateFailureCode.NotNewer)
+        }
         // Invalid/rejected commands must not later become Installed by coincidence.
         if (record.status != RemoteUpdateCommandStatus.Pending &&
             record.status != RemoteUpdateCommandStatus.Failed &&
@@ -158,7 +190,7 @@ class RemoteUpdateCommandProcessor(
         }
     }
 
-    suspend fun refresh(commandId: String): RemoteUpdateCommandRecord = run {
+    suspend fun refresh(commandId: String, allowInstallPrompt: Boolean = true): RemoteUpdateCommandRecord = run {
         val record = observe(commandId)
         if (record.status == RemoteUpdateCommandStatus.InstallPrompted) {
             val promptedState = downloader.refreshState()
@@ -188,6 +220,7 @@ class RemoteUpdateCommandProcessor(
                 if (installed < 0 || installed > (downloaded.expectedVersionCode ?: -1)) {
                     return@run fail(downloaded, RemoteUpdateFailureCode.NotNewer)
                 }
+                if (!allowInstallPrompt) return@run downloaded
                 // Persist the attempt BEFORE calling the installer. An interrupted attempt is never replayed.
                 val attempted = transition(downloaded, downloaded.copy(installAttempted = true))
                     ?: return@run requireRecord(commandId)
@@ -202,11 +235,13 @@ class RemoteUpdateCommandProcessor(
     }
 
     private suspend fun requireRecord(id: String) = requireNotNull(store.get(id)) { "Unknown command ID" }
+        .also { check(it.installationId == installationId) { "Installation mismatch" } }
 
     private suspend fun transition(previous: RemoteUpdateCommandRecord, next: RemoteUpdateCommandRecord): RemoteUpdateCommandRecord? {
-        if (!store.compareAndSet(previous, next)) return null
-        sink.report(next)
-        return next
+        val pendingReport = next.copy(statusReported = false)
+        if (!store.compareAndSet(previous, pendingReport)) return null
+        sink.report(pendingReport)
+        return pendingReport
     }
 
     private suspend fun fail(record: RemoteUpdateCommandRecord, failure: RemoteUpdateFailureCode): RemoteUpdateCommandRecord =
@@ -229,7 +264,10 @@ class RemoteUpdateCommandProcessor(
             record.expectedSha256 == null || !record.expectedSha256.matches(Regex("[a-fA-F0-9]{64}"))) return false
         return state.versionName == record.versionName && release.versionName == record.versionName &&
             release.versionCode.toLong() == record.expectedVersionCode &&
-            release.downloadUrl == record.downloadUrl && release.sha256.equals(record.expectedSha256, ignoreCase = true)
+            remoteUpdateDownloadFingerprint(release) == record.downloadFingerprint &&
+            (record.expectedCertificateSha256 == null ||
+                release.signingCertificateSha256.equals(record.expectedCertificateSha256, ignoreCase = true)) &&
+            release.sha256.equals(record.expectedSha256, ignoreCase = true)
     }
 
     private fun validRelease(release: GitHubReleaseInfo): Boolean {
@@ -240,4 +278,22 @@ class RemoteUpdateCommandProcessor(
             BackupUpdateManifest.isTrustedUrl(release.releaseUrl) &&
             BackupUpdateManifest.isTrustedUrl(release.downloadUrl ?: return false)
     }
+}
+
+internal fun remoteUpdateFingerprint(command: RemoteUpdateCommand): String {
+    val normalized = command.copy(release = command.release.copy(
+        sha256 = command.release.sha256?.lowercase(),
+        signingCertificateSha256 = command.release.signingCertificateSha256?.lowercase()
+    ))
+    val bytes = Json { encodeDefaults = true }.encodeToString(normalized).toByteArray(Charsets.UTF_8)
+    return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 0xff) }
+}
+
+internal fun remoteUpdateDownloadFingerprint(release: GitHubReleaseInfo): String {
+    val identity = JsonArray(listOf(release.versionName, release.versionCode?.toString(), release.downloadUrl,
+        release.sha256?.lowercase(), release.packageName, release.source.name).map { value ->
+        value?.let(::JsonPrimitive) ?: JsonNull
+    })
+    return MessageDigest.getInstance("SHA-256").digest(identity.toString().toByteArray(Charsets.UTF_8))
+        .joinToString("") { "%02x".format(it.toInt() and 0xff) }
 }

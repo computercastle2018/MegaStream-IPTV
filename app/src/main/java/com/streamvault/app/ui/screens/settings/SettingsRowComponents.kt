@@ -44,12 +44,17 @@ import com.MegaStream.app.ui.theme.OnBackground
 import com.MegaStream.app.ui.theme.OnSurface
 import com.MegaStream.app.ui.theme.OnSurfaceDim
 import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
+import com.MegaStream.app.ui.model.AppUiStyle
 
 @Composable
 internal fun SettingsSectionHeader(
     title: String,
     subtitle: String
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val primary = if (studio) MaterialTheme.colorScheme.primary else Primary
+    val onSurfaceDim = if (studio) MaterialTheme.colorScheme.onSurfaceVariant else OnSurfaceDim
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -57,25 +62,29 @@ internal fun SettingsSectionHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            color = Primary
+            color = primary
         )
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
-            color = OnSurfaceDim
+            color = onSurfaceDim
         )
     }
 }
 
 @Composable
 internal fun SettingsRow(label: String, value: String) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val primary = if (studio) MaterialTheme.colorScheme.primary else Primary
+    val onSurface = if (studio) MaterialTheme.colorScheme.onSurface else OnSurface
+    val onBackground = if (studio) MaterialTheme.colorScheme.onBackground else OnBackground
     val focusRequester = remember { FocusRequester() }
     TvClickableSurface(
         onClick = {},
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
-            focusedContainerColor = Primary.copy(alpha = 0.15f)
+            focusedContainerColor = primary.copy(alpha = 0.15f)
         ),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
         modifier = Modifier
@@ -93,8 +102,8 @@ internal fun SettingsRow(label: String, value: String) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-            Text(text = value, style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = onSurface)
+            Text(text = value, style = MaterialTheme.typography.bodyMedium, color = onBackground)
         }
     }
 }
@@ -107,13 +116,17 @@ internal fun ClickableSettingsRow(
     enabled: Boolean = true,
     indent: Dp = 0.dp
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val primary = if (studio) MaterialTheme.colorScheme.primary else Primary
+    val onSurface = if (studio) MaterialTheme.colorScheme.onSurface else OnSurface
+    val onSurfaceDim = if (studio) MaterialTheme.colorScheme.onSurfaceVariant else OnSurfaceDim
     val focusRequester = remember { FocusRequester() }
     TvClickableSurface(
         onClick = { if (enabled) onClick() },
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
-            focusedContainerColor = if (enabled) Primary.copy(alpha = 0.15f) else Color.Transparent
+            focusedContainerColor = if (enabled) primary.copy(alpha = 0.15f) else Color.Transparent
         ),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
         modifier = Modifier
@@ -134,12 +147,12 @@ internal fun ClickableSettingsRow(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (enabled) OnSurface else OnSurfaceDim
+                color = if (enabled) onSurface else onSurfaceDim
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (enabled) Primary else OnSurfaceDim
+                color = if (enabled) primary else onSurfaceDim
             )
         }
     }
@@ -154,13 +167,17 @@ internal fun SwitchSettingsRow(
     enabled: Boolean = true,
     indent: Dp = 0.dp
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val primary = if (studio) MaterialTheme.colorScheme.primary else Primary
+    val onSurface = if (studio) MaterialTheme.colorScheme.onSurface else OnSurface
+    val onSurfaceDim = if (studio) MaterialTheme.colorScheme.onSurfaceVariant else OnSurfaceDim
     val focusRequester = remember { FocusRequester() }
     TvClickableSurface(
         onClick = { if (enabled) onCheckedChange(!checked) },
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
-            focusedContainerColor = if (enabled) Primary.copy(alpha = 0.15f) else Color.Transparent
+            focusedContainerColor = if (enabled) primary.copy(alpha = 0.15f) else Color.Transparent
         ),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
         modifier = Modifier
@@ -182,9 +199,9 @@ internal fun SwitchSettingsRow(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (enabled) OnSurface else OnSurfaceDim
+                    color = if (enabled) onSurface else onSurfaceDim
                 )
-                Text(text = value, style = MaterialTheme.typography.bodySmall, color = OnSurfaceDim)
+                Text(text = value, style = MaterialTheme.typography.bodySmall, color = onSurfaceDim)
             }
             Switch(
                 checked = checked,
@@ -202,6 +219,9 @@ internal fun LiveTvQuickFiltersDialog(
     onAddFilter: (String) -> Unit,
     onRemoveFilter: (String) -> Unit
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val onSurface = if (studio) MaterialTheme.colorScheme.onSurface else OnSurface
+    val onSurfaceDim = if (studio) MaterialTheme.colorScheme.onSurfaceVariant else OnSurfaceDim
     var pendingFilter by rememberSaveable { mutableStateOf("") }
 
     PremiumDialog(
@@ -227,13 +247,13 @@ internal fun LiveTvQuickFiltersDialog(
                 Text(
                     text = stringResource(R.string.settings_live_tv_quick_filters_empty),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurfaceDim
+                    color = onSurfaceDim
                 )
             } else {
                 Text(
                     text = stringResource(R.string.settings_live_tv_quick_filters_saved),
                     style = MaterialTheme.typography.labelMedium,
-                    color = OnSurfaceDim
+                    color = onSurfaceDim
                 )
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 260.dp),
@@ -254,7 +274,7 @@ internal fun LiveTvQuickFiltersDialog(
                                 Text(
                                     text = filter,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = OnSurface,
+                                    color = onSurface,
                                     modifier = Modifier.weight(1f)
                                 )
                                 TvButton(onClick = { onRemoveFilter(filter) }) {
@@ -295,13 +315,16 @@ internal fun SettingsNavItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val primary = if (studio) MaterialTheme.colorScheme.primary else Primary
+    val onBackground = if (studio) MaterialTheme.colorScheme.onBackground else OnBackground
     val focusRequester = remember { FocusRequester() }
     TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(0.dp)),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (isSelected) Primary.copy(alpha = 0.11f) else Color.Transparent,
-            focusedContainerColor = Primary.copy(alpha = 0.22f)
+            containerColor = if (isSelected) primary.copy(alpha = 0.11f) else Color.Transparent,
+            focusedContainerColor = primary.copy(alpha = 0.22f)
         ),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
         modifier = modifier
@@ -321,7 +344,7 @@ internal fun SettingsNavItem(
                     .width(3.dp)
                     .height(22.dp)
                     .background(
-                        color = if (isSelected) Primary else Color.Transparent,
+                        color = if (isSelected) primary else Color.Transparent,
                         shape = RoundedCornerShape(2.dp)
                     )
             )
@@ -341,7 +364,7 @@ internal fun SettingsNavItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
-                color = if (isSelected) Primary else OnBackground,
+                color = if (isSelected) primary else onBackground,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
             )
         }

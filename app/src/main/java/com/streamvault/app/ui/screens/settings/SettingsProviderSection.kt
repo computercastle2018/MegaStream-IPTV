@@ -30,6 +30,8 @@ import com.MegaStream.app.ui.components.TvEmptyState
 import com.MegaStream.app.ui.interaction.TvClickableSurface
 import com.MegaStream.app.ui.theme.OnSurfaceDim
 import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.domain.model.Provider
 import com.MegaStream.domain.model.ProviderType
 
@@ -53,6 +55,7 @@ internal fun LazyListScope.providerSection(
         }
     } else {
         item {
+            val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
             val experienceViewModel: com.MegaStream.app.controlplane.DeviceExperienceViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
             val experience by experienceViewModel.repository.state.collectAsState()
             val detailsAllowed = experience.allowSubscriptionDetails
@@ -71,7 +74,7 @@ internal fun LazyListScope.providerSection(
             if (detailsAllowed) Text(
                 text = stringResource(R.string.settings_provider_selector_hint),
                 style = MaterialTheme.typography.bodySmall,
-                color = OnSurfaceDim,
+                color = if (studio) MaterialTheme.colorScheme.onSurfaceVariant else OnSurfaceDim,
                 modifier = Modifier.padding(bottom = 10.dp)
             )
             if (detailsAllowed) LazyRow(
@@ -159,14 +162,16 @@ internal fun LazyListScope.providerSection(
     }
 
     item {
+        val primary = if (LocalAppUiStyle.current == AppUiStyle.STUDIO)
+            MaterialTheme.colorScheme.primary else Primary
         val experienceViewModel: com.MegaStream.app.controlplane.DeviceExperienceViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
         val experience by experienceViewModel.repository.state.collectAsState()
         if (experience.allowSubscriptionDetails) TvClickableSurface(
             onClick = onAddProvider,
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
-                containerColor = Primary.copy(alpha = 0.15f),
-                focusedContainerColor = Primary.copy(alpha = 0.3f)
+                containerColor = primary.copy(alpha = 0.15f),
+                focusedContainerColor = primary.copy(alpha = 0.3f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -181,7 +186,7 @@ internal fun LazyListScope.providerSection(
                 Text(
                     text = stringResource(R.string.settings_add_provider),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Primary
+                    color = primary
                 )
             }
         }

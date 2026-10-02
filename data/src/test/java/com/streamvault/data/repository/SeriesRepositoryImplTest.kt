@@ -600,6 +600,33 @@ class SeriesRepositoryImplTest {
         verify(seriesDao, never()).searchFallback(eq(7L), any(), any())
     }
 
+    @Test
+    fun `studio updated sort never substitutes release date while classic keeps fallback`() = runTest {
+        whenever(preferencesRepository.parentalControlLevel).thenReturn(flowOf(0))
+        whenever(seriesDao.getFreshCountByProvider(7L)).thenReturn(flowOf(2))
+        whenever(seriesDao.getFreshPreview(7L, 100)).thenReturn(flowOf(listOf(
+            SeriesBrowseEntity(id = 1L, seriesId = 101L, name = "Provider updated", providerId = 7L, lastModified = 10L),
+            SeriesBrowseEntity(id = 2L, seriesId = 102L, name = "Release only", providerId = 7L, lastModified = 0L, releaseDate = "2029-01-01")
+        )))
+        whenever(favoriteDao.getAllByType(7L, ContentType.SERIES.name)).thenReturn(flowOf(emptyList()))
+        whenever(playbackHistoryDao.getByProvider(7L)).thenReturn(flowOf(emptyList()))
+        val repository = createRepository()
+        for (studio in listOf(false, true)) {
+            val page = repository.browseSeries(LibraryBrowseQuery(
+                providerId = 7L,
+                sortBy = LibrarySortBy.UPDATED,
+                filterBy = LibraryFilterBy(LibraryFilterType.RECENTLY_UPDATED),
+                limit = 20,
+                providerTimestampOnly = studio
+            )).first()
+            assertThat(page.items.map { it.id }).containsExactlyElementsIn(
+                if (studio) listOf(1L, 2L) else listOf(2L, 1L)
+            ).inOrder()
+            assertThat(page.totalCount).isEqualTo(2)
+            assertThat(page.items.single { it.id == 2L }.lastModified).isEqualTo(0L)
+        }
+    }
+
     private fun createRepository() = SeriesRepositoryImpl(
         seriesDao = seriesDao,
         episodeDao = episodeDao,

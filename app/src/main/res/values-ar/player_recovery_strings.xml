@@ -1,0 +1,5 @@
+<resources>
+    <string name="player_recovery_home">الرئيسية</string>
+    <string name="player_recovery_choose_content">اختيار المحتوى مجددًا</string>
+    <string name="player_request_unavailable">تعذّر استعادة التشغيل. تابع لاختيار المحتوى مجددًا، أو انتقل إلى الرئيسية.</string>
+</resources>

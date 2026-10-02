@@ -1,17 +1,56 @@
-@model IReadOnlyList<MegaStream.Server.RemoteProviders.Core.RemoteProviderProfileMetadata>
+@model MegaStream.Server.RemoteProviders.Http.ProviderIndex
 @{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewData["Title"] = "الاشتراكات"; }
-<p>تُعرض البيانات العامة فقط. إعدادات المزود محفوظة مشفّرة ولا تظهر في لوحة الإدارة.</p>
-<p><a href="/admin/providers/create?type=XTREAM_CODES">إضافة اشتراك Xtream Codes</a> · <a href="/admin/providers/create?type=M3U">إضافة اشتراك M3U</a> · <a href="/admin/providers/create?type=STALKER_PORTAL">إضافة بوابة Stalker</a></p>
+<p><a class="button" href="/admin/providers/create?type=XTREAM_CODES">إضافة Xtream Codes</a> <a class="button secondary" href="/admin/providers/create?type=M3U">إضافة M3U</a> <a class="button secondary" href="/admin/providers/create?type=STALKER_PORTAL">إضافة Stalker</a></p>
+<h2>الاشتراكات المحفوظة</h2>
 <div class="table-wrap">
 <table>
 <thead><tr><th>الاسم</th><th>النوع</th><th>الحالة</th><th>المراجعة</th><th>الإعدادات</th><th>الإجراء</th></tr></thead>
 <tbody>
-@foreach (var profile in Model)
+@foreach (var profile in Model.Profiles)
 {
     <tr><td>@profile.DisplayName</td><td><bdi>@profile.Type</bdi></td><td>@(profile.Status == "active" ? "نشط" : "ملغى")</td><td>@profile.Revision</td><td>@(profile.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</td><td><a href="/admin/providers/@profile.Id">التفاصيل / استبدال الإعدادات</a></td></tr>
 }
 </tbody>
 </table>
+@if (Model.Profiles.Count == 0) { <p class="empty">لا توجد اشتراكات محفوظة.</p> }
 </div>
-<h2>تعيين الاشتراكات للتثبيت</h2>
-<p>افتح <code dir="ltr">/admin/providers/installations/{installationId}</code> باستخدام معرّف التثبيت GUID من صفحة الجهاز في لوحة الإدارة. لا تُستخدم معرّفات العتاد الفعلية.</p>
+<h2>اشتراكات الجهاز</h2>
+@if (Model.Devices.Count > 0)
+{
+    <form method="get" action="/admin/providers/installations">
+        <label for="provider-device">الجهاز</label>
+        <select id="provider-device" name="installationId" required>
+            <option value="">اختر الجهاز</option>
+            @foreach (var device in Model.Devices)
+            {
+                <option value="@device.Id">@device.DeviceModel — @device.Id</option>
+            }
+        </select>
+        <button type="submit">إدارة اشتراكات الجهاز</button>
+    </form>
+}
+else { <p class="empty">لا توجد أجهزة مسجلة متاحة.</p> }
+<h2>الاشتراكات النشطة على الأجهزة المتصلة</h2>
+<p class="muted">أحدث 500 جهاز نشط كحد أقصى. اتصال الجهاز وآخر بلاغ للاشتراكات خلال @Model.OnlineWindowMinutes دقيقة. حالة الاشتراك وصلاحيته حسب بلاغ الجهاز، وليستا بديلاً عن ترخيص MegaStream.</p>
+@if (Model.HasInvalidReports) { <p class="validation" role="alert">تعذر عرض بعض بلاغات الاشتراكات لعدم صلاحية بياناتها.</p> }
+<div class="table-wrap">
+<table><thead><tr><th>الاشتراك</th><th>نوع الخدمة</th><th>الجهاز</th><th>ترخيص MegaStream</th><th>آخر بلاغ UTC</th><th>الصلاحية UTC</th><th>المعلومات</th></tr></thead><tbody>
+@foreach (var subscription in Model.Subscriptions)
+{
+    <tr>
+        <td>@subscription.Name</td>
+        <td><bdi>@(subscription.Type switch { "xtream_codes" => "Xtream", "m3u" => "M3U", _ => "Stalker" })</bdi></td>
+        <td><a href="/Admin/DeviceDetails?id=@subscription.InstallationId">@subscription.DeviceModel</a></td>
+        <td>@if (subscription.LicenseId is { } licenseId) { <a href="/Admin/LicenseDetails?id=@licenseId">@subscription.LicenseLabel</a> } else { <span>غير مرخص</span> }</td>
+        <td><bdi>@subscription.ReportedAt.ToString("yyyy-MM-dd HH:mm:ss")</bdi></td>
+        <td><bdi>@(subscription.ExpiresAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.ExpiresAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير محددة")</bdi></td>
+        <td><details class="subscription-information"><summary>إظهار / إخفاء معلومات الاشتراك</summary>
+            <dl><dt>بداية الاشتراك UTC</dt><dd>@(subscription.StartedAt.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(subscription.StartedAt.Value).ToString("yyyy-MM-dd HH:mm:ss") : "غير معروفة")</dd>
+                <dt>حد الاتصالات</dt><dd>@subscription.MaxConnections</dd></dl>
+            <a href="/admin/providers/installations/@subscription.InstallationId">إدارة اشتراكات الجهاز</a>
+        </details></td>
+    </tr>
+}
+</tbody></table>
+@if (Model.Subscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات نشطة مبلغ عنها على أجهزة متصلة.</p> }
+</div>

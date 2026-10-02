@@ -596,6 +596,33 @@ class MovieRepositoryImplTest {
         assertThat(result.items.map { it.name }).containsExactly("Rated Movie")
     }
 
+    @Test
+    fun `studio updated sort never substitutes movie release date while classic keeps fallback`() = runTest {
+        whenever(preferencesRepository.parentalControlLevel).thenReturn(flowOf(0))
+        whenever(movieDao.getTopRatedCountByProvider(7L)).thenReturn(flowOf(2))
+        whenever(movieDao.getTopRatedPreview(7L, 100)).thenReturn(flowOf(listOf(
+            MovieBrowseEntity(id = 1L, streamId = 101L, name = "Provider added", providerId = 7L, addedAt = 10L, rating = 8f),
+            MovieBrowseEntity(id = 2L, streamId = 102L, name = "Release only", providerId = 7L, addedAt = 0L, releaseDate = "2029-01-01", rating = 8f)
+        )))
+        whenever(favoriteDao.getAllByType(7L, ContentType.MOVIE.name)).thenReturn(flowOf(emptyList()))
+        whenever(playbackHistoryDao.getByProvider(7L)).thenReturn(flowOf(emptyList()))
+        val repository = createRepository()
+        for (studio in listOf(false, true)) {
+            val page = repository.browseMovies(LibraryBrowseQuery(
+                providerId = 7L,
+                sortBy = LibrarySortBy.UPDATED,
+                filterBy = LibraryFilterBy(LibraryFilterType.TOP_RATED),
+                limit = 20,
+                providerTimestampOnly = studio
+            )).first()
+            assertThat(page.items.map { it.id }).containsExactlyElementsIn(
+                if (studio) listOf(1L, 2L) else listOf(2L, 1L)
+            ).inOrder()
+            assertThat(page.totalCount).isEqualTo(2)
+            assertThat(page.items.single { it.id == 2L }.addedAt).isEqualTo(0L)
+        }
+    }
+
     private fun createRepository() = MovieRepositoryImpl(
         movieDao = movieDao,
         categoryDao = categoryDao,

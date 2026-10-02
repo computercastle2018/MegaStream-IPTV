@@ -134,6 +134,7 @@ fun PlayerScreen(
     episodeId: Long? = null,
     returnRoute: String? = null,
     onBack: () -> Unit,
+    onHome: () -> Unit,
     onNavigate: ((String) -> Unit)? = null,
     viewModel: PlayerViewModel = hiltViewModel()
 ) {
@@ -372,7 +373,7 @@ fun PlayerScreen(
     // Consolidated focus management for all overlays
     val liveOverlayVisible = contentType == "LIVE" && (showChannelListOverlay || showCategoryListOverlay || showEpgOverlay || showChannelInfoOverlay)
     val nextEpisodeCountdownVisible = !isInPictureInPictureMode && autoPlayCountdown != null
-    val anyOverlayVisible = liveOverlayVisible || nextEpisodeCountdownVisible || showTrackSelection != null || showVariantSelection || showSpeedSelection || showAudioVideoOffsetDialog || showStopPlaybackTimerDialog || showIdleStandbyTimerDialog || showProgramHistory || showSplitDialog || showEpisodePicker || showDiagnostics
+    val anyOverlayVisible = playbackState == PlaybackState.ERROR || liveOverlayVisible || nextEpisodeCountdownVisible || showTrackSelection != null || showVariantSelection || showSpeedSelection || showAudioVideoOffsetDialog || showStopPlaybackTimerDialog || showIdleStandbyTimerDialog || showProgramHistory || showSplitDialog || showEpisodePicker || showDiagnostics
 
     LaunchedEffect(contentType, showCategoryListOverlay, showChannelListOverlay, showEpgOverlay, showChannelInfoOverlay) {
         if (contentType == "LIVE" && (showCategoryListOverlay || showChannelListOverlay || showEpgOverlay || showChannelInfoOverlay)) {
@@ -544,6 +545,7 @@ fun PlayerScreen(
     }
 
     val handleBackPress = remember(
+        playbackState,
         autoPlayCountdown,
         playerNotice,
         showProgramHistory,
@@ -565,6 +567,7 @@ fun PlayerScreen(
     ) {
         {
             when {
+                playbackState == PlaybackState.ERROR -> Unit
                 viewModel.hasPendingNumericChannelInput() -> viewModel.clearNumericChannelInput()
                 autoPlayCountdown != null -> viewModel.cancelAutoPlay()
                 playerNotice != null -> viewModel.dismissPlayerNotice()
@@ -1017,7 +1020,7 @@ fun PlayerScreen(
         }
 
         AnimatedVisibility(
-            visible = playerNotice != null && !(playbackState == PlaybackState.BUFFERING && playerNotice?.isRetryNotice == false),
+            visible = playbackState != PlaybackState.ERROR && playerNotice != null && !(playbackState == PlaybackState.BUFFERING && playerNotice?.isRetryNotice == false),
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -1072,13 +1075,14 @@ fun PlayerScreen(
                 contentType = contentType,
                 hasAlternateStream = viewModel.hasAlternateStream(),
                 hasLastChannel = viewModel.hasLastChannel(),
-                onAction = handlePlayerNoticeAction
+                onAction = handlePlayerNoticeAction,
+                onHome = onHome
             )
         }
 
         PlayerControlsOverlayHost(
             playerEngine = playerEngine,
-            visible = showControls,
+            visible = showControls && playbackState != PlaybackState.ERROR,
             title = playbackTitle.ifBlank { title },
             contentType = contentType,
             isCatchUpPlayback = isCatchUpPlayback,

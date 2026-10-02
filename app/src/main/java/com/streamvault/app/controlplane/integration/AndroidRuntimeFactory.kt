@@ -23,8 +23,10 @@ import com.MegaStream.app.controlplane.runtime.RuntimeCoordinator
 import com.MegaStream.app.controlplane.runtime.RuntimeDiagnosticsUploader
 import com.MegaStream.app.controlplane.runtime.RuntimeMetadata
 import com.MegaStream.app.controlplane.runtime.RuntimeProviderAssignmentSink
-import com.MegaStream.app.controlplane.runtime.RuntimeUpdateCommandSink
 import com.MegaStream.app.diagnostics.runtime.AndroidSessionRecoveryFactory
+import com.MegaStream.app.update.AppUpdateInstaller
+import com.MegaStream.app.update.RemoteUpdateCommandAndroidVersionObserver
+import com.MegaStream.app.update.RemoteUpdateCommandInstallerAdapter
 import com.MegaStream.data.diagnostics.FileDiagnosticsOutbox
 import com.MegaStream.data.licensing.LocalAppEntitlement
 import com.MegaStream.domain.diagnostics.DiagnosticsEventSink
@@ -38,12 +40,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 /** Explicit capability states: absence of a sink can never masquerade as successful delivery. */
-enum class RuntimeCapabilityStatus { NOT_CONFIGURED }
+enum class RuntimeCapabilityStatus { CONFIGURED, NOT_CONFIGURED }
 enum class RuntimeCapabilityBlocker {
-    UPDATE_LEDGER_NOT_INSTALLATION_SCOPED_OR_CONFLICT_CHECKED,
     PROVIDER_ATOMIC_ASSIGNMENT_ADAPTER_MISSING,
 }
-data class RuntimeCapability(val status: RuntimeCapabilityStatus, val blocker: RuntimeCapabilityBlocker) {
+data class RuntimeCapability(val status: RuntimeCapabilityStatus, val blocker: RuntimeCapabilityBlocker? = null) {
     override fun toString(): String = "RuntimeCapability([REDACTED])"
 }
 internal class RuntimeCapabilityUnavailable(val blocker: RuntimeCapabilityBlocker) :
@@ -54,6 +55,7 @@ internal class AndroidRuntimeFactory @Inject constructor(
     private val credentials: Provider<InstallationCredentials>,
     private val entitlement: Provider<LocalAppEntitlement>,
     private val providers: Provider<com.MegaStream.domain.repository.ProviderRepository>,
+    private val updateInstaller: Provider<AppUpdateInstaller>,
 ) {
     /** Resolve all blocking providers and construct all durable stores on the IO dispatcher. */
     fun create(scope: CoroutineScope): RuntimeController {
@@ -70,14 +72,17 @@ internal class AndroidRuntimeFactory @Inject constructor(
         val recorder = DiagnosticsRecorder(DiagnosticsEventSink(outbox::append))
         val collector = AndroidSessionRecoveryFactory.create(context, recorder)
         val client = ControlPlaneClient()
+        val installer = updateInstaller.get()
+        val updates = RuntimeUpdateCommandAdapter(identity.installationId, context.packageName,
+            DurableUpdateCommandStore(directory, identity.installationId, ::syncRuntimeDirectory),
+            RemoteUpdateCommandInstallerAdapter(installer, allowManaged = false),
+            RemoteUpdateCommandAndroidVersionObserver(context),
+            { commandId, status -> client.reportUpdateCommandStatus(identity.credential, commandId, status) })
+        installer.remoteInstallReceipt = updates::recordUserInstall
         val coordinator = RuntimeCoordinator(
             identity, ControlPlaneRuntimeClientAdapter(client), stores, stores,
             InstallationScopedAppEntitlement(identity.installationId, localEntitlement),
-            RuntimeUpdateCommandSink { _, _ ->
-                // Existing RemoteUpdateCommandProcessor's ledger retains URLs, has no installation
-                // binding or conflicting-payload check, and cannot meet the runtime port contract.
-                throw RuntimeCapabilityUnavailable(RuntimeCapabilityBlocker.UPDATE_LEDGER_NOT_INSTALLATION_SCOPED_OR_CONFLICT_CHECKED)
-            },
+            updates,
             RuntimeProviderAssignmentSink { _, _ ->
                 throw RuntimeCapabilityUnavailable(RuntimeCapabilityBlocker.PROVIDER_ATOMIC_ASSIGNMENT_ADAPTER_MISSING)
             },
@@ -88,7 +93,7 @@ internal class AndroidRuntimeFactory @Inject constructor(
                 uploadLocalSubscriptions = {
                     if (LocalSubscriptionsUploader(providers.get(), client, identity).upload() is ControlPlaneResult.Failure)
                         java.util.logging.Logger.getLogger("MegaStream").warning("Local subscription report rejected; retrying on next heartbeat")
-                }),
+                }, refreshUpdates = updates::refresh),
             ProductionRuntimeDiagnostics(collector, recorder, uploader, quarantine,
                 BuildConfig.VERSION_CODE.toLong(), BuildConfig.VERSION_NAME),
             scope, Dispatchers.IO, SystemClock::elapsedRealtime,

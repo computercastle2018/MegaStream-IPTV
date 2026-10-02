@@ -45,6 +45,12 @@ public sealed class SubscriptionDetailsPolicyForm
     public Guid Id { get; set; }
     [Required] public bool? AllowSubscriptionDetails { get; set; }
 }
+public sealed class UiStyleForm
+{
+    public Guid Id { get; set; }
+    [RegularExpression("^(classic|modern|studio)$", ErrorMessage = "اختر تصميماً صالحاً")]
+    public string? UiStyle { get; set; }
+}
 public sealed class AdminNotificationForm : IValidatableObject
 {
     public Guid? TargetInstallationId { get; set; }
@@ -65,6 +71,9 @@ public sealed record LicenseDetailsViewModel(License License, IReadOnlyList<Inst
 public sealed record DevicesViewModel(IReadOnlyList<Installation> Devices, DateTime OnlineCutoff);
 public sealed record DeviceDetailsViewModel(Installation Device, IReadOnlyList<DiagnosticEvent> Diagnostics, DateTime OnlineCutoff, IReadOnlyList<DeviceSession> Sessions)
 {
+    public MegaStream.Server.V1.V1InstallationMetadata? VersionReport { get; init; }
+    public IReadOnlyList<MegaStream.Server.Updates.UpdateReleaseSummary> AvailableUpdates { get; init; } = [];
+    public IReadOnlyList<MegaStream.Server.Updates.DeviceUpdateCommand> UpdateCommands { get; init; } = [];
     public IReadOnlyList<MegaStream.Server.Contracts.LocalSubscription> LocalSubscriptions { get; init; } = [];
     public bool ManagedDevice { get; init; }
     public IReadOnlyList<License> AvailableLicenses { get; init; } = [];
@@ -94,6 +103,8 @@ public sealed class DiagnosticsViewModel
 }
 public static class AdminDisplay
 {
+    public static string UiStyleName(string? style) => style switch
+    { "classic" => "الحالي", "modern" => "الحديث", "studio" => "Studio", _ => "اختيار الجهاز المحلي" };
     public static string DeviceConnectionClass(Installation device, DateTime cutoff) => device.Status == InstallationStatus.Revoked ? "danger" : device.LastSeenAt >= cutoff ? "online" : "offline";
     public static string DeviceLicenseState(Installation device)
     {

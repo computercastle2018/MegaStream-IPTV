@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
@@ -78,7 +80,7 @@ import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
 import com.MegaStream.app.R
 import com.MegaStream.app.navigation.Routes
-import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors as AppColors
 import com.MegaStream.app.ui.design.AppMotion
 import com.MegaStream.app.ui.design.FocusSpec
 import com.MegaStream.app.ui.interaction.mouseClickable
@@ -86,6 +88,8 @@ import com.MegaStream.app.ui.interaction.rememberTvInteractionSounds
 import com.MegaStream.app.ui.interaction.TvIconButton
 import com.MegaStream.app.ui.design.LocalAppShapes
 import com.MegaStream.app.ui.design.LocalAppSpacing
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 
 enum class AppNavigationChrome {
     Rail,
@@ -110,12 +114,13 @@ fun AppScreenScaffold(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val spacing = LocalAppSpacing.current
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
-                Brush.linearGradient(
+                if (studio) SolidColor(MaterialTheme.colorScheme.background) else Brush.linearGradient(
                     colors = listOf(
                         AppColors.Canvas,
                         AppColors.CanvasElevated,
@@ -124,7 +129,36 @@ fun AppScreenScaffold(
                 )
             )
     ) {
-        if (navigationChrome == AppNavigationChrome.Rail) {
+        if (studio) {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val compact = maxWidth < 600.dp
+                Row(Modifier.fillMaxSize()) {
+                    StudioDestinationRail(
+                        currentRoute = currentRoute,
+                        onNavigate = onNavigate,
+                        compact = compact,
+                        initialFocusRoute = initialTopNavigationFocusRoute,
+                        modifier = Modifier.fillMaxHeight().width(if (compact) 64.dp else 136.dp)
+                    )
+                    Column(Modifier.weight(1f).fillMaxHeight().padding(12.dp)) {
+                        if (showScreenHeader || topBarActions != null) {
+                            Row(Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                if (showScreenHeader) {
+                                    AppScreenHeader(title, subtitle, Modifier.weight(1f), compact = true)
+                                } else {
+                                    Spacer(Modifier.weight(1f))
+                                }
+                                if (topBarVisible && topBarActions != null) topBarActions()
+                            }
+                        }
+                        if (header != null) header()
+                        Column(Modifier.weight(1f).fillMaxWidth().padding(contentPadding), content = content)
+                    }
+                }
+            }
+        } else if (navigationChrome == AppNavigationChrome.Rail) {
             Row(modifier = Modifier.fillMaxSize()) {
                 DestinationRail(
                     currentRoute = currentRoute,
@@ -214,6 +248,85 @@ fun AppScreenScaffold(
     }
 }
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+@Composable
+private fun StudioDestinationRail(
+    currentRoute: String,
+    onNavigate: (String) -> Unit,
+    compact: Boolean,
+    initialFocusRoute: String?,
+    modifier: Modifier
+) {
+    val items = remember { buildDestinationItems() }
+    val requesters = remember { items.associate { it.route to FocusRequester() } }
+    LaunchedEffect(Unit) {
+        val focusRoute = initialFocusRoute ?: findActiveDestinationItem(items, currentRoute)?.route
+        if (focusRoute != null) {
+            withFrameNanos {}
+            requesters[focusRoute]?.requestFocus()
+        }
+    }
+    Column(
+        modifier.background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 8.dp, vertical = 12.dp)
+            .focusProperties {
+                onEnter = {
+                    requesters[findActiveDestinationItem(items, currentRoute)?.route] ?: FocusRequester.Default
+                }
+            },
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(if (compact) "MS" else stringResource(R.string.app_name),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp))
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            items.forEach { item ->
+                val selected = currentRoute.startsWith(item.route)
+                val label = stringResource(item.labelRes)
+                Surface(
+                    onClick = { if (!selected) onNavigate(item.route) },
+                    modifier = Modifier.fillMaxWidth().focusRequester(requesters.getValue(item.route)),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(6.dp)),
+                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+                    colors = ClickableSurfaceDefaults.colors(
+                        containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    border = ClickableSurfaceDefaults.border(focusedBorder = Border(
+                        BorderStroke(2.dp, MaterialTheme.colorScheme.secondary), shape = RoundedCornerShape(6.dp)))
+                ) {
+                    Row(Modifier.fillMaxWidth().height(46.dp).padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(item.icon, contentDescription = label, modifier = Modifier.size(18.dp))
+                        if (!compact) Text(label, style = MaterialTheme.typography.labelSmall,
+                            maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically) {
+            if (compact) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+                    AppTopBarLanguageAction()
+                }
+            } else if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
+                com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+                AppTopBarLanguageAction()
+            } else {
+                AppTopBarLanguageAction()
+                com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+            }
+        }
+    }
+}
+
 @Composable
 fun AppScreenHeader(
     title: String,
@@ -222,6 +335,7 @@ fun AppScreenHeader(
     eyebrow: String? = null,
     compact: Boolean = false
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -236,7 +350,7 @@ fun AppScreenHeader(
         Text(
             text = title,
             style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.displaySmall,
-            color = AppColors.TextPrimary,
+            color = if (studio) MaterialTheme.colorScheme.onBackground else AppColors.TextPrimary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
@@ -261,6 +375,7 @@ private fun TopNavigationBar(
     modifier: Modifier = Modifier,
     initialTopNavigationFocusRoute: String? = null
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val items = remember { buildDestinationItems() }
     val scrollState = rememberScrollState()
 
@@ -280,8 +395,8 @@ private fun TopNavigationBar(
                 focusRequesters[activeItem?.route] ?: FocusRequester.Default
             }
         },
-        shape = RoundedCornerShape(18.dp),
-        colors = SurfaceDefaults.colors(containerColor = AppColors.Surface.copy(alpha = 0.9f))
+        shape = RoundedCornerShape(if (studio) 6.dp else 18.dp),
+        colors = SurfaceDefaults.colors(containerColor = if (studio) MaterialTheme.colorScheme.surface else AppColors.Surface.copy(alpha = 0.9f))
     ) {
         Row(
             modifier = Modifier
@@ -434,6 +549,8 @@ private fun TopNavigationButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val accent = if (studio) MaterialTheme.colorScheme.primary else AppColors.Brand
     var isFocused by remember { mutableStateOf(false) }
     val sounds = rememberTvInteractionSounds()
     val scale by animateFloatAsState(
@@ -467,10 +584,10 @@ private fun TopNavigationButton(
                 }
                 isFocused = it.isFocused
             },
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(if (studio) 6.dp else 14.dp)),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (selected) AppColors.BrandMuted else Color.Transparent,
-            focusedContainerColor = AppColors.SurfaceEmphasis
+            containerColor = if (selected) accent.copy(alpha = 0.18f) else Color.Transparent,
+            focusedContainerColor = if (studio) MaterialTheme.colorScheme.surfaceVariant else AppColors.SurfaceEmphasis
         ),
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(
@@ -487,7 +604,7 @@ private fun TopNavigationButton(
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = if (selected) AppColors.Brand else AppColors.TextSecondary,
+                tint = if (selected) accent else AppColors.TextSecondary,
                 modifier = Modifier.size(14.dp)
             )
             Text(

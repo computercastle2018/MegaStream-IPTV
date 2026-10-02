@@ -53,11 +53,10 @@ class RemoteUpdateCommandProcessorTest {
         assertEquals(RemoteUpdateCommandStatus.InstallPrompted, processor.refresh("id").status)
         assertEquals(1, f.downloader.installs)
         assertEquals(HASH, f.downloader.installHash)
-        f.version = 12
-        assertEquals(RemoteUpdateCommandStatus.InstallPrompted, f.processor().observe("id").status)
         f.version = 11
         assertEquals(RemoteUpdateCommandStatus.Installed, f.processor().observe("id").status)
-        f.processor().process(command(code = 99)) // A replay cannot replace original expected identity.
+        expectFailure { f.processor().process(command(code = 99)) }
+        f.processor().process(command())
         assertEquals(1, f.downloader.starts)
         assertEquals(1, f.downloader.installs)
         assertEquals(listOf(
@@ -77,6 +76,16 @@ class RemoteUpdateCommandProcessorTest {
             assertEquals(1, f.downloader.starts)
             assertEquals(1, f.downloader.installs)
         }
+    }
+
+    @Test fun externallyInstalledNewerVersionRetiresCommandWithoutDowngradeOrFalseInstalledStatus() = runBlocking {
+        val f = Fixture()
+        f.processor().process(command())
+        f.version = 12
+        assertEquals(RemoteUpdateCommandStatus.Failed, f.processor().observe("id").status)
+        assertEquals(RemoteUpdateFailureCode.NotNewer, f.store.get("id")?.failure)
+        assertEquals(0, f.downloader.installs)
+        assertFalse(f.events.any { it.status == RemoteUpdateCommandStatus.Installed })
     }
 
     @Test fun sameNameForeignReleaseAndForeignDownloadIdNeverInstall() = runBlocking {
@@ -113,7 +122,8 @@ class RemoteUpdateCommandProcessorTest {
         f.downloader.startHook = { entered.complete(Unit); release.await() }
         val first = async { f.processor().process(command()) }
         entered.await()
-        assertEquals(RemoteUpdateCommandStatus.Downloading, f.processor().process(command(code = 999)).status)
+        expectFailure { f.processor().process(command(code = 999)) }
+        assertEquals(RemoteUpdateCommandStatus.Downloading, f.processor().process(command()).status)
         assertEquals(RemoteUpdateCommandStatus.Downloading, f.processor().refresh("id").status)
         assertEquals(1, f.downloader.starts)
         release.complete(Unit)
@@ -258,7 +268,7 @@ class RemoteUpdateCommandProcessorTest {
         var version = 10L
         val events = mutableListOf<RemoteUpdateCommandRecord>()
         fun processor(sink: RemoteUpdateCommandStatusSink = RemoteUpdateCommandStatusSink { events += it }) =
-            RemoteUpdateCommandProcessor(store, downloader, RemoteUpdateCommandInstalledVersionObserver { version }, sink)
+            RemoteUpdateCommandProcessor(store, downloader, RemoteUpdateCommandInstalledVersionObserver { version }, sink, "installation")
     }
 
     private class MemoryStore : RemoteUpdateCommandStore {
@@ -274,6 +284,7 @@ class RemoteUpdateCommandProcessorTest {
             true
         }
         override suspend fun get(commandId: String): RemoteUpdateCommandRecord? = synchronized(records) { records[commandId] }
+        override suspend fun records(): List<RemoteUpdateCommandRecord> = synchronized(records) { records.values.toList() }
         override suspend fun compareAndSet(previous: RemoteUpdateCommandRecord, next: RemoteUpdateCommandRecord): Boolean = synchronized(records) {
             check(!failWrites && !(failInstallAttempt && next.installAttempted))
             if (records[previous.commandId] != previous) return@synchronized false

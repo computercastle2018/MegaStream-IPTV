@@ -43,8 +43,7 @@ class ProductionRuntime @Inject internal constructor(
     private val lifecycleLane = Mutex()
     private val mutableSnapshot = MutableStateFlow(RuntimeSnapshot())
     val snapshot: StateFlow<RuntimeSnapshot> = mutableSnapshot.asStateFlow()
-    val updateCapability = RuntimeCapability(RuntimeCapabilityStatus.NOT_CONFIGURED,
-        RuntimeCapabilityBlocker.UPDATE_LEDGER_NOT_INSTALLATION_SCOPED_OR_CONFLICT_CHECKED)
+    val updateCapability = RuntimeCapability(RuntimeCapabilityStatus.CONFIGURED)
     val providerCapability = RuntimeCapability(RuntimeCapabilityStatus.NOT_CONFIGURED,
         RuntimeCapabilityBlocker.PROVIDER_ATOMIC_ASSIGNMENT_ADAPTER_MISSING)
     private var startJob: Job? = null

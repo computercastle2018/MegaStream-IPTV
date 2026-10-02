@@ -7,6 +7,8 @@ using MegaStream.Server.Contracts;
 using MegaStream.Server.Data;
 using MegaStream.Server.RemoteProviders.Core;
 using MegaStream.Server.Services;
+using MegaStream.Server.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,131 @@ namespace MegaStream.Server.Tests.RemoteProviders;
 
 public sealed class RemoteProviderHttpTests
 {
+    [Theory]
+    [InlineData(2, false)]
+    [InlineData(10, true)]
+    public async Task Index_lists_only_active_reports_from_connected_active_devices_using_shared_online_window(int window, bool includesOlder)
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        await LoginAsync(app, client);
+        app.Services.GetRequiredService<IConfiguration>()["ONLINE_WINDOW_MINUTES"] = window.ToString();
+        RegisterResponse connected, older, offline, revoked, stale;
+        Guid licenseId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var devices = scope.ServiceProvider.GetRequiredService<DeviceService>();
+            connected = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Connected TV", "14"));
+            older = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Older TV", "14"));
+            offline = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Offline TV", "14"));
+            revoked = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Revoked TV", "14"));
+            stale = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Stale TV", "14"));
+            var admin = scope.ServiceProvider.GetRequiredService<IAdminService>();
+            licenseId = (await admin.CreateLicenseAsync("Linked license", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(1), 1)).License.Id;
+            await admin.AssignInstallationLicenseAsync(connected.InstallationId, licenseId);
+        }
+        var expiry = DateTimeOffset.UtcNow.AddDays(1).ToUnixTimeMilliseconds();
+        using var reporter = Client(app);
+        reporter.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", connected.BearerToken);
+        using var reported = await reporter.PostAsJsonAsync("/api/v1/devices/subscriptions", new LocalSubscriptionsRequest
+        {
+            Subscriptions = [
+                Subscription(1, "Connected sports", "active", true, expiry),
+                Subscription(2, "No expiry", "active", true, null, "m3u"),
+                Subscription(3, "Disabled report", "active", false, expiry),
+                Subscription(4, "Expired report", "active", true, DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeMilliseconds()),
+                Subscription(5, "Partial report", "partial", true, expiry),
+                Subscription(6, "Error report", "error", true, expiry),
+                Subscription(7, "https://provider.invalid/live/private-user/private-password/1", "active", true, expiry, "stalker_portal")
+            ]
+        });
+        Assert.Equal(HttpStatusCode.NoContent, reported.StatusCode);
+        foreach (var (device, name) in new[] { (older, "Older subscription"), (offline, "Offline subscription"), (revoked, "Revoked subscription"), (stale, "Stale subscription") })
+        {
+            reporter.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", device.BearerToken);
+            using var response = await reporter.PostAsJsonAsync("/api/v1/devices/subscriptions", new LocalSubscriptionsRequest
+            { Subscriptions = [Subscription(1, name, "active", true, expiry)] });
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        }
+        DateTime reportedAt;
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await db.Installations.SingleAsync(x => x.Id == older.InstallationId)).LastSeenAt = DateTime.UtcNow.AddMinutes(-3);
+            (await db.Installations.SingleAsync(x => x.Id == offline.InstallationId)).LastSeenAt = DateTime.UtcNow.AddHours(-1);
+            (await db.Installations.SingleAsync(x => x.Id == revoked.InstallationId)).Status = InstallationStatus.Revoked;
+            (await db.Installations.SingleAsync(x => x.Id == stale.InstallationId)).LocalSubscriptionsReportedAt = DateTime.UtcNow.AddHours(-1);
+            reportedAt = (await db.Installations.SingleAsync(x => x.Id == connected.InstallationId)).LocalSubscriptionsReportedAt!.Value;
+            await db.SaveChangesAsync();
+        }
+        using var page = await client.GetAsync("/admin/providers");
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.True(page.Headers.CacheControl?.NoStore);
+        var html = WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync());
+        Assert.Contains("Connected sports", html);
+        Assert.Contains("No expiry", html);
+        Assert.Equal(includesOlder, html.Contains("Older subscription"));
+        foreach (var excluded in new[] { "Disabled report", "Expired report", "Partial report", "Error report", "Offline subscription", "Revoked subscription", "Stale subscription", "provider.invalid", "private-user", "private-password" })
+            Assert.DoesNotContain(excluded, html);
+        Assert.Contains($"/Admin/DeviceDetails?id={connected.InstallationId}", html);
+        Assert.Contains($"/Admin/LicenseDetails?id={licenseId}", html);
+        Assert.Contains(reportedAt.ToString("yyyy-MM-dd HH:mm:ss"), html);
+        Assert.Contains(DateTimeOffset.FromUnixTimeMilliseconds(expiry).ToString("yyyy-MM-dd HH:mm:ss"), html);
+        Assert.Contains("<details class=\"subscription-information\"><summary>", html);
+        Assert.DoesNotContain("<details class=\"subscription-information\" open", html);
+    }
+
+    [Theory]
+    [InlineData(RemoteProviderValues.XtreamCodes)]
+    [InlineData(RemoteProviderValues.M3u)]
+    [InlineData(RemoteProviderValues.StalkerPortal)]
+    public async Task Index_create_buttons_open_supported_type_with_registered_device_target(string type)
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        await LoginAsync(app, client);
+        Guid id;
+        using (var scope = app.Services.CreateScope())
+            id = (await scope.ServiceProvider.GetRequiredService<DeviceService>().RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Target TV", "14"))).InstallationId;
+        var html = await client.GetStringAsync("/admin/providers");
+        Assert.Contains($"href=\"/admin/providers/create?type={type}\"", html);
+        Assert.Contains($"value=\"{id}\"", html);
+        var editor = await client.GetStringAsync($"/admin/providers/create?type={type}");
+        Assert.Contains($"<option value=\"{type}\" selected>", editor);
+        Assert.Contains($"value=\"{id}\"", editor);
+        using var target = await client.GetAsync($"/admin/providers/installations?installationId={id}");
+        Assert.Equal(HttpStatusCode.Redirect, target.StatusCode);
+        Assert.EndsWith($"/installations/{id}", target.Headers.Location!.OriginalString);
+    }
+
+    [Theory]
+    [InlineData("{")]
+    [InlineData("[null]")]
+    [InlineData("[{\"password\":\"persisted-secret\"}]")]
+    public async Task Invalid_report_is_flagged_without_exposing_payload_or_breaking_create_buttons(string json)
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        await LoginAsync(app, client);
+        using (var scope = app.Services.CreateScope())
+        {
+            var devices = scope.ServiceProvider.GetRequiredService<DeviceService>();
+            var registered = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "TV", "14"));
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var device = await db.Installations.SingleAsync(x => x.Id == registered.InstallationId);
+            device.LocalSubscriptionsJson = json;
+            device.LocalSubscriptionsReportedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+        }
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/admin/providers"));
+        Assert.Contains("تعذر عرض بعض بلاغات الاشتراكات", html);
+        Assert.DoesNotContain("persisted-secret", html);
+        Assert.Contains("/admin/providers/create?type=M3U", html);
+    }
+
+    private static LocalSubscription Subscription(long id, string name, string status, bool enabled, long? expiry, string type = "xtream_codes") =>
+        new() { LocalId = id, Name = name, Status = status, Enabled = enabled, ExpiresAt = expiry, Type = type, MaxConnections = 2 };
+
     [Theory]
     [InlineData("optional")]
     [InlineData("auto_enabled")]

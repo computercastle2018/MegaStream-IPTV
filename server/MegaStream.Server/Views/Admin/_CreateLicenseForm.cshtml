@@ -1,0 +1,10 @@
+@model CreateLicenseForm
+<form asp-controller="Admin" asp-action="CreateLicense" method="post">
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+    <label asp-for="Label">اسم مفتاح التفعيل</label><input asp-for="Label" maxlength="128" required />
+    <label asp-for="ValidFrom">بداية الصلاحية UTC</label><input asp-for="ValidFrom" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" required />
+    <label asp-for="ValidUntil">نهاية الصلاحية UTC</label><input asp-for="ValidUntil" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" required />
+    <label asp-for="MaxInstallations">الحد الأقصى للأجهزة</label><input asp-for="MaxInstallations" type="number" min="1" max="10000" required />
+    <p class="notice">سيظهر مفتاح التفعيل الكامل مرة واحدة فقط بعد الإنشاء. احفظه في مكان آمن وأدخله في حقل مفتاح الترخيص بالتطبيق.</p>
+    <button type="submit">توليد وإظهار المفتاح</button><a asp-action="Licenses">إلغاء</a>
+</form>

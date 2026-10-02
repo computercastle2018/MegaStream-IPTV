@@ -55,7 +55,12 @@ internal class LicensePlaybackRouting {
         activePlayer = null
     }
 
-    fun clearActive() { activePlayer = null }
+    fun clearActive(observedRoute: String?, currentRoute: String?, playerEntryPresent: Boolean) {
+        if (observedRoute == null || observedRoute != currentRoute || playerEntryPresent ||
+            isProtectedPlaybackRoute(currentRoute) || currentRoute == Routes.LICENSE_ACTIVATION
+        ) return
+        activePlayer = null
+    }
 }
 
 internal fun isProtectedPlaybackRoute(route: String?): Boolean =

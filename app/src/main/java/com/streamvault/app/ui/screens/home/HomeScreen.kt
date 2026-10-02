@@ -70,6 +70,12 @@ import com.MegaStream.app.ui.design.requestFocusSafely
 import androidx.activity.compose.BackHandler
 import com.MegaStream.app.ui.model.LiveTvQuickFilterVisibilityMode
 import com.MegaStream.app.ui.theme.*
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceElevated as SurfaceElevated
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceEmphasis as SurfaceHighlight
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand as Primary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as OnSurface
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as OnBackground
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextTertiary as OnSurfaceDim
 import com.MegaStream.domain.model.ActiveLiveSource
 import com.MegaStream.domain.model.Category
 import com.MegaStream.domain.model.Channel
@@ -79,7 +85,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import androidx.compose.ui.res.stringResource
 import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.shell.mediaCardShape
 import com.MegaStream.app.ui.model.LiveTvChannelMode
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.app.ui.screens.multiview.MultiViewViewModel
 import com.MegaStream.app.ui.screens.multiview.MultiViewPlannerDialog
 import com.MegaStream.app.navigation.Routes
@@ -141,6 +149,7 @@ fun HomeScreen(
     multiViewViewModel: MultiViewViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isStudio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val providerNameById = remember(uiState.allProviders) {
         uiState.allProviders.associateBy({ it.id }, { it.name })
     }
@@ -153,10 +162,14 @@ fun HomeScreen(
     val isDenseMode = uiState.liveTvChannelMode != LiveTvChannelMode.COMFORTABLE
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
-    val sidebarWidth = if (screenWidth < 900.dp) {
+    val sidebarWidth = if (isStudio && screenWidth >= 840.dp) {
+        176.dp
+    } else if (screenWidth < 900.dp) {
         (screenWidth * 0.36f).coerceIn(188.dp, 220.dp)
     } else if (!isTelevisionDevice && screenWidth < 1280.dp) {
         (screenWidth * 0.28f).coerceIn(220.dp, 252.dp)
+    } else if (isStudio) {
+        240.dp
     } else {
         272.dp
     }
@@ -622,7 +635,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .width(sidebarWidth)
                             .fillMaxHeight()
-                            .background(SurfaceElevated.copy(alpha = 0.88f), RoundedCornerShape(20.dp))
+                            .background(SurfaceElevated.copy(alpha = 0.88f), RoundedCornerShape(if (isStudio) 0.dp else 20.dp))
                             .padding(top = 10.dp)
                             .focusGroup()
                     ) {
@@ -697,7 +710,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(bottom = 10.dp),
-                                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
+                                    shape = ClickableSurfaceDefaults.shape(mediaCardShape(12.dp)),
                                     colors = ClickableSurfaceDefaults.colors(
                                         containerColor = SurfaceElevated,
                                         focusedContainerColor = SurfaceHighlight.copy(alpha = 0.9f)
@@ -705,7 +718,7 @@ fun HomeScreen(
                                     border = ClickableSurfaceDefaults.border(
                                         focusedBorder = Border(
                                             border = BorderStroke(2.dp, Primary.copy(alpha = 0.85f)),
-                                            shape = RoundedCornerShape(12.dp)
+                                            shape = mediaCardShape(12.dp)
                                         )
                                     ),
                                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1f)
@@ -897,9 +910,18 @@ fun HomeScreen(
                         .fillMaxHeight(),
                     horizontalArrangement = Arrangement.spacedBy(if (isProMode) 12.dp else 0.dp)
                 ) {
+                    if (isStudio && isProMode) {
+                        LivePreviewPane(
+                            channel = previewChannel,
+                            playerEngine = uiState.previewPlayerEngine,
+                            isLoading = uiState.isPreviewLoading,
+                            errorMessage = uiState.previewErrorMessage,
+                            modifier = Modifier.weight(1.2f).fillMaxHeight()
+                        )
+                    }
                     Column(
                         modifier = Modifier
-                            .weight(if (isProMode) 1.08f else 1f)
+                            .weight(if (isStudio && isProMode) 0.9f else if (isProMode) 1.08f else 1f)
                             .fillMaxHeight()
                     ) {
                         Column(
@@ -1260,7 +1282,7 @@ fun HomeScreen(
                         } // Crossfade
                     }
 
-                    if (isProMode) {
+                    if (isProMode && !isStudio) {
                         LivePreviewPane(
                             channel = previewChannel,
                             playerEngine = uiState.previewPlayerEngine,

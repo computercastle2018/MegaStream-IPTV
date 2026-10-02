@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_template_managed">بإدارة المسؤول</string>
+    <string name="settings_epg_sources_section">مصادر دليل البرامج</string>
+</resources>

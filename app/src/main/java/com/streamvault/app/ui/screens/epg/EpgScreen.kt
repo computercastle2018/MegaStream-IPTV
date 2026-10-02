@@ -86,6 +86,7 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
 import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.shell.mediaCardShape
 import com.MegaStream.app.device.rememberIsTelevisionDevice
 import com.MegaStream.app.ui.components.ChannelLogoBadge
 import com.MegaStream.app.navigation.Routes
@@ -96,15 +97,15 @@ import kotlinx.coroutines.launch
 import com.MegaStream.app.ui.components.dialogs.PinDialog
 import com.MegaStream.app.ui.components.shell.AppNavigationChrome
 import com.MegaStream.app.ui.components.shell.AppScreenScaffold
-import com.MegaStream.app.ui.theme.FocusBorder
-import com.MegaStream.app.ui.theme.OnBackground
-import com.MegaStream.app.ui.theme.OnSurface
-import com.MegaStream.app.ui.theme.OnSurfaceDim
-import com.MegaStream.app.ui.theme.Primary
-import com.MegaStream.app.ui.theme.SurfaceElevated
-import com.MegaStream.app.ui.theme.SurfaceHighlight
-import com.MegaStream.app.ui.theme.TextPrimary
-import com.MegaStream.app.ui.theme.TextSecondary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Focus as FocusBorder
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as OnBackground
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as OnSurface
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextTertiary as OnSurfaceDim
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand as Primary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceElevated as SurfaceElevated
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceEmphasis as SurfaceHighlight
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as TextPrimary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextSecondary as TextSecondary
 import com.MegaStream.domain.model.Category
 import com.MegaStream.domain.model.Channel
 import com.MegaStream.domain.model.EpgMatchType
@@ -123,12 +124,36 @@ import kotlin.math.max
 import com.MegaStream.app.ui.interaction.TvClickableSurface
 import com.MegaStream.app.ui.interaction.TvButton
 import com.MegaStream.app.ui.interaction.TvIconButton
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 
 private sealed interface LockedGuideAction {
     data class SelectCategory(val category: Category) : LockedGuideAction
     data class OpenProgram(val channel: Channel, val program: Program) : LockedGuideAction
     data class PlayChannel(val channel: Channel, val returnRoute: String) : LockedGuideAction
     data class PlayArchive(val channel: Channel, val program: Program, val returnRoute: String) : LockedGuideAction
+}
+
+@Composable
+private fun StudioGuideCategory(label: String, selected: Boolean, onClick: () -> Unit) {
+    TvClickableSurface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(6.dp)),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Text(
+            label,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
 }
 
 @Composable
@@ -143,6 +168,7 @@ fun FullEpgScreen(
     viewModel: EpgViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val overrideUiState by viewModel.overrideUiState.collectAsStateWithLifecycle()
     val programReminderUiState by viewModel.programReminderUiState.collectAsStateWithLifecycle()
     var selectedProgram by remember { mutableStateOf<Pair<Channel, Program>?>(null) }
@@ -236,7 +262,7 @@ fun FullEpgScreen(
             title = {
                 androidx.compose.material3.Text(
                     text = stringResource(R.string.epg_recording_conflict_title),
-                    color = com.MegaStream.app.ui.theme.OnSurface
+                    color = com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary
                 )
             },
             text = {
@@ -245,7 +271,7 @@ fun FullEpgScreen(
                 }
                 androidx.compose.material3.Text(
                     text = stringResource(R.string.epg_recording_conflict_body, conflict.programTitle, conflictNames),
-                    color = com.MegaStream.app.ui.theme.TextSecondary
+                    color = com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextSecondary
                 )
             },
             confirmButton = {
@@ -258,7 +284,7 @@ fun FullEpgScreen(
                 ) {
                     androidx.compose.material3.Text(
                         text = stringResource(R.string.epg_recording_conflict_replace),
-                        color = com.MegaStream.app.ui.theme.Primary
+                        color = com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand
                     )
                 }
             },
@@ -266,13 +292,13 @@ fun FullEpgScreen(
                 androidx.compose.material3.TextButton(onClick = { viewModel.dismissRecordingConflict() }) {
                     androidx.compose.material3.Text(
                         text = stringResource(R.string.epg_recording_conflict_cancel),
-                        color = com.MegaStream.app.ui.theme.OnSurface
+                        color = com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary
                     )
                 }
             },
-            containerColor = com.MegaStream.app.ui.theme.SurfaceElevated,
-            titleContentColor = com.MegaStream.app.ui.theme.OnSurface,
-            textContentColor = com.MegaStream.app.ui.theme.TextSecondary
+            containerColor = com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceElevated,
+            titleContentColor = com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary,
+            textContentColor = com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextSecondary
         )
     }
 
@@ -308,7 +334,7 @@ fun FullEpgScreen(
         title = stringResource(R.string.nav_epg),
         subtitle = stringResource(R.string.guide_shell_subtitle),
         navigationChrome = AppNavigationChrome.TopBar,
-        topBarVisible = topNavVisible,
+        topBarVisible = if (studio) true else topNavVisible,
         compactHeader = true,
         showScreenHeader = false
     ) {
@@ -382,6 +408,114 @@ fun FullEpgScreen(
                 }
 
                 else -> {
+                    val guideGrid: @Composable (Modifier) -> Unit = { gridModifier ->
+                    GuideNowProvider {
+                        EpgGrid(
+                            modifier = gridModifier,
+                            channels = uiState.channels,
+                            favoriteChannelIds = uiState.favoriteChannelIds,
+                            programsByChannel = uiState.programsByChannel,
+                            guideWindowStart = uiState.guideWindowStart,
+                            guideWindowEnd = uiState.guideWindowEnd,
+                            density = uiState.selectedDensity,
+                            onChannelClick = { channel ->
+                                if (isGuideChannelLocked(channel, categoriesById, uiState.parentalControlLevel)) {
+                                    requestLockedGuideAction(LockedGuideAction.PlayChannel(channel, returnRoute))
+                                } else {
+                                    onPlayChannel(
+                                        channel,
+                                        playerCategoryId,
+                                        playerIsVirtualCategory,
+                                        uiState.combinedProfileId,
+                                        returnRoute
+                                    )
+                                }
+                            },
+                            onProgramClick = { channel, program ->
+                                topNavVisible = false
+                                if (isGuideChannelLocked(channel, categoriesById, uiState.parentalControlLevel)) {
+                                    requestLockedGuideAction(LockedGuideAction.OpenProgram(channel, program))
+                                } else {
+                                    selectedProgram = channel to program
+                                }
+                            },
+                            onChannelFocused = { channel, currentProgram, isFirstRow ->
+                                topNavVisible = isFirstRow
+                                focusedChannel = channel
+                                focusedProgram = currentProgram
+                            },
+                            onProgramFocused = { channel, program, isFirstRow ->
+                                topNavVisible = isFirstRow
+                                focusedChannel = channel
+                                focusedProgram = program
+                            },
+                            onRequestMoreChannels = viewModel::requestMoreChannels
+                        )
+                    }
+                    }
+                    if (studio) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().weight(1f).padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier.width(154.dp).fillMaxHeight(),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                item {
+                                    Text(stringResource(R.string.nav_epg), style = MaterialTheme.typography.titleLarge)
+                                }
+                                item {
+                                    StudioGuideCategory(
+                                        stringResource(R.string.home_all_channels),
+                                        uiState.selectedCategoryId == ChannelRepository.ALL_CHANNELS_ID,
+                                        onClick = { viewModel.selectCategory(ChannelRepository.ALL_CHANNELS_ID) }
+                                    )
+                                }
+                                items(uiState.categories.filter { it.id != ChannelRepository.ALL_CHANNELS_ID }, key = { it.id }) { category ->
+                                    StudioGuideCategory(category.name, category.id == uiState.selectedCategoryId) {
+                                        if (isGuideCategoryLocked(category, uiState.parentalControlLevel)) {
+                                            requestLockedGuideAction(LockedGuideAction.SelectCategory(category))
+                                        } else {
+                                            viewModel.selectCategory(category.id)
+                                        }
+                                    }
+                                }
+                            }
+                            Column(
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Column(Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                    Text(
+                                        focusedChannel?.name ?: stringResource(R.string.nav_epg),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        focusedProgram?.title.orEmpty(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    GuideToolbarButton(stringResource(R.string.epg_jump_now),
+                                        onClick = viewModel::jumpToNow, onFocused = { topNavVisible = true })
+                                    GuideToolbarButton(stringResource(R.string.epg_search_label),
+                                        onClick = { showSearchOverlay = true }, onFocused = { topNavVisible = true })
+                                    GuideToolbarButton(stringResource(R.string.epg_options_short),
+                                        onClick = { showGuideOptions = true }, onFocused = { topNavVisible = true })
+                                }
+                                if (uiState.isRefreshing) {
+                                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(3.dp))
+                                }
+                                guideGrid(Modifier.fillMaxWidth().weight(1f))
+                            }
+                        }
+                    } else {
                     GuideNowProvider {
                         GuideHeroSection(
                             uiState = uiState,
@@ -424,50 +558,8 @@ fun FullEpgScreen(
                             trackColor = SurfaceHighlight
                         )
                     }
-                    GuideNowProvider {
-                        EpgGrid(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            channels = uiState.channels,
-                            favoriteChannelIds = uiState.favoriteChannelIds,
-                            programsByChannel = uiState.programsByChannel,
-                            guideWindowStart = uiState.guideWindowStart,
-                            guideWindowEnd = uiState.guideWindowEnd,
-                            density = uiState.selectedDensity,
-                            onChannelClick = { channel ->
-                                if (isGuideChannelLocked(channel, categoriesById, uiState.parentalControlLevel)) {
-                                    requestLockedGuideAction(LockedGuideAction.PlayChannel(channel, returnRoute))
-                                } else {
-                                    onPlayChannel(
-                                        channel,
-                                        playerCategoryId,
-                                        playerIsVirtualCategory,
-                                        uiState.combinedProfileId,
-                                        returnRoute
-                                    )
-                                }
-                            },
-                            onProgramClick = { channel, program ->
-                                topNavVisible = false
-                                if (isGuideChannelLocked(channel, categoriesById, uiState.parentalControlLevel)) {
-                                    requestLockedGuideAction(LockedGuideAction.OpenProgram(channel, program))
-                                } else {
-                                    selectedProgram = channel to program
-                                }
-                            },
-                            onChannelFocused = { channel, currentProgram, isFirstRow ->
-                                topNavVisible = isFirstRow
-                                focusedChannel = channel
-                                focusedProgram = currentProgram
-                            },
-                            onProgramFocused = { channel, program, isFirstRow ->
-                                topNavVisible = isFirstRow
-                                focusedChannel = channel
-                                focusedProgram = program
-                            },
-                            onRequestMoreChannels = viewModel::requestMoreChannels
-                        )
+
+                        guideGrid(Modifier.fillMaxWidth().weight(1f))
                     }
                 }
             }
@@ -723,7 +815,7 @@ private fun GuideStatusCard(
     isGuideStale: Boolean
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = mediaCardShape(16.dp),
         colors = SurfaceDefaults.colors(containerColor = SurfaceHighlight)
     ) {
         Column(
@@ -765,7 +857,7 @@ private fun GuideProviderTroubleshootingCard(
     isGuideStale: Boolean
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = mediaCardShape(16.dp),
         colors = SurfaceDefaults.colors(containerColor = SurfaceHighlight.copy(alpha = 0.85f))
     ) {
         Column(
@@ -826,5 +918,3 @@ private fun isGuideChannelLocked(
     } ?: false
     return channel.isAdult || channel.isUserProtected || categoryLocked
 }
-
-

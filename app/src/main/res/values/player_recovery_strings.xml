@@ -1,0 +1,5 @@
+<resources>
+    <string name="player_recovery_home">Home</string>
+    <string name="player_recovery_choose_content">Choose content again</string>
+    <string name="player_request_unavailable">Playback could not be restored. Continue to choose content again, or go Home.</string>
+</resources>

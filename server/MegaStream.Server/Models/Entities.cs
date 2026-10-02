@@ -10,6 +10,7 @@ public class License
     public string KeyHash { get; set; } = "";
     public string KeyLast4 { get; set; } = "";
     public string Label { get; set; } = "";
+    public string? UiStyle { get; set; }
     public LicenseStatus Status { get; set; } = LicenseStatus.Active;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -35,6 +36,7 @@ public class Installation
     public bool AllowLocalExit { get; set; } = true;
     public bool AllowSubscriptionDetails { get; set; } = true;
     public string? MacAddress { get; set; }
+    public string? UiStyle { get; set; }
     public InstallationStatus Status { get; set; } = InstallationStatus.Active;
     public Guid? LicenseId { get; set; }
     public License? License { get; set; }

@@ -14,7 +14,7 @@ interface SeriesRepository {
     fun getSeriesByCategory(providerId: Long, categoryId: Long): Flow<List<Series>>
     fun getSeriesByCategoryPage(providerId: Long, categoryId: Long, limit: Int, offset: Int): Flow<List<Series>>
     fun getSeriesByCategoryPreview(providerId: Long, categoryId: Long, limit: Int): Flow<List<Series>>
-    fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int): Flow<Map<Long?, List<Series>>>
+    fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int, newestFirst: Boolean = false): Flow<Map<Long?, List<Series>>>
     fun getTopRatedPreview(providerId: Long, limit: Int): Flow<List<Series>>
     fun getFreshPreview(providerId: Long, limit: Int): Flow<List<Series>>
     fun getSeriesByIds(ids: List<Long>): Flow<List<Series>>
@@ -27,5 +27,5 @@ interface SeriesRepository {
     suspend fun getEpisodeById(episodeId: Long): Episode?
     suspend fun getSeriesDetails(providerId: Long, seriesId: Long): Result<Series>
     suspend fun getEpisodeStreamInfo(episode: Episode): Result<StreamInfo>
-    suspend fun refreshSeries(providerId: Long): Result<Unit>
+    suspend fun refreshSeries(providerId: Long, categoryIds: List<Long> = emptyList()): Result<Unit>
 }

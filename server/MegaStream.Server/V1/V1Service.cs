@@ -33,7 +33,7 @@ public sealed class V1Service(AppDbContext db, DeviceService devices, LeaseSigne
         {
             InstallationId = installation.Id,
             RegistrationIdempotencyKey = Guid.Parse(idempotencyKey),
-            AppVersionCode = request.AppVersionCode, AndroidApi = request.AndroidApi,
+            AppVersionCode = request.AppVersionCode, AppVersionName = request.AppVersionName, VersionReportedAt = DateTime.UtcNow, AndroidApi = request.AndroidApi,
             Abi = request.Abi, ManagedDevice = request.ManagedDevice,
             PackageName = request.PackageName, Channel = request.Channel
         };
@@ -179,6 +179,8 @@ public sealed class V1Service(AppDbContext db, DeviceService devices, LeaseSigne
             installation.LastSeenAt = now;
             installation.AppVersion = request.AppVersionName;
             metadata.AppVersionCode = request.AppVersionCode;
+            metadata.AppVersionName = request.AppVersionName;
+            metadata.VersionReportedAt = now;
             metadata.ManagedDevice = request.ManagedDevice;
             var sessionId = request.AppSessionId.ToString("D");
             var session = await db.DeviceSessions.SingleOrDefaultAsync(

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_app_ui_style_studio">استوديو</string>
+    <string name="settings_app_ui_style_studio_desc">سينمائي</string>
+    <string name="studio_latest_added">أحدث الإضافات</string>
+    <string name="studio_latest_updated_series">أحدث المسلسلات لدى المزود</string>
+    <string name="studio_refresh_catalog">تحديث المكتبة</string>
+    <string name="studio_catalog_refreshing">جارٍ تحديث المكتبة</string>
+    <string name="studio_open_details">التفاصيل</string>
+</resources>

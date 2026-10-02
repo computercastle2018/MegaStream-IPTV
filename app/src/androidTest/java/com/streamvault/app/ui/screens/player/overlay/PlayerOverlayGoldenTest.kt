@@ -109,7 +109,8 @@ class PlayerOverlayGoldenTest {
                         contentType = "LIVE",
                         hasAlternateStream = true,
                         hasLastChannel = true,
-                        onAction = {}
+                        onAction = {},
+                        onHome = {}
                     )
                 }
             }

@@ -49,13 +49,18 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.shell.mediaCardShape
+import com.MegaStream.app.ui.components.shell.MediaActionRow
+import com.MegaStream.app.ui.components.shell.studioColor
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 import com.MegaStream.app.device.rememberIsTelevisionDevice
 import com.MegaStream.app.ui.components.rememberCrossfadeImageModel
 import com.MegaStream.app.util.formatPositionMs
 import com.MegaStream.app.ui.components.shell.ContentMetadataStrip
 import com.MegaStream.app.ui.components.shell.ExternalRatingsStrip
 import com.MegaStream.app.ui.components.shell.StatusPill
-import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors as AppColors
 import com.MegaStream.app.ui.design.requestFocusSafely
 import com.MegaStream.app.ui.model.formatVodRatingLabel
 import com.MegaStream.domain.model.ExternalRatings
@@ -63,6 +68,9 @@ import com.MegaStream.domain.model.Movie
 import com.MegaStream.app.ui.interaction.TvClickableSurface
 import com.MegaStream.app.ui.interaction.TvButton
 import com.MegaStream.app.ui.interaction.TvIconButton
+import com.MegaStream.app.ui.screens.vod.StudioDetailLayout
+import com.MegaStream.app.ui.components.MovieCard
+import androidx.compose.material.icons.filled.PlayArrow
 
 @Composable
 fun MovieDetailScreen(
@@ -138,6 +146,77 @@ private fun MovieDetailContent(
             tag = "MovieDetailScreen",
             target = "Play button"
         )
+    }
+
+    if (LocalAppUiStyle.current == AppUiStyle.STUDIO) {
+        val visibleRelated = relatedContent.filter {
+            it.categoryId == movie.categoryId && !it.isAdult && !it.isUserProtected
+        }
+        StudioDetailLayout(
+            title = movie.name,
+            imageUrl = movie.backdropUrl ?: movie.posterUrl,
+            metadata = listOf(movie.year.orEmpty(), movie.duration.orEmpty(), movie.genre.orEmpty()),
+            onBack = onBack,
+            actions = {
+                MediaActionRow {
+                    TvButton(
+                        onClick = onPlay,
+                        modifier = Modifier.focusRequester(playButtonFocusRequester),
+                        shape = ButtonDefaults.shape(RoundedCornerShape(8.dp)),
+                        colors = ButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary)
+                    ) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (hasResume) stringResource(R.string.movie_detail_resume_from, formatPositionMs(resumePositionMs))
+                            else stringResource(R.string.movie_detail_play))
+                    }
+                    if (!movie.youtubeTrailer.isNullOrBlank()) TvButton(
+                        onClick = {
+                            resolveTrailerUrl(movie.youtubeTrailer)?.let { trailerUrl ->
+                                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))) }
+                            }
+                        },
+                        shape = ButtonDefaults.shape(RoundedCornerShape(8.dp))
+                    ) { Text(stringResource(R.string.movie_detail_trailer)) }
+                    TvIconButton(onClick = onToggleFavorite) {
+                        Icon(if (movie.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = stringResource(if (movie.isFavorite) R.string.favorites_remove else R.string.favorites_add),
+                            tint = if (movie.isFavorite) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+        ) {
+            item(key = "studio_movie_information") {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ExternalRatingsStrip(ratings = externalRatings, isLoading = isLoadingExternalRatings)
+                    Text(movie.plot?.takeIf { it.isNotBlank() } ?: stringResource(R.string.movie_plot_fallback),
+                        style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    ContentMetadataStrip(values = listOf(movie.releaseDate.orEmpty(), movie.duration.orEmpty(), movie.genre.orEmpty()))
+                    movie.director?.takeIf { it.isNotBlank() }?.let {
+                        Text(stringResource(R.string.movie_detail_director) + ": " + it,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    movie.cast?.takeIf { it.isNotBlank() }?.let {
+                        Text(stringResource(R.string.movie_detail_cast) + ": " + it,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+            if (visibleRelated.isNotEmpty()) item(key = "studio_movie_related") {
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.movie_detail_related), modifier = Modifier.padding(horizontal = 24.dp),
+                        style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                    LazyRow(contentPadding = PaddingValues(horizontal = 24.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(visibleRelated, key = { it.id }) { related ->
+                            MovieCard(movie = related, width = 128.dp, height = 192.dp, onClick = { onRelatedClick(related) })
+                        }
+                    }
+                }
+            }
+        }
+        return
     }
 
     BoxWithConstraints(
@@ -271,7 +350,7 @@ private fun MovieDetailContent(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .aspectRatio(2f / 3f)
-                                            .clip(RoundedCornerShape(12.dp))
+                                            .clip(mediaCardShape(12.dp))
                                             .background(AppColors.SurfaceElevated)
                                     ) {
                                         AsyncImage(
@@ -307,7 +386,7 @@ private fun MoviePoster(
         modifier = Modifier
             .width(posterWidth)
             .aspectRatio(2f / 3f)
-            .clip(RoundedCornerShape(24.dp))
+            .clip(mediaCardShape(24.dp))
             .background(AppColors.SurfaceElevated)
     ) {
         AsyncImage(
@@ -374,13 +453,13 @@ private fun MovieDetailHeroText(
 
         MovieFactGrid(movie = movie)
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        MediaActionRow {
             TvButton(
                 onClick = onPlay,
                 modifier = Modifier.focusRequester(playButtonFocusRequester),
                 colors = ButtonDefaults.colors(
                     containerColor = AppColors.Brand,
-                    contentColor = Color.White
+                    contentColor = studioColor(Color.White, MaterialTheme.colorScheme.onPrimary)
                 )
             ) {
                 Text(
@@ -406,7 +485,7 @@ private fun MovieDetailHeroText(
                 onClick = onToggleFavorite,
                 colors = ButtonDefaults.colors(
                     containerColor = if (movie.isFavorite) AppColors.Brand else AppColors.SurfaceEmphasis,
-                    contentColor = if (movie.isFavorite) Color.White else AppColors.TextSecondary
+                    contentColor = if (movie.isFavorite) studioColor(Color.White, MaterialTheme.colorScheme.onPrimary) else AppColors.TextSecondary
                 )
             ) {
                 Icon(

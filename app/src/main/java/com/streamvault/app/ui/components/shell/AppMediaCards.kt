@@ -4,6 +4,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -71,6 +74,80 @@ import com.MegaStream.domain.model.Channel
 import com.MegaStream.domain.model.Episode
 import com.MegaStream.domain.model.Movie
 import com.MegaStream.domain.model.Series
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
+
+
+@Composable
+internal fun studioColor(classic: Color, studio: Color): Color =
+    if (LocalAppUiStyle.current == AppUiStyle.STUDIO) studio else classic
+
+@Composable
+internal fun mediaCardShape(classicRadius: Dp): RoundedCornerShape =
+    RoundedCornerShape(if (LocalAppUiStyle.current == AppUiStyle.STUDIO) 8.dp else classicRadius)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun MediaActionRow(content: @Composable RowScope.() -> Unit) {
+    if (LocalAppUiStyle.current == AppUiStyle.STUDIO) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) { content() }
+    } else {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
+    }
+}
+
+// Keep legacy colors exact; only Studio follows the selected MaterialTheme.
+internal object MediaSurfaceColors {
+    val Canvas: Color
+        @Composable get() = studioColor(AppColors.Canvas, MaterialTheme.colorScheme.background)
+    val CanvasElevated: Color
+        @Composable get() = studioColor(AppColors.CanvasElevated, MaterialTheme.colorScheme.background)
+    val Surface: Color
+        @Composable get() = studioColor(AppColors.Surface, MaterialTheme.colorScheme.surface)
+    val SurfaceElevated: Color
+        @Composable get() = studioColor(AppColors.SurfaceElevated, MaterialTheme.colorScheme.surface)
+    val SurfaceEmphasis: Color
+        @Composable get() = studioColor(AppColors.SurfaceEmphasis, MaterialTheme.colorScheme.surfaceVariant)
+    val SurfaceAccent: Color
+        @Composable get() = studioColor(AppColors.SurfaceAccent, MaterialTheme.colorScheme.surfaceVariant)
+    val Brand: Color
+        @Composable get() = studioColor(AppColors.Brand, MaterialTheme.colorScheme.primary)
+    val BrandMuted: Color
+        @Composable get() = studioColor(AppColors.BrandMuted, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
+    val Focus: Color
+        @Composable get() = studioColor(AppColors.Focus, MaterialTheme.colorScheme.secondary)
+    val TextPrimary: Color
+        @Composable get() = studioColor(AppColors.TextPrimary, MaterialTheme.colorScheme.onSurface)
+    val TextSecondary: Color
+        @Composable get() = studioColor(AppColors.TextSecondary, MaterialTheme.colorScheme.onSurfaceVariant)
+    val TextTertiary: Color
+        @Composable get() = studioColor(AppColors.TextTertiary, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f))
+    val TextDisabled: Color
+        @Composable get() = studioColor(AppColors.TextDisabled, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+    val Live: Color
+        @Composable get() = studioColor(AppColors.Live, MaterialTheme.colorScheme.error)
+    val Success: Color
+        @Composable get() = studioColor(AppColors.Success, MaterialTheme.colorScheme.primary)
+    val Warning: Color
+        @Composable get() = studioColor(AppColors.Warning, MaterialTheme.colorScheme.secondary)
+    val Info: Color
+        @Composable get() = studioColor(AppColors.Info, MaterialTheme.colorScheme.primary)
+    val HeroTop: Color
+        @Composable get() = studioColor(AppColors.HeroTop, MaterialTheme.colorScheme.background.copy(alpha = 0.38f))
+    val HeroBottom: Color
+        @Composable get() = studioColor(AppColors.HeroBottom, MaterialTheme.colorScheme.background.copy(alpha = 0.96f))
+    val Outline: Color
+        @Composable get() = studioColor(AppColors.Outline, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f))
+    val Divider: Color
+        @Composable get() = studioColor(AppColors.Divider, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f))
+}
 
 private object LiveChannelRowTicker {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -106,8 +183,8 @@ fun LiveChannelRowCard(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(AppColors.SurfaceElevated)
+            .clip(mediaCardShape(18.dp))
+            .background(MediaSurfaceColors.SurfaceElevated)
             .fillMaxWidth()
             .height(rowHeight)
     ) {
@@ -122,15 +199,15 @@ fun LiveChannelRowCard(
                 modifier = Modifier
                     .width(logoWidth)
                     .fillMaxHeight()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(mediaCardShape(12.dp))
             ) {
                 ChannelLogoBadge(
                     channelName = channel.name,
                     logoUrl = channel.logoUrl,
-                    backgroundColor = AppColors.SurfaceEmphasis,
+                    backgroundColor = MediaSurfaceColors.SurfaceEmphasis,
                     contentPadding = PaddingValues(logoPadding),
                     textStyle = MaterialTheme.typography.titleLarge,
-                    textColor = AppColors.TextSecondary,
+                    textColor = MediaSurfaceColors.TextSecondary,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -143,19 +220,19 @@ fun LiveChannelRowCard(
                         horizontalArrangement = Arrangement.spacedBy(badgeSpacing),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        StatusPill(label = stringResource(R.string.card_live_badge), containerColor = AppColors.Live)
+                        StatusPill(label = stringResource(R.string.card_live_badge), containerColor = MediaSurfaceColors.Live)
                         sourceBadgeLabel?.takeIf { it.isNotBlank() }?.let { label ->
                             StatusPill(
                                 label = label,
-                                containerColor = AppColors.SurfaceEmphasis,
-                                contentColor = AppColors.TextPrimary
+                                containerColor = MediaSurfaceColors.SurfaceEmphasis,
+                                contentColor = MediaSurfaceColors.TextPrimary
                             )
                         }
                         if (channel.isFavorite) {
-                            StatusPill(label = stringResource(R.string.badge_saved), containerColor = AppColors.Warning, contentColor = Color.Black)
+                            StatusPill(label = stringResource(R.string.badge_saved), containerColor = MediaSurfaceColors.Warning, contentColor = Color.Black)
                         }
                         if (channel.catchUpSupported) {
-                            StatusPill(label = stringResource(R.string.badge_catch_up), containerColor = AppColors.Brand)
+                            StatusPill(label = stringResource(R.string.badge_catch_up), containerColor = MediaSurfaceColors.Brand)
                         }
                     }
                 }
@@ -171,7 +248,7 @@ fun LiveChannelRowCard(
                         append(channel.name)
                     },
                     style = if (isDense) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleSmall,
-                    color = AppColors.TextPrimary,
+                    color = MediaSurfaceColors.TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -180,7 +257,7 @@ fun LiveChannelRowCard(
                     Text(
                         text = program.title,
                         style = if (isDense) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodySmall,
-                        color = AppColors.TextSecondary,
+                        color = MediaSurfaceColors.TextSecondary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -193,15 +270,15 @@ fun LiveChannelRowCard(
                                 .fillMaxWidth()
                                 .height(2.dp)
                                 .clip(RoundedCornerShape(999.dp)),
-                            color = AppColors.Info,
-                            trackColor = AppColors.SurfaceEmphasis
+                            color = MediaSurfaceColors.Info,
+                            trackColor = MediaSurfaceColors.SurfaceEmphasis
                         )
                     }
                 } else {
                     Text(
                         text = stringResource(R.string.label_no_schedule),
                         style = if (isDense) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodySmall,
-                        color = AppColors.TextTertiary
+                        color = MediaSurfaceColors.TextTertiary
                     )
                 }
             }
@@ -286,18 +363,18 @@ fun LiveChannelRowSurface(
                 isFocused = it.isFocused
             },
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+        shape = ClickableSurfaceDefaults.shape(mediaCardShape(16.dp)),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = AppColors.SurfaceElevated,
-            focusedContainerColor = AppColors.SurfaceEmphasis
+            containerColor = MediaSurfaceColors.SurfaceElevated,
+            focusedContainerColor = MediaSurfaceColors.SurfaceEmphasis
         ),
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(
                 border = BorderStroke(
                     width = if (isDragging) 4.dp else FocusSpec.BorderWidth,
-                    color = if (isDragging) AppColors.Warning else AppColors.Focus
+                    color = if (isDragging) MediaSurfaceColors.Warning else MediaSurfaceColors.Focus
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = mediaCardShape(16.dp)
             )
         )
     ) {
@@ -312,13 +389,13 @@ fun LiveChannelRowSurface(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(AppColors.HeroBottom.copy(alpha = 0.82f)),
+                        .background(MediaSurfaceColors.HeroBottom.copy(alpha = 0.82f)),
                     contentAlignment = Alignment.Center
                 ) {
                     StatusPill(
                         label = stringResource(R.string.home_locked_short),
-                        containerColor = AppColors.SurfaceEmphasis,
-                        contentColor = AppColors.TextPrimary
+                        containerColor = MediaSurfaceColors.SurfaceEmphasis,
+                        contentColor = MediaSurfaceColors.TextPrimary
                     )
                 }
             }
@@ -330,7 +407,7 @@ fun LiveChannelRowSurface(
                 ) {
                     StatusPill(
                         label = stringResource(R.string.badge_moving),
-                        containerColor = AppColors.Warning,
+                        containerColor = MediaSurfaceColors.Warning,
                         contentColor = Color.Black
                     )
                 }
@@ -346,7 +423,7 @@ fun LiveChannelRowSurface(
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = null,
-                        tint = AppColors.Warning,
+                        tint = MediaSurfaceColors.Warning,
                         modifier = Modifier.size(11.dp)
                     )
                 }
@@ -385,8 +462,8 @@ fun EpisodeRowCard(episode: Episode, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(AppColors.SurfaceElevated)
+            .clip(mediaCardShape(18.dp))
+            .background(MediaSurfaceColors.SurfaceElevated)
             .padding(16.dp)
     ) {
         Column {
@@ -395,15 +472,15 @@ fun EpisodeRowCard(episode: Episode, modifier: Modifier = Modifier) {
                     modifier = Modifier
                         .width(previewWidth)
                         .aspectRatio(16f / 9f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(AppColors.SurfaceEmphasis),
+                        .clip(mediaCardShape(12.dp))
+                        .background(MediaSurfaceColors.SurfaceEmphasis),
                     contentAlignment = Alignment.Center
                 ) {
                     // Fallback label always visible; covered by AsyncImage on successful load
                     Text(
                         text = stringResource(R.string.label_episode, episode.episodeNumber),
                         style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.TextSecondary
+                        color = MediaSurfaceColors.TextSecondary
                     )
                     if (!episode.coverUrl.isNullOrBlank()) {
                         AsyncImage(
@@ -418,7 +495,7 @@ fun EpisodeRowCard(episode: Episode, modifier: Modifier = Modifier) {
                     Text(
                         text = episode.title,
                         style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.TextPrimary,
+                        color = MediaSurfaceColors.TextPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -429,7 +506,7 @@ fun EpisodeRowCard(episode: Episode, modifier: Modifier = Modifier) {
                         Text(
                             text = plot,
                             style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.TextSecondary,
+                            color = MediaSurfaceColors.TextSecondary,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -443,8 +520,8 @@ fun EpisodeRowCard(episode: Episode, modifier: Modifier = Modifier) {
                         .fillMaxWidth()
                         .padding(top = 8.dp)
                         .height(3.dp),
-                    color = AppColors.Brand,
-                    trackColor = AppColors.SurfaceEmphasis
+                    color = MediaSurfaceColors.Brand,
+                    trackColor = MediaSurfaceColors.SurfaceEmphasis
                 )
             }
         }
@@ -458,7 +535,7 @@ private fun PosterCard(
     subtitle: String?,
     modifier: Modifier = Modifier
 ) {
-    val posterShape = RoundedCornerShape(12.dp)
+    val posterShape = mediaCardShape(12.dp)
     var imageLoaded by remember(imageUrl) { mutableStateOf(false) }
     var imageFailed by remember(imageUrl) { mutableStateOf(false) }
     val showFallback = imageUrl.isNullOrBlank() || imageFailed || !imageLoaded
@@ -466,7 +543,7 @@ private fun PosterCard(
     Box(
         modifier = modifier
             .clip(posterShape)
-            .background(AppColors.SurfaceEmphasis)
+            .background(MediaSurfaceColors.SurfaceEmphasis)
     ) {
         // Fallback letter: only shown while no URL, still loading, or load failed
         if (showFallback) {
@@ -477,7 +554,7 @@ private fun PosterCard(
                 Text(
                     text = title.take(1).uppercase(),
                     style = MaterialTheme.typography.titleLarge,
-                    color = AppColors.TextSecondary
+                    color = MediaSurfaceColors.TextSecondary
                 )
             }
         }
@@ -488,7 +565,7 @@ private fun PosterCard(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(posterShape),
-                contentScale = ContentScale.Fit,
+                contentScale = if (LocalAppUiStyle.current == AppUiStyle.STUDIO) ContentScale.Crop else ContentScale.Fit,
                 onSuccess = { imageLoaded = true },
                 onError = { imageFailed = true }
             )
@@ -501,7 +578,7 @@ private fun PosterCard(
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, AppColors.HeroBottom)
+                        colors = listOf(Color.Transparent, MediaSurfaceColors.HeroBottom)
                     )
                 )
         )
@@ -515,7 +592,7 @@ private fun PosterCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.TextPrimary,
+                color = MediaSurfaceColors.TextPrimary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -523,7 +600,7 @@ private fun PosterCard(
                 Text(
                     text = it,
                     style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.TextSecondary,
+                    color = MediaSurfaceColors.TextSecondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

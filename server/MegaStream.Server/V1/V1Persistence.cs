@@ -10,6 +10,8 @@ public sealed class V1InstallationMetadata
     public Guid InstallationId { get; set; }
     public Guid RegistrationIdempotencyKey { get; set; }
     public int AppVersionCode { get; set; }
+    public string? AppVersionName { get; set; }
+    public DateTime? VersionReportedAt { get; set; }
     public int AndroidApi { get; set; }
     public string PackageName { get; set; } = "";
     public string Channel { get; set; } = "";
@@ -71,6 +73,7 @@ public static class V1Persistence
             entity.Property(x => x.Abi).HasMaxLength(16).IsRequired();
             entity.Property(x => x.PackageName).HasMaxLength(128).IsRequired();
             entity.Property(x => x.Channel).HasMaxLength(16).IsRequired();
+            entity.Property(x => x.AppVersionName).HasMaxLength(64);
             entity.HasOne<Installation>().WithOne().HasForeignKey<V1InstallationMetadata>(x => x.InstallationId)
                 .OnDelete(DeleteBehavior.Restrict);
         });

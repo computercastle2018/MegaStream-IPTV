@@ -19,7 +19,9 @@ class ApkInstallValidationTest {
         persistedSha256 = hash,
         actualSha256 = hash,
         installedCertificates = setOf(signer),
-        candidateCertificates = setOf(signer)
+        candidateCertificates = setOf(signer),
+        deviceSdk = 30,
+        candidateMinSdk = 27,
     )
 
     @Test fun verifiedNewerApkAcceptsCaseInsensitiveDigestsAndSignerIntersection() {
@@ -108,6 +110,14 @@ class ApkInstallValidationTest {
             listOf(hash, signer, other).forEach { secret ->
                 assertFalse(failure!!.contains(secret, ignoreCase = true))
             }
+        }
+    }
+
+    @Test fun actualApkMinSdkMustBeKnownSupportedAndMatchSuppliedMetadata() {
+        assertNull(ApkInstallValidation.failure(valid.copy(expectedMinSdk = 27)))
+        for (evidence in listOf(valid.copy(candidateMinSdk = null), valid.copy(candidateMinSdk = 0),
+            valid.copy(candidateMinSdk = 31), valid.copy(expectedMinSdk = 28))) {
+            assertNotNull(ApkInstallValidation.failure(evidence))
         }
     }
 }

@@ -635,6 +635,51 @@ class SyncManager @Inject constructor(
         }
     }
 
+    /** VOD-only refresh: Stalker keeps its lazy category flow instead of downloading every page. */
+    suspend fun refreshVodCatalog(providerId: Long, contentType: ContentType): com.MegaStream.domain.model.Result<Unit> {
+        require(contentType == ContentType.MOVIE || contentType == ContentType.SERIES)
+        val providerEntity = providerDao.getById(providerId)
+            ?: return com.MegaStream.domain.model.Result.error("Provider $providerId not found")
+        if (providerEntity.type != ProviderType.STALKER_PORTAL) {
+            return retrySection(providerId, if (contentType == ContentType.MOVIE) SyncRepairSection.MOVIES else SyncRepairSection.SERIES)
+        }
+        return withProviderLock(providerId) {
+            try {
+                withContext(Dispatchers.IO) {
+                    val provider = providerEntity.copy(password = credentialCrypto.decryptIfNeeded(providerEntity.password)).toDomain()
+                    val api = createStalkerSyncProvider(provider)
+                    val categories = if (contentType == ContentType.MOVIE) {
+                        requireResult(api.getVodCategories(), "Failed to load movie categories")
+                    } else {
+                        requireResult(api.getSeriesCategories(), "Failed to load series categories")
+                    }
+                    syncCatalogStore.replaceCategories(providerId, contentType.name, categories.map { category ->
+                        CategoryEntity(
+                            providerId = providerId,
+                            categoryId = category.id,
+                            name = category.name,
+                            parentId = category.parentId,
+                            type = contentType,
+                            isAdult = category.isAdult
+                        )
+                    })
+                    val metadata = syncMetadataRepository.getMetadata(providerId) ?: SyncMetadata(providerId)
+                    val now = System.currentTimeMillis()
+                    syncMetadataRepository.updateMetadata(if (contentType == ContentType.MOVIE) {
+                        metadata.copy(lastMovieSync = now, lastMovieSuccess = now, movieSyncMode = VodSyncMode.LAZY_BY_CATEGORY)
+                    } else {
+                        metadata.copy(lastSeriesSync = now, lastSeriesSuccess = now)
+                    })
+                }
+                com.MegaStream.domain.model.Result.success(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                com.MegaStream.domain.model.Result.error(syncErrorSanitizer.userMessage(e, "Catalog refresh failed"), e)
+            }
+        }
+    }
+
     suspend fun retrySection(
         providerId: Long,
         section: SyncRepairSection,

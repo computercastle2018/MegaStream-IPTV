@@ -218,12 +218,12 @@ data class UpdateCommand(
     val sha256: String,
     val signingCertificateSha256: String? = null,
     val sizeBytes: Long,
-    val notes: String,
+    val notes: String? = null,
 ) {
     init {
         uuid(commandId); text(releaseId, 128); nonnegative(versionCode); text(versionName, 64)
         downloadUrl(downloadUrl); digest(sha256); signingCertificateSha256?.let { digest(it) }
-        nonnegative(sizeBytes); text(notes, 4096, allowEmpty = true, allowNewlines = true)
+        nonnegative(sizeBytes); notes?.let { text(it, 4096, allowEmpty = true, allowNewlines = true) }
     }
     override fun toString() = "UpdateCommand(commandId=$commandId, releaseId=$releaseId, versionCode=$versionCode, downloadUrl=[REDACTED], notes=[REDACTED])"
 }

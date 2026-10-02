@@ -1,6 +1,55 @@
 @model DeviceDetailsViewModel
 @{ ViewData["Title"] = "تفاصيل الجهاز"; }
 <section class="panel">
+    <h2>تصميم واجهة الجهاز</h2>
+    <p>التصميم الفعّال: <bdi>@AdminDisplay.UiStyleName(Model.Device.UiStyle ?? Model.Device.License?.UiStyle)</bdi></p>
+    @if (Model.Device.Status == InstallationStatus.Active)
+    {
+        <form asp-action="SetDeviceUiStyle" method="post">
+            <input type="hidden" name="Id" value="@Model.Device.Id" />
+            <label for="device-ui-style">تجاوز تصميم الجهاز</label>
+            <select id="device-ui-style" name="UiStyle">
+                <option value="">وراثة الترخيص أو اختيار الجهاز المحلي</option>
+                @foreach (var style in new[] { "classic", "modern", "studio" })
+                { <option value="@style" selected="@(Model.Device.UiStyle == style)">@AdminDisplay.UiStyleName(style)</option> }
+            </select>
+            <button type="submit">حفظ التصميم</button>
+        </form>
+    }
+</section>
+<section class="panel">
+    <h2>إصدار التطبيق والتحديث عن بُعد</h2>
+    <dl data-device-version-refresh data-device-version-url="@Url.Action("DeviceDetails", "Admin", new { id = Model.Device.Id })" aria-live="polite">
+        <dt>الإصدار الفعلي المبلغ عنه</dt><dd><bdi data-device-version-value>@(Model.VersionReport is { } version ? $"{version.AppVersionName ?? Model.Device.AppVersion} ({version.AppVersionCode})" : "لم يصل بلاغ إصدار من عميل V1")</bdi></dd>
+        <dt>آخر بلاغ إصدار UTC</dt><dd><bdi data-device-version-reported-at>@(Model.VersionReport?.VersionReportedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "غير متوفر")</bdi></dd>
+    </dl>
+    <p><a asp-action="DeviceDetails" asp-route-id="@Model.Device.Id">فحص أحدث إصدار متوافق</a> · <a href="/admin/updates">إدارة إصدارات التطبيق</a></p>
+    @if (Model.AvailableUpdates.Count > 0)
+    {
+        <form method="post" action="/admin/updates/send">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="InstallationIds" value="@Model.Device.Id" />
+            <label for="device-update">الإصدار</label><select id="device-update" name="ReleaseId" required>
+                @foreach (var release in Model.AvailableUpdates) { <option value="@release.Id">@release.VersionName (@release.VersionCode) — @release.Abi</option> }
+            </select>
+            <label for="device-update-mode">وضع التثبيت</label><select id="device-update-mode" name="Mode">
+                <option value="prompt">طلب تأكيد المستخدم</option>
+                @if (Model.ManagedDevice) { <option value="managed">تثبيت مُدار</option> }
+            </select>
+            <button type="submit">إرسال أمر تحديث لهذا الجهاز</button>
+        </form>
+    }
+    else { <p class="empty">لا يوجد إصدار أحدث منشور ومتوافق بحسب آخر بلاغ.</p> }
+    <p class="notice">إرسال الأمر لا يعني تثبيت الإصدار. يظل الإصدار الفعلي حسب بلاغ الجهاز؛ قد يتطلب التثبيت موافقة المستخدم.</p>
+    <div class="table-wrap"><table><thead><tr><th>الإصدار المطلوب</th><th>حالة الأمر</th><th>آخر تحديث UTC</th></tr></thead><tbody>
+        @foreach (var command in Model.UpdateCommands)
+        { <tr><td><bdi>@command.Release.VersionName (@command.Release.VersionCode)</bdi></td><td><bdi>@command.Status</bdi></td><td>@command.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td></tr> }
+    </tbody></table></div>
+</section>
+@section Scripts {
+    <script src="~/js/device-version-refresh.js" asp-append-version="true" defer></script>
+}
+<section class="panel">
     <h2>سياسة معلومات الاشتراك</h2>
     <dl><dt>عنوان MAC المبلغ عنه</dt><dd><bdi>@(Model.Device.MacAddress ?? "غير متوفر")</bdi></dd></dl>
     @if (Model.Device.Status == InstallationStatus.Active)

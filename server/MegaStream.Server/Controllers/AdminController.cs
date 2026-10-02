@@ -102,9 +102,21 @@ public sealed class AdminController(AppDbContext db, IAdminService admin, IConfi
             session.ExitReason = Sanitizer.CleanDiagnostic(session.ExitReason, 256);
             session.AppVersion = Sanitizer.CleanDiagnostic(session.AppVersion, 64);
         }
+        var updateState = await db.Set<MegaStream.Server.Updates.DeviceUpdateState>().AsNoTracking().SingleOrDefaultAsync(x => x.InstallationId == id, ct);
+        var availableUpdates = updateState is null || device.Status != InstallationStatus.Active ? [] :
+            (await db.Set<MegaStream.Server.Updates.UpdateRelease>().AsNoTracking().Where(x =>
+                x.Status == MegaStream.Server.Updates.UpdateReleaseStatus.Published && x.VersionCode > updateState.VersionCode &&
+                x.PackageName == updateState.PackageName && x.Channel == updateState.Channel && x.MinSdk <= updateState.Sdk &&
+                (x.Abi == "universal" || x.Abi == updateState.Abi))
+                .OrderByDescending(x => x.VersionCode).ThenByDescending(x => x.Abi == updateState.Abi).Take(20).ToListAsync(ct))
+                .Select(MegaStream.Server.Updates.UpdateReleaseSummary.From).ToList();
         return View("DeviceDetails", new DeviceDetailsViewModel(device,
             Clean(await db.DiagnosticEvents.AsNoTracking().Where(x => x.InstallationId == id).OrderByDescending(x => x.OccurredAt).Take(100).ToListAsync(ct)), OnlineCutoff, sessions)
         {
+            VersionReport = await db.Set<MegaStream.Server.V1.V1InstallationMetadata>().AsNoTracking().SingleOrDefaultAsync(x => x.InstallationId == id, ct),
+            AvailableUpdates = availableUpdates,
+            UpdateCommands = await db.Set<MegaStream.Server.Updates.DeviceUpdateCommand>().AsNoTracking().Include(x => x.Release)
+                .Where(x => x.InstallationId == id).OrderByDescending(x => x.CreatedAt).Take(20).ToListAsync(ct),
             LocalSubscriptions = device.LocalSubscriptionsJson is null ? [] :
                 System.Text.Json.JsonSerializer.Deserialize<List<MegaStream.Server.Contracts.LocalSubscription>>(device.LocalSubscriptionsJson) ?? [],
             AvailableLicenses = await db.Licenses.AsNoTracking().Where(x => x.Status == LicenseStatus.Active &&
@@ -112,6 +124,22 @@ public sealed class AdminController(AppDbContext db, IAdminService admin, IConfi
             ManagedDevice = await db.Set<MegaStream.Server.V1.V1InstallationMetadata>().AsNoTracking().AnyAsync(x => x.InstallationId == id && x.ManagedDevice, ct),
             PolicyAudit = await db.Set<DevicePolicyAudit>().AsNoTracking().Where(x => x.InstallationId == id).OrderByDescending(x => x.CreatedAt).Take(100).ToListAsync(ct)
         });
+    }
+    [HttpPost]
+    public async Task<IActionResult> SetDeviceUiStyle(UiStyleForm form, CancellationToken ct)
+    {
+        if (form.Id == Guid.Empty || !ModelState.IsValid) return BadRequest();
+        var changed = await db.Installations.Where(x => x.Id == form.Id && x.Status == InstallationStatus.Active)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.UiStyle, form.UiStyle), ct);
+        return changed == 1 ? RedirectToAction(nameof(DeviceDetails), new { id = form.Id }) : BadRequest();
+    }
+    [HttpPost]
+    public async Task<IActionResult> SetLicenseUiStyle(UiStyleForm form, CancellationToken ct)
+    {
+        if (form.Id == Guid.Empty || !ModelState.IsValid) return BadRequest();
+        var changed = await db.Licenses.Where(x => x.Id == form.Id)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.UiStyle, form.UiStyle), ct);
+        return changed == 1 ? RedirectToAction(nameof(LicenseDetails), new { id = form.Id }) : BadRequest();
     }
     [HttpPost]
     public async Task<IActionResult> SetSubscriptionDetailsPolicy(SubscriptionDetailsPolicyForm form, CancellationToken ct)

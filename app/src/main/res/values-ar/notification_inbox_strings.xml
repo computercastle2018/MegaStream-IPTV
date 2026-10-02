@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_inbox_action_unread">الإشعارات، %1$d غير مقروءة</string>
+    <string name="notification_inbox_back">العودة إلى الرسائل</string>
+    <string name="notification_inbox_unread_status">غير مقروءة</string>
+    <string name="notification_inbox_read_status">مقروءة</string>
+    <string name="notification_inbox_refreshing">جارٍ التحديث...</string>
+    <string name="notification_inbox_refresh_failed">تعذر تحديث الرسائل. لا تزال الرسائل السابقة متاحة.</string>
+    <plurals name="notification_inbox_messages">
+        <item quantity="zero">%d رسائل</item>
+        <item quantity="one">رسالة واحدة</item>
+        <item quantity="two">رسالتان</item>
+        <item quantity="few">%d رسائل</item>
+        <item quantity="many">%d رسالة</item>
+        <item quantity="other">%d رسالة</item>
+    </plurals>
+    <plurals name="notification_inbox_unread">
+        <item quantity="zero">%d غير مقروءة</item>
+        <item quantity="one">%d غير مقروءة</item>
+        <item quantity="two">%d غير مقروءة</item>
+        <item quantity="few">%d غير مقروءة</item>
+        <item quantity="many">%d غير مقروءة</item>
+        <item quantity="other">%d غير مقروءة</item>
+    </plurals>
+</resources>

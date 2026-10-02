@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_templates">القوالب</string>
+    <string name="settings_license">الترخيص</string>
+    <string name="license_settings_verified_status">حالة ترخيص الجهاز المتحقق منها</string>
+</resources>

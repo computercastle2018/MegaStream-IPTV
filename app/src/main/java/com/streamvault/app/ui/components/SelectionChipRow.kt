@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,12 +25,13 @@ import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
-import com.MegaStream.app.ui.theme.FocusBorder
-import com.MegaStream.app.ui.theme.OnSurface
-import com.MegaStream.app.ui.theme.OnSurfaceDim
-import com.MegaStream.app.ui.theme.Primary
-import com.MegaStream.app.ui.theme.SurfaceElevated
-import com.MegaStream.app.ui.theme.SurfaceHighlight
+import com.MegaStream.app.ui.components.shell.mediaCardShape
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Focus as FocusBorder
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as OnSurface
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextTertiary as OnSurfaceDim
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand as Primary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceElevated as SurfaceElevated
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceEmphasis as SurfaceHighlight
 import com.MegaStream.app.ui.interaction.mouseClickable
 import com.MegaStream.app.ui.interaction.rememberTvInteractionSounds
 
@@ -125,11 +125,11 @@ fun ChipRowSection(
                         contentColor = if (isSelected) Primary else OnSurface,
                         focusedContentColor = OnSurface
                     ),
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(999.dp)),
+                    shape = ClickableSurfaceDefaults.shape(mediaCardShape(999.dp)),
                     border = ClickableSurfaceDefaults.border(
                         focusedBorder = Border(
                             border = BorderStroke(2.dp, FocusBorder),
-                            shape = RoundedCornerShape(999.dp)
+                            shape = mediaCardShape(999.dp)
                         )
                     ),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1f)

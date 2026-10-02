@@ -58,23 +58,24 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.shell.mediaCardShape
 import com.MegaStream.app.ui.components.rememberCrossfadeImageModel
 import com.MegaStream.app.ui.components.shell.MoviePosterCard
 import com.MegaStream.app.ui.components.shell.SeriesPosterCard
 import com.MegaStream.app.ui.components.shell.StatusPill
 import com.MegaStream.app.ui.model.formatVodRatingLabel
-import com.MegaStream.app.ui.theme.AccentAmber
-import com.MegaStream.app.ui.theme.AccentCyan
-import com.MegaStream.app.ui.theme.AccentRed
-import com.MegaStream.app.ui.theme.FocusBorder
-import com.MegaStream.app.ui.theme.GradientOverlayBottom
-import com.MegaStream.app.ui.theme.Primary
-import com.MegaStream.app.ui.theme.Surface
-import com.MegaStream.app.ui.theme.SurfaceElevated
-import com.MegaStream.app.ui.theme.SurfaceHighlight
-import com.MegaStream.app.ui.theme.TextPrimary
-import com.MegaStream.app.ui.theme.TextSecondary
-import com.MegaStream.app.ui.theme.TextTertiary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Warning as AccentAmber
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Info as AccentCyan
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Live as AccentRed
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Focus as FocusBorder
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.HeroBottom as GradientOverlayBottom
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand as Primary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Surface as Surface
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceElevated as SurfaceElevated
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceEmphasis as SurfaceHighlight
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as TextPrimary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextSecondary as TextSecondary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextTertiary as TextTertiary
 import com.MegaStream.domain.model.Channel
 import com.MegaStream.domain.model.Movie
 import com.MegaStream.domain.model.Series
@@ -156,7 +157,7 @@ fun FocusableCard(
                 }
                 isFocused = it.isFocused
             },
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
+        shape = ClickableSurfaceDefaults.shape(mediaCardShape(12.dp)),
         scale = ClickableSurfaceDefaults.scale(
             focusedScale = 1f,
             pressedScale = FocusSpec.PressedScale
@@ -168,14 +169,14 @@ fun FocusableCard(
         border = ClickableSurfaceDefaults.border(
             border = Border(
                 border = BorderStroke(0.dp, Color.Transparent),
-                shape = RoundedCornerShape(12.dp)
+                shape = mediaCardShape(12.dp)
             ),
             focusedBorder = Border(
                 border = BorderStroke(
                     width = if (isDragging) 4.dp else FocusSpec.CardBorderWidth,
                     color = if (isDragging) AccentAmber else FocusBorder
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = mediaCardShape(12.dp)
             )
         )
     ) {
@@ -198,7 +199,7 @@ fun ChannelCard(
     isScheduledRecording: Boolean = false
 ) {
     val nowMs by ChannelProgressTicker.nowMs.collectAsStateWithLifecycle()
-    val channelCardShape = LocalAppShapes.current.small
+    val channelCardShape = if (com.MegaStream.app.ui.theme.LocalAppUiStyle.current == com.MegaStream.app.ui.model.AppUiStyle.STUDIO) mediaCardShape(8.dp) else LocalAppShapes.current.small
     val channelDescription = buildString {
         append(
             channel.number.takeIf { it > 0 }?.let {

@@ -91,6 +91,15 @@ import com.MegaStream.app.ui.screens.vod.ProtectedVodPinDialog
 import com.MegaStream.app.ui.screens.vod.VodBrowseDefaults
 import com.MegaStream.app.ui.screens.vod.vodActiveFilterSortDetail
 import kotlinx.coroutines.delay
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.components.shell.StudioCatalogHero
+import com.MegaStream.app.ui.screens.vod.StudioCatalogLayout
+import com.MegaStream.app.ui.screens.vod.StudioSectionHeading
+import com.MegaStream.app.ui.screens.vod.StudioContentAccess
+import com.MegaStream.app.ui.screens.vod.studioContentAccess
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import com.MegaStream.app.ui.interaction.TvIconButton
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -105,6 +114,8 @@ fun MoviesScreen(
         viewModel.resetPreviewRowsForScreenEntry()
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    LaunchedEffect(studio, viewModel) { viewModel.enterStudioCatalog(studio) }
     val snackbarHostState = remember { SnackbarHostState() }
     val initialContentFocusRequester = remember { FocusRequester() }
     var showPinDialog by remember { mutableStateOf(false) }
@@ -160,8 +171,19 @@ fun MoviesScreen(
             subtitle = null,
             navigationChrome = AppNavigationChrome.TopBar,
             compactHeader = true,
-            showScreenHeader = false
+            showScreenHeader = false,
+            topBarActions = {
+                if (studio) TvIconButton(onClick = viewModel::refreshStudioCatalog, enabled = !uiState.isCatalogRefreshing) {
+                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.studio_refresh_catalog))
+                }
+            }
         ) {
+        if (studio && uiState.isCatalogRefreshing) {
+            androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary)
+        }
+        if (studio && uiState.catalogRefreshError != null) {
+            Text(uiState.catalogRefreshError.orEmpty(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp))
+        }
         if (uiState.isReorderMode && uiState.reorderCategory != null) {
             ReorderTopBar(
                 categoryName = uiState.reorderCategory!!.name,
@@ -350,6 +372,7 @@ private fun MoviesVodContent(
     onDismissReorder: () -> Unit,
     initialFocusRequester: FocusRequester
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
     val favoriteCardWidth = when {
@@ -365,7 +388,7 @@ private fun MoviesVodContent(
     }
     var showCategoryPicker by remember { mutableStateOf(false) }
     val favoriteMovies = uiState.moviesByCategory[uiState.favoriteCategoryName].orEmpty()
-    val freshMovies = uiState.libraryLensRows[MovieLibraryLens.FRESH].orEmpty()
+    val freshMovies = if (studio) uiState.newestAddedItems else uiState.libraryLensRows[MovieLibraryLens.FRESH].orEmpty()
     val topRatedMovies = uiState.libraryLensRows[MovieLibraryLens.TOP_RATED].orEmpty()
     val continueWatching = uiState.continueWatching
     val heroMovie = freshMovies.firstOrNull() ?: topRatedMovies.firstOrNull() ?: favoriteMovies.firstOrNull()
@@ -466,7 +489,200 @@ private fun MoviesVodContent(
         )
     }
 
-    if (uiState.vodViewMode == VodViewMode.CLASSIC) {
+
+    if (studio) {
+        val categoriesById = remember(uiState.providerCategories, uiState.categories) {
+            (uiState.providerCategories + uiState.categories).associateBy { kotlin.math.abs(it.id) }
+        }
+        fun access(movie: Movie): StudioContentAccess {
+            val category = movie.categoryId?.let { categoriesById[kotlin.math.abs(it)] }
+            return studioContentAccess(
+                movie = movie,
+                category = category,
+                parentalLevel = uiState.parentalControlLevel,
+                unlockedCategoryIds = uiState.unlockedCategoryIds
+            )
+        }
+        val openContent: (Movie) -> Unit = { movie ->
+            when (access(movie)) {
+                StudioContentAccess.VISIBLE -> onMovieClick(movie)
+                StudioContentAccess.LOCKED -> onProtectedMovieClick(movie)
+                StudioContentAccess.HIDDEN -> Unit
+            }
+        }
+        val openOptions: (Movie) -> Unit = { movie ->
+            if (access(movie) == StudioContentAccess.VISIBLE) onShowDialog(movie) else openContent(movie)
+        }
+        val overview = uiState.selectedCategory == null
+        val catalogItems = (if (uiState.isReorderMode) uiState.filteredMovies
+            else if (overview) catEntries.flatMap { it.value }.distinctBy { it.id }
+            else uiState.selectedCategoryItems).filter { access(it) != StudioContentAccess.HIDDEN }
+        val latestItems = freshMovies.filter { access(it) == StudioContentAccess.VISIBLE }
+        val featured = if (overview && searchQuery.isBlank()) latestItems.firstOrNull()
+            ?: catalogItems.firstOrNull { access(it) == StudioContentAccess.VISIBLE } else null
+        val overviewLabel = stringResource(R.string.studio_catalog_discover)
+        val allLabel = stringResource(R.string.library_full_browse_title_movies)
+        val freshLabel = stringResource(R.string.studio_latest_added)
+        val continueLabel = stringResource(R.string.library_lens_continue)
+        val topLabel = stringResource(R.string.library_lens_top_rated)
+        val openLatest = {
+            onSelectFullLibraryBrowse()
+            onSelectedFilterTypeChange(LibraryFilterType.RECENTLY_UPDATED)
+            onSelectedSortByChange(LibrarySortBy.UPDATED)
+        }
+        val railOptions = listOf(
+            VodCategoryOption(overviewLabel, 0, { onSelectCategory(null) }),
+            VodCategoryOption(allLabel, uiState.libraryCount, onSelectFullLibraryBrowse),
+            VodCategoryOption(freshLabel, 0, openLatest),
+            VodCategoryOption(continueLabel, 0, onOpenContinueWatching),
+            VodCategoryOption(topLabel, 0, onOpenTopRated)
+        ) + categoryOptions
+        var optionsVisible by rememberSaveable { mutableStateOf(false) }
+        var searchVisible by rememberSaveable { mutableStateOf(searchQuery.isNotBlank()) }
+        val searchFocus = remember { FocusRequester() }
+        var dragging by remember { mutableStateOf<Movie?>(null) }
+        val catalogState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+        LaunchedEffect(uiState.selectedCategory, searchQuery, selectedFilterType, selectedSortBy) {
+            catalogState.scrollToItem(0)
+        }
+        LaunchedEffect(searchVisible) {
+            if (searchVisible) {
+                catalogState.scrollToItem(if (featured == null) 0 else 1)
+                withFrameNanos { }
+                searchFocus.requestFocusSafely(tag = "StudioCatalog", target = "Search")
+            }
+        }
+        val loading = if (overview) uiState.isLoadingPreviewRows else uiState.isLoadingSelectedCategory
+        val canLoadMore = if (overview) uiState.hasMorePreviewRows else uiState.canLoadMoreSelectedCategory
+        val loadMore = if (overview) onLoadMorePreviewRows else onLoadMore
+        InfiniteScrollEffect(
+            gridState = catalogState, enabled = uiState.vodInfiniteScroll && !uiState.isReorderMode,
+            canLoadMore = canLoadMore, isLoading = loading, onLoadMore = loadMore
+        )
+        if (optionsVisible) VodBrowseOptionsDialog(
+            title = stringResource(R.string.nav_movies),
+            filterTitle = stringResource(R.string.library_filter_title), filterChips = movieFilterChips(),
+            selectedFilterKey = selectedFilterType.name,
+            onFilterSelected = { key ->
+                LibraryFilterType.entries.firstOrNull { it.name == key }?.let {
+                    if (overview) onSelectFullLibraryBrowse()
+                    onSelectedFilterTypeChange(it)
+                }
+            },
+            sortTitle = stringResource(R.string.library_sort_title), sortChips = movieSortChips(),
+            selectedSortKey = selectedSortBy.name,
+            onSortSelected = { key ->
+                LibrarySortBy.entries.firstOrNull { it.name == key }?.let {
+                    if (overview) onSelectFullLibraryBrowse()
+                    onSelectedSortByChange(it)
+                }
+            }, onDismiss = { optionsVisible = false }
+        )
+        StudioCatalogLayout(
+            categories = railOptions,
+            selectedCategory = if (overview) overviewLabel else when (uiState.selectedCategory) {
+                uiState.fullLibraryCategoryName -> when (selectedFilterType) {
+                    LibraryFilterType.RECENTLY_UPDATED -> freshLabel
+                    LibraryFilterType.IN_PROGRESS -> continueLabel
+                    LibraryFilterType.TOP_RATED -> topLabel
+                    else -> allLabel
+                }
+                else -> uiState.selectedCategory.orEmpty()
+            },
+            gridState = catalogState,
+            modifier = Modifier.onPreviewKeyEvent { event ->
+                if (uiState.isReorderMode && event.nativeKeyEvent.action == android.view.KeyEvent.ACTION_DOWN &&
+                    event.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_BACK) {
+                    dragging = null
+                    onDismissReorder()
+                    true
+                } else false
+            }
+        ) {
+            if (featured != null && !uiState.isReorderMode) item(key = "studio_hero", span = { GridItemSpan(maxLineSpan) }) {
+                StudioCatalogHero(
+                    title = featured.name, imageUrl = featured.backdropUrl ?: featured.posterUrl,
+                    metadata = featured.plot ?: featured.genre,
+                    onClick = { openContent(featured) },
+                    modifier = Modifier.focusRequester(initialFocusRequester)
+                )
+            }
+            item(key = "studio_tools", span = { GridItemSpan(maxLineSpan) }) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    StudioSectionHeading(if (overview) allLabel else
+                        uiState.selectedCategory?.takeUnless { it == uiState.fullLibraryCategoryName } ?: allLabel)
+                    if (!uiState.isReorderMode) VodActionChipRow(
+                        actions = listOf(
+                            VodActionChip("search", stringResource(R.string.search_title), onClick = { searchVisible = !searchVisible }),
+                            VodActionChip("options", stringResource(R.string.library_action_filters_sort),
+                                detail = vodActiveFilterSortDetail(selectedFilterType, selectedSortBy),
+                                onClick = { optionsVisible = true })
+                        )
+                    )
+                    if (searchVisible && !uiState.isReorderMode) {
+                        SearchInput(
+                            value = searchQuery,
+                            onValueChange = { query ->
+                                if (overview) onSelectFullLibraryBrowse()
+                                onSearchQueryChange(query)
+                            },
+                            placeholder = stringResource(R.string.movies_search_placeholder),
+                            onSearch = {},
+                            focusRequester = searchFocus
+                        )
+                    }
+                }
+            }
+            if (overview && searchQuery.isBlank() && latestItems.isNotEmpty() && !uiState.isReorderMode) {
+                item(key = "studio_latest", span = { GridItemSpan(maxLineSpan) }) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StudioSectionHeading(freshLabel, allLabel, openLatest)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(vertical = 4.dp)) {
+                            items(latestItems, key = { it.id }) { movie ->
+                                MovieCard(movie = movie, width = 112.dp, height = 168.dp,
+                                    onClick = { openContent(movie) }, onLongClick = { openOptions(movie) })
+                            }
+                        }
+                    }
+                }
+            }
+            gridItems(catalogItems, key = { it.id }) { movie ->
+                val locked = access(movie) == StudioContentAccess.LOCKED
+                MovieCard(
+                    movie = movie, isLocked = locked,
+                    isReorderMode = uiState.isReorderMode, isDragging = dragging?.id == movie.id,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f).then(
+                        if (featured == null && movie.id == catalogItems.firstOrNull()?.id)
+                            Modifier.focusRequester(initialFocusRequester) else Modifier
+                    ),
+                    onClick = {
+                        if (uiState.isReorderMode) dragging = if (dragging?.id == movie.id) null else movie
+                        else openContent(movie)
+                    },
+                    onLongClick = { if (!uiState.isReorderMode) openOptions(movie) }
+                )
+            }
+            if (loading) item(key = "studio_loading", span = { GridItemSpan(maxLineSpan) }) {
+                Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            }
+            if (!loading && catalogItems.isEmpty()) item(key = "studio_empty", span = { GridItemSpan(maxLineSpan) }) {
+                AppMessageState(title = stringResource(R.string.movies_no_found),
+                    subtitle = stringResource(R.string.movies_no_found_subtitle))
+            }
+            if (canLoadMore && !loading && !uiState.isReorderMode) item(key = "studio_more", span = { GridItemSpan(maxLineSpan) }) {
+                LoadMoreCard(label = stringResource(R.string.library_load_more,
+                    if (overview) catalogItems.size else uiState.selectedCategoryLoadedCount,
+                    if (overview) uiState.libraryCount else uiState.selectedCategoryTotalCount), onClick = loadMore)
+            }
+        }
+        return
+    }
+
+
+    if (uiState.vodViewMode == VodViewMode.CLASSIC && !studio) {
         MoviesVodClassicContent(
             uiState = uiState,
             selectedFilterType = selectedFilterType,
@@ -492,6 +708,17 @@ private fun MoviesVodContent(
     }
 
     if (uiState.selectedCategory == null) {
+        val freshRow: @Composable () -> Unit = {
+            CategoryRow(
+                title = stringResource(if (studio) R.string.studio_latest_added else R.string.library_lens_fresh_movies),
+                items = freshMovies, onSeeAll = null, keySelector = { it.id }
+            ) { movie ->
+                val locked = isMovieLocked(movie)
+                MovieCard(movie = movie, isLocked = locked,
+                    onClick = { if (locked) onProtectedMovieClick(movie) else onMovieClick(movie) },
+                    onLongClick = { onShowDialog(movie) })
+            }
+        }
         val previewListState = androidx.compose.foundation.lazy.rememberLazyListState()
         InfiniteScrollEffect(
             listState = previewListState,
@@ -507,6 +734,16 @@ private fun MoviesVodContent(
         ) {
             item(key = "hero") {
             if (heroMovie != null) {
+                if (studio) {
+                    StudioCatalogHero(
+                        title = heroMovie.name,
+                        eyebrow = stringResource(if (heroMovie.addedAt > 0) R.string.studio_latest_added else R.string.nav_movies),
+                        imageUrl = if (isMovieLocked(heroMovie)) null else heroMovie.backdropUrl ?: heroMovie.posterUrl,
+                        metadata = heroMovie.plot ?: heroMovie.genre,
+                        onClick = { if (isMovieLocked(heroMovie)) onProtectedMovieClick(heroMovie) else onMovieClick(heroMovie) },
+                        modifier = Modifier.focusRequester(initialFocusRequester)
+                    )
+                } else {
                 VodHeroStrip(
                         title = heroMovie.name,
                         subtitle = heroMovie.plot?.takeIf { it.isNotBlank() }
@@ -521,7 +758,11 @@ private fun MoviesVodContent(
                             .padding(top = 8.dp, bottom = 6.dp)
                             .focusRequester(initialFocusRequester)
                     )
+                }
             }
+            }
+            if (studio && freshMovies.isNotEmpty()) {
+                item(key = "fresh_row") { freshRow() }
             }
             item(key = "actions") {
             VodActionChipRow(
@@ -615,22 +856,9 @@ private fun MoviesVodContent(
                 }
             }
             }
-            if (freshMovies.isNotEmpty()) {
+            if (!studio && freshMovies.isNotEmpty()) {
             item(key = "fresh_row") {
-                CategoryRow(
-                    title = stringResource(R.string.library_lens_fresh_movies),
-                    items = freshMovies,
-                    onSeeAll = null,
-                    keySelector = { it.id }
-                ) { movie ->
-                        val isLocked = isMovieLocked(movie)
-                        MovieCard(
-                            movie = movie,
-                            isLocked = isLocked,
-                            onClick = { if (isLocked) onProtectedMovieClick(movie) else onMovieClick(movie) },
-                            onLongClick = { onShowDialog(movie) }
-                        )
-                }
+                freshRow()
             }
             }
             if (topRatedMovies.isNotEmpty()) {
@@ -742,7 +970,7 @@ private fun MoviesVodContent(
     )
     LazyVerticalGrid(
         state = modernGridState,
-        columns = GridCells.Adaptive(minSize = 136.dp),
+        columns = GridCells.Adaptive(minSize = if (studio) 156.dp else 136.dp),
         modifier = Modifier
             .fillMaxSize()
             .onPreviewKeyEvent { event ->
@@ -1266,5 +1494,3 @@ private fun movieSortChips(): List<SelectionChip> {
         )
     }
 }
-
-

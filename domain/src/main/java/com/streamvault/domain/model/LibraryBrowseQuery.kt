@@ -30,7 +30,8 @@ data class LibraryBrowseQuery(
     val filterBy: LibraryFilterBy = LibraryFilterBy(),
     val searchQuery: String = "",
     val offset: Int = 0,
-    val limit: Int = 40
+    val limit: Int = 40,
+    val providerTimestampOnly: Boolean = false
 ) {
     init {
         require(offset >= 0) { "offset must be non-negative" }

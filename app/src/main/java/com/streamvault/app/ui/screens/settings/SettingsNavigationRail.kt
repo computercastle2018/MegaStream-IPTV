@@ -16,6 +16,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.MegaStream.app.R
 import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
+import com.MegaStream.app.ui.model.AppUiStyle
+import androidx.tv.material3.MaterialTheme
 
 private data class SettingsNavEntry(
     val label: String,
@@ -29,11 +32,12 @@ internal fun SettingsNavigationRail(
     focusRequester: FocusRequester,
     onCategorySelected: (Int) -> Unit
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val entries = listOf(
         SettingsNavEntry(
             label = stringResource(R.string.settings_providers),
             icon = "P",
-            accent = Primary
+            accent = if (studio) MaterialTheme.colorScheme.primary else Primary
         ),
         SettingsNavEntry(
             label = stringResource(R.string.settings_playback),
@@ -66,6 +70,16 @@ internal fun SettingsNavigationRail(
             accent = Color(0xFF66BB6A)
         ),
         SettingsNavEntry(
+            label = stringResource(R.string.settings_templates),
+            icon = "T",
+            accent = Color(0xFF26A69A)
+        ),
+        SettingsNavEntry(
+            label = stringResource(R.string.settings_license),
+            icon = "K",
+            accent = Color(0xFF66BB6A)
+        ),
+        SettingsNavEntry(
             label = stringResource(R.string.settings_about),
             icon = "i",
             accent = Color(0xFF78909C)
@@ -76,7 +90,7 @@ internal fun SettingsNavigationRail(
         modifier = Modifier
             .width(236.dp)
             .fillMaxHeight()
-            .background(Color.Black.copy(alpha = 0.25f)),
+            .background(if (studio) MaterialTheme.colorScheme.surface else Color.Black.copy(alpha = 0.25f)),
         contentPadding = PaddingValues(top = 76.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {

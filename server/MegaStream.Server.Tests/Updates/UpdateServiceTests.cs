@@ -55,13 +55,12 @@ public sealed class UpdateServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Public_latest_prefers_exact_abi_before_version_then_falls_back_to_universal()
+    public async Task Public_latest_prefers_newer_universal_over_older_exact_abi_and_filters_incompatible_releases()
     {
-        var exact = await Release(20, "arm64_v8a");
         await Release(10, "arm64_v8a");
-        var universal = await Release(100);
-        await Release(200, "x86");
-        Assert.Equal(exact.Id, (await service.GetLatestAsync("stable", "arm64_v8a"))!.ReleaseId);
+        var universal = await Release(11);
+        await Release(12, "x86");
+        Assert.Equal(universal.Id, (await service.GetLatestAsync("stable", "arm64_v8a"))!.ReleaseId);
         Assert.Equal(universal.Id, (await service.GetLatestAsync("stable", "other"))!.ReleaseId);
         Assert.Equal(universal.Id, (await service.GetLatestAsync("stable", "x86_64"))!.ReleaseId);
         Assert.Null(await service.GetLatestAsync("beta", "other"));
@@ -274,13 +273,13 @@ public sealed class UpdateServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Device_check_prefers_exact_abi_over_newer_universal()
+    public async Task Device_check_prefers_newer_universal_over_older_exact_abi()
     {
         var device = await Device();
-        var exact = await Release(10, "arm64_v8a");
-        await Release(20);
+        await Release(10, "arm64_v8a");
+        var universal = await Release(11);
         var response = await service.CheckAsync(device, Request(1) with { Abi = "arm64_v8a" });
-        Assert.Equal(exact.Id, response.Latest!.ReleaseId);
+        Assert.Equal(universal.Id, response.Latest!.ReleaseId);
     }
 
     private async Task<Guid> Device()

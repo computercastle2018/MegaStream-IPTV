@@ -50,6 +50,11 @@ import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.shell.mediaCardShape
+import com.MegaStream.app.ui.components.shell.MediaActionRow
+import com.MegaStream.app.ui.components.shell.studioColor
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 import com.MegaStream.app.device.rememberIsTelevisionDevice
 import com.MegaStream.app.ui.components.rememberCrossfadeImageModel
 import com.MegaStream.app.util.formatPositionMs
@@ -57,7 +62,7 @@ import com.MegaStream.app.ui.components.shell.ContentMetadataStrip
 import com.MegaStream.app.ui.components.shell.EpisodeRowCard
 import com.MegaStream.app.ui.components.shell.ExternalRatingsStrip
 import com.MegaStream.app.ui.components.shell.StatusPill
-import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors as AppColors
 import com.MegaStream.app.ui.model.formatVodRatingLabel
 import com.MegaStream.domain.model.Episode
 import com.MegaStream.domain.model.ExternalRatings
@@ -66,6 +71,14 @@ import com.MegaStream.domain.model.Series
 import com.MegaStream.app.ui.interaction.TvClickableSurface
 import com.MegaStream.app.ui.interaction.TvButton
 import com.MegaStream.app.ui.interaction.TvIconButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.material.icons.filled.PlayArrow
+import com.MegaStream.app.ui.design.requestFocusSafely
+import com.MegaStream.app.ui.screens.vod.StudioDetailLayout
+import com.MegaStream.app.ui.screens.vod.StudioCategoryButton
+import com.MegaStream.app.ui.components.shell.VodCategoryOption
 
 private const val EPISODE_DETAIL_PAGE_SIZE = 100
 
@@ -136,6 +149,56 @@ private fun SeriesDetailContent(
     onBack: () -> Unit
 ) {
     val isTelevisionDevice = rememberIsTelevisionDevice()
+    if (LocalAppUiStyle.current == AppUiStyle.STUDIO) {
+        val actionFocus = remember { FocusRequester() }
+        LaunchedEffect(series.id, resumeEpisode?.id) {
+            actionFocus.requestFocusSafely(tag = "StudioSeriesDetail", target = "Playback action")
+        }
+        StudioDetailLayout(
+            title = series.name,
+            imageUrl = series.backdropUrl ?: series.posterUrl,
+            metadata = listOf(series.releaseDate.orEmpty(), series.genre.orEmpty(),
+                if (unwatchedEpisodeCount > 0) stringResource(R.string.series_unwatched_badge, unwatchedEpisodeCount) else ""),
+            onBack = onBack,
+            actions = {
+                MediaActionRow {
+                    if (resumeEpisode != null) TvButton(
+                        onClick = { onResumeClick(resumeEpisode) },
+                        modifier = Modifier.focusRequester(actionFocus),
+                        shape = ButtonDefaults.shape(RoundedCornerShape(8.dp)),
+                        colors = ButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary)
+                    ) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (resumeEpisode.watchProgress > 5000L) stringResource(R.string.series_detail_resume,
+                            resumeEpisode.seasonNumber, resumeEpisode.episodeNumber, formatPositionMs(resumeEpisode.watchProgress))
+                            else stringResource(R.string.series_detail_play_episode,
+                                resumeEpisode.seasonNumber, resumeEpisode.episodeNumber), maxLines = 2)
+                    }
+                    TvIconButton(onClick = onToggleFavorite,
+                        modifier = if (resumeEpisode == null) Modifier.focusRequester(actionFocus) else Modifier) {
+                        Icon(if (series.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = stringResource(if (series.isFavorite) R.string.favorites_remove else R.string.favorites_add),
+                            tint = if (series.isFavorite) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+        ) {
+            item(key = "studio_series_episodes") {
+                StudioEpisodePicker(series, selectedSeason, onSeasonSelected, onEpisodeClick)
+            }
+            item(key = "studio_series_information") {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ExternalRatingsStrip(ratings = externalRatings, isLoading = isLoadingExternalRatings)
+                    Text(series.plot?.takeIf { it.isNotBlank() } ?: stringResource(R.string.series_plot_fallback),
+                        style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    ContentMetadataStrip(values = listOf(series.releaseDate.orEmpty(), series.genre.orEmpty()))
+                }
+            }
+        }
+        return
+    }
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -210,7 +273,7 @@ private fun SeriesDetailContent(
                             modifier = Modifier
                                 .width(posterWidth)
                                 .aspectRatio(2f / 3f)
-                                .clip(RoundedCornerShape(24.dp))
+                                .clip(mediaCardShape(24.dp))
                                 .background(AppColors.SurfaceElevated)
                         ) {
                             AsyncImage(
@@ -290,7 +353,7 @@ private fun SeriesDetailContent(
                             modifier = Modifier
                                 .width(posterWidth)
                                 .aspectRatio(2f / 3f)
-                                .clip(RoundedCornerShape(24.dp))
+                                .clip(mediaCardShape(24.dp))
                                 .background(AppColors.SurfaceElevated)
                         ) {
                             AsyncImage(
@@ -430,6 +493,60 @@ private fun SeriesDetailContent(
 }
 
 @Composable
+private fun StudioEpisodePicker(
+    series: Series,
+    selectedSeason: Season?,
+    onSeasonSelected: (Season) -> Unit,
+    onEpisodeClick: (Episode) -> Unit
+) {
+    var visibleLimit by remember(series.id, selectedSeason?.seasonNumber) { mutableStateOf(EPISODE_DETAIL_PAGE_SIZE) }
+    val episodes = selectedSeason?.episodes.orEmpty()
+    val episodeState = androidx.compose.foundation.lazy.rememberLazyListState()
+    LaunchedEffect(series.id, selectedSeason?.seasonNumber) { episodeState.scrollToItem(0) }
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+        val compact = maxWidth < 600.dp
+        Column(Modifier.fillMaxWidth().height(if (compact) 440.dp else 360.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.series_episodes, episodes.size),
+                style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            if (compact) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 4.dp)) {
+                items(series.seasons, key = { it.seasonNumber }) { season ->
+                    StudioCategoryButton(VodCategoryOption(season.name, season.episodes.size, { onSeasonSelected(season) }),
+                        season.seasonNumber == selectedSeason?.seasonNumber, Modifier.width(156.dp))
+                }
+            }
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (!compact) LazyColumn(Modifier.width(160.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)) {
+                    item { Text(stringResource(R.string.series_seasons), color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelLarge) }
+                    items(series.seasons, key = { it.seasonNumber }) { season ->
+                        StudioCategoryButton(VodCategoryOption(season.name, season.episodes.size, { onSeasonSelected(season) }),
+                            season.seasonNumber == selectedSeason?.seasonNumber, Modifier.fillMaxWidth())
+                    }
+                }
+                LazyColumn(state = episodeState, modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
+                    if (episodes.isEmpty()) item {
+                        Text(stringResource(R.string.studio_catalog_no_episodes),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    items(episodes.take(visibleLimit), key = { it.id }) { episode ->
+                        EpisodeItem(episode, onClick = { onEpisodeClick(episode) })
+                    }
+                    if (visibleLimit < episodes.size) item {
+                        TvButton(onClick = { visibleLimit = (visibleLimit + EPISODE_DETAIL_PAGE_SIZE).coerceAtMost(episodes.size) }) {
+                            Text(stringResource(R.string.library_load_more, visibleLimit, episodes.size))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun SeriesDetailActions(
     series: Series,
     resumeEpisode: Episode,
@@ -437,12 +554,12 @@ private fun SeriesDetailActions(
     onResumeClick: (Episode) -> Unit,
     onToggleFavorite: () -> Unit
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+    MediaActionRow {
         TvButton(
             onClick = { onResumeClick(resumeEpisode) },
             colors = ButtonDefaults.colors(
                 containerColor = AppColors.Brand,
-                contentColor = Color.White
+                contentColor = studioColor(Color.White, MaterialTheme.colorScheme.onPrimary)
             )
         ) {
             Text(
@@ -475,7 +592,7 @@ private fun SeriesDetailFavoriteAction(
         onClick = onToggleFavorite,
         colors = ButtonDefaults.colors(
             containerColor = if (series.isFavorite) AppColors.Brand else AppColors.SurfaceEmphasis,
-            contentColor = if (series.isFavorite) Color.White else AppColors.TextSecondary
+            contentColor = if (series.isFavorite) studioColor(Color.White, MaterialTheme.colorScheme.onPrimary) else AppColors.TextSecondary
         )
     ) {
         Icon(
@@ -528,7 +645,7 @@ fun EpisodeItem(
 ) {
     TvClickableSurface(
         onClick = onClick,
-        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(18.dp)),
+        shape = ClickableSurfaceDefaults.shape(shape = mediaCardShape(18.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = AppColors.SurfaceElevated,
             focusedContainerColor = AppColors.SurfaceEmphasis

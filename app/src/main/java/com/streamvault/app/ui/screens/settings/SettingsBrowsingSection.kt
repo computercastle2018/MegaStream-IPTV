@@ -23,6 +23,8 @@ import com.MegaStream.app.ui.model.VodViewMode
 import com.MegaStream.app.ui.theme.OnBackground
 import com.MegaStream.app.ui.theme.OnSurface
 import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
+import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.domain.model.CategorySortMode
 import com.MegaStream.domain.model.ContentType
 import com.MegaStream.domain.model.LiveChannelGroupingMode
@@ -50,19 +52,25 @@ internal fun LazyListScope.settingsBrowsingSection(
     onShowLanguageDialogChange: (Boolean) -> Unit
 ) {
     item {
+        val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+        val primary = if (studio) MaterialTheme.colorScheme.primary else Primary
+        val onSurface = if (studio) MaterialTheme.colorScheme.onSurface else OnSurface
+        val onBackground = if (studio) MaterialTheme.colorScheme.onBackground else OnBackground
+        val dividerColor = if (studio) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+            else Color.White.copy(alpha = 0.07f)
         ClickableSettingsRow(
             label = stringResource(R.string.settings_app_ui_style),
             value = stringResource(uiState.appUiStyle.labelResId),
             onClick = { onShowAppUiStyleDialogChange(true) }
         )
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         ClickableSettingsRow(
             label = stringResource(R.string.settings_refresh_current_lists),
             value = stringResource(R.string.settings_refresh_current_lists_value),
             onClick = onRefreshCurrentLists,
             enabled = uiState.activeProviderId != null
         )
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         ClickableSettingsRow(
             label = stringResource(R.string.settings_live_tv_channel_mode),
             value = stringResource(uiState.liveTvChannelMode.labelResId()),
@@ -73,7 +81,7 @@ internal fun LazyListScope.settingsBrowsingSection(
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -84,8 +92,8 @@ internal fun LazyListScope.settingsBrowsingSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_show_live_source_switcher), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_show_live_source_switcher_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_show_live_source_switcher), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_show_live_source_switcher_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.showLiveSourceSwitcher, onCheckedChange = { viewModel.setShowLiveSourceSwitcher(it) })
             }
@@ -95,7 +103,7 @@ internal fun LazyListScope.settingsBrowsingSection(
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -106,8 +114,8 @@ internal fun LazyListScope.settingsBrowsingSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_show_all_channels_category), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_show_all_channels_category_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_show_all_channels_category), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_show_all_channels_category_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.showAllChannelsCategory, onCheckedChange = { viewModel.setShowAllChannelsCategory(it) })
             }
@@ -117,7 +125,7 @@ internal fun LazyListScope.settingsBrowsingSection(
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -128,8 +136,8 @@ internal fun LazyListScope.settingsBrowsingSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_show_recent_channels_category), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_show_recent_channels_category_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_show_recent_channels_category), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_show_recent_channels_category_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.showRecentChannelsCategory, onCheckedChange = { viewModel.setShowRecentChannelsCategory(it) })
             }
@@ -194,7 +202,7 @@ internal fun LazyListScope.settingsBrowsingSection(
             enabled = uiState.vodViewMode == VodViewMode.MODERN,
             indent = 24.dp
         )
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         ClickableSettingsRow(
             label = stringResource(R.string.settings_category_sort_live),
             value = formatCategorySortModeLabel(uiState.categorySortModes[ContentType.LIVE] ?: CategorySortMode.DEFAULT, context),
@@ -210,13 +218,13 @@ internal fun LazyListScope.settingsBrowsingSection(
             value = formatCategorySortModeLabel(uiState.categorySortModes[ContentType.SERIES] ?: CategorySortMode.DEFAULT, context),
             onClick = { onCategorySortDialogTypeChange(ContentType.SERIES.name) }
         )
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         TvClickableSurface(
             onClick = { onShowLanguageDialogChange(true) },
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -226,8 +234,8 @@ internal fun LazyListScope.settingsBrowsingSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = stringResource(R.string.settings_app_language), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                Text(text = appLanguageLabel, style = MaterialTheme.typography.bodyMedium, color = Primary)
+                Text(text = stringResource(R.string.settings_app_language), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                Text(text = appLanguageLabel, style = MaterialTheme.typography.bodyMedium, color = primary)
             }
         }
     }

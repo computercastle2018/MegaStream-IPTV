@@ -6,6 +6,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import com.MegaStream.app.R
+import com.MegaStream.app.ui.screens.player.overlay.PlayerRecoveryDialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.MegaStream.app.playback.gate.PlaybackGateVerdict
@@ -13,14 +16,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.tv.material3.Text
-import com.MegaStream.app.R
-import com.MegaStream.app.ui.interaction.TvButton
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -269,7 +264,6 @@ fun AppNavigation(mainActivity: MainActivity) {
     fun openActivation() {
         val entry = navController.currentBackStackEntry
         val route = entry?.destination?.route
-        licenseNavigation.suspendActive(route)
         licenseScope.launch {
             licenseNavigation.awaitStartup()
             if (navController.currentBackStackEntry != entry) return@launch
@@ -281,6 +275,7 @@ fun AppNavigation(mainActivity: MainActivity) {
                     navController.navigate(target) { launchSingleTop = true }
                 }
             } else {
+                licenseNavigation.suspendActive(route)
                 if (route != Routes.LICENSE_ACTIVATION) {
                     navController.navigate(Routes.LICENSE_ACTIVATION) {
                         launchSingleTop = true
@@ -327,15 +322,23 @@ fun AppNavigation(mainActivity: MainActivity) {
     }
 
     LaunchedEffect(currentBackStackEntry) {
+        if (navController.currentBackStackEntry != currentBackStackEntry) return@LaunchedEffect
         val route = currentBackStackEntry?.destination?.route
         if (route != null && !isProtectedPlaybackRoute(route) && route != Routes.LICENSE_ACTIVATION) {
-            licenseNavigation.routing.clearActive()
+            val playerEntryPresent = try {
+                navController.getBackStackEntry(Routes.PLAYER)
+                true
+            } catch (_: IllegalArgumentException) {
+                false
+            }
+            licenseNavigation.routing.clearActive(route, navController.currentDestination?.route, playerEntryPresent)
         }
     }
 
     LaunchedEffect(blockedEvent, currentBackStackEntry) {
         if (blockedEvent != null) {
             currentBackStackEntry?.lifecycle?.awaitResumed()
+            if (navController.currentBackStackEntry != currentBackStackEntry) return@LaunchedEffect
             if (licenseNavigation.blocked.value != null) openActivation()
         }
     }
@@ -657,11 +660,6 @@ fun AppNavigation(mainActivity: MainActivity) {
             )
         ) { backStackEntry ->
             val backupUri = backStackEntry.arguments?.getString("backupUri")?.takeIf { it.isNotBlank() }
-            Column(Modifier.fillMaxSize()) {
-                TvButton(onClick = { navigateIfResumed(Routes.LICENSE_ACTIVATION) { launchSingleTop = true } }) {
-                    Text(stringResource(R.string.license_nav_open))
-                }
-                Box(Modifier.weight(1f)) {
             SettingsScreen(
                 onNavigate = { route -> tabNavigate(route) },
                 onAddProvider = dropUnlessResumed {
@@ -676,8 +674,6 @@ fun AppNavigation(mainActivity: MainActivity) {
                 currentRoute = Routes.SETTINGS,
                 initialBackupImportUri = backupUri
             )
-                }
-            }
         }
 
         composable(Routes.PLUGINS) {
@@ -738,17 +734,56 @@ fun AppNavigation(mainActivity: MainActivity) {
             if (gateDecision !is PlaybackGateVerdict.Allowed || licenseNavigation.checkNow() !is PlaybackGateVerdict.Allowed) {
                 LaunchedEffect(backStackEntry, gateDecision) {
                     backStackEntry.lifecycle.awaitResumed()
+                    if (navController.currentBackStackEntry != backStackEntry) return@LaunchedEffect
                     openActivation()
                 }
                 return@composable
             }
             val playerRequest = activePlayer
             if (playerRequest == null) {
-                // A restored player route is not a persisted capability or media request.
-                LaunchedEffect(backStackEntry) {
-                    backStackEntry.lifecycle.awaitResumed()
-                    navController.navigate(Routes.HOME) { popUpTo(Routes.PLAYER) { inclusive = true } }
-                }
+                PlayerRecoveryDialog(
+                    message = stringResource(R.string.player_request_unavailable),
+                    primaryLabel = stringResource(
+                        if (licenseNavigation.routing.pending is PlaybackNavigationIntent.Player) R.string.player_retry
+                        else R.string.player_recovery_choose_content
+                    ),
+                    onRetry = {
+                        licenseScope.launch {
+                            backStackEntry.lifecycle.awaitResumed()
+                            if (navController.currentBackStackEntry != backStackEntry) return@launch
+                            if (licenseNavigation.checkNow() !is PlaybackGateVerdict.Allowed) {
+                                openActivation()
+                                return@launch
+                            }
+                            if (licenseNavigation.routing.activePlayer != null) return@launch
+                            val pending = licenseNavigation.routing.pending
+                            if (pending != null) {
+                                val retry = licenseNavigation.retry()
+                                if (retry == PlaybackNavigationIntent.MultiView) {
+                                    navigateIfResumed(Routes.MULTI_VIEW) {
+                                        popUpTo(Routes.PLAYER) { inclusive = true }
+                                    }
+                                }
+                                return@launch
+                            }
+                            val previousRoute = navController.previousBackStackEntry?.destination?.route
+                                ?.substringBefore('?')?.substringBefore('/')
+                            if (previousRoute !in listOf(null, Routes.HOME, Routes.PLAYER) &&
+                                navController.popBackStack()
+                            ) return@launch
+                            navigateIfResumed(Routes.MOVIES) {
+                                popUpTo(Routes.PLAYER) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onHome = {
+                        navigateIfResumed(Routes.HOME) {
+                            popUpTo(Routes.PLAYER) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
                 return@composable
             }
             val streamUrl = if (isStreamUrlSafe(playerRequest.streamUrl)) playerRequest.streamUrl else ""
@@ -772,6 +807,12 @@ fun AppNavigation(mainActivity: MainActivity) {
                 seasonNumber = playerRequest.seasonNumber,
                 episodeNumber = playerRequest.episodeNumber,
                 episodeId = playerRequest.episodeId,
+                onHome = {
+                    navigateIfResumed(Routes.HOME) {
+                        popUpTo(Routes.PLAYER) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
                 onBack = {
                     val route = playerRequest.returnRoute
                     if (!route.isNullOrBlank() && navController.popBackStack(route, false)) {

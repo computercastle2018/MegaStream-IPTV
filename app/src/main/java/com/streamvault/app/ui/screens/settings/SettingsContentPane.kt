@@ -1,16 +1,36 @@
 package com.MegaStream.app.ui.screens.settings
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.MegaStream.domain.model.Provider
 import com.MegaStream.domain.model.ProviderType
+import com.MegaStream.app.R
+import com.MegaStream.app.navigation.LicenseActivationRoute
+import com.MegaStream.app.navigation.LicenseNavigationViewModel
+import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
+import com.MegaStream.app.ui.interaction.TvClickableSurface
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyleManaged
 
 @Composable
 internal fun SettingsContentPane(
@@ -19,6 +39,7 @@ internal fun SettingsContentPane(
     context: Context,
     screenLabels: SettingsScreenLabels,
     dialogState: SettingsScreenDialogState,
+    licenseNavigation: LicenseNavigationViewModel,
     providerState: SettingsProviderSectionState,
     onAddProvider: () -> Unit,
     onEditProvider: (Provider) -> Unit,
@@ -37,11 +58,25 @@ internal fun SettingsContentPane(
     onOpenUri: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val effectiveStyle = LocalAppUiStyle.current
+    val studio = effectiveStyle == AppUiStyle.STUDIO
+    val managed = LocalAppUiStyleManaged.current
+    if (dialogState.selectedCategory == 8) {
+        LicenseActivationRoute(
+            navigation = licenseNavigation,
+            onContinue = {},
+            onCancel = {},
+            settingsMode = true,
+            modifier = modifier.padding(top = if (studio) 8.dp else 76.dp),
+        )
+        return
+    }
     LazyColumn(
         modifier = modifier
             .fillMaxHeight()
             .imePadding(),
-        contentPadding = PaddingValues(start = 20.dp, top = 76.dp, end = 20.dp, bottom = 32.dp),
+        contentPadding = PaddingValues(start = if (studio) 0.dp else 20.dp,
+            top = if (studio) 8.dp else 76.dp, end = if (studio) 0.dp else 20.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
         userScrollEnabled = !uiState.isSyncing
     ) {
@@ -175,6 +210,54 @@ internal fun SettingsContentPane(
                 viewModel = viewModel
             )
         } else if (dialogState.selectedCategory == 7) {
+            item {
+                if (studio) {
+                    StudioSettingsTemplates(
+                        selectedStyle = effectiveStyle,
+                        managed = managed,
+                        onStyleSelected = { if (!managed) viewModel.setAppUiStyle(it) },
+                    )
+                } else {
+                    val displayedStyle = if (managed) effectiveStyle else uiState.appUiStyle
+                    val palette = when (displayedStyle) {
+                        AppUiStyle.CLASSIC -> listOf(Color(0xFF07111B), Color(0xFF69A8FF), Color(0xFF4FD39A))
+                        AppUiStyle.MODERN -> listOf(Color(0xFF111822), Color(0xFF64D2FF), Color(0xFFFFCF6E))
+                        AppUiStyle.STUDIO -> listOf(Color(0xFF191F1E), Color(0xFF69DCB1), Color(0xFFECCB7B))
+                    }
+                    TvClickableSurface(
+                        onClick = { if (!managed) dialogState.showAppUiStyleDialog = true },
+                        enabled = !managed,
+                        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
+                        colors = ClickableSurfaceDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        ),
+                        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(stringResource(R.string.settings_app_ui_style),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                palette.forEach { color ->
+                                    Box(Modifier.size(28.dp).background(color, RoundedCornerShape(4.dp)))
+                                }
+                            }
+                            Text(stringResource(displayedStyle.labelResId),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(if (managed) R.string.settings_template_managed else displayedStyle.descriptionResId),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        } else if (dialogState.selectedCategory == 9) {
             settingsAboutSection(
                 uiState = uiState,
                 context = context,

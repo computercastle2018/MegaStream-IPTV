@@ -77,7 +77,9 @@ import com.MegaStream.app.ui.screens.player.SleepTimerUiState
 import com.MegaStream.app.ui.time.LocalAppTimeFormat
 import com.MegaStream.app.ui.time.createTimeFormat
 import com.MegaStream.app.ui.theme.ErrorColor
-import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand as Primary
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 import com.MegaStream.domain.model.Program
 import com.MegaStream.domain.model.RecordingStatus
 import coil3.compose.AsyncImage
@@ -411,11 +413,13 @@ private fun PlayerTopBar(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
     val appTimeFormat = LocalAppTimeFormat.current
     val timeFormat = remember(appTimeFormat) { appTimeFormat.createTimeFormat() }
     val topBarHeight = when {
+        studio -> 76.dp
         screenWidth < 700.dp -> 100.dp
         !isTelevisionDevice && screenWidth < 1280.dp -> 116.dp
         else -> 132.dp
@@ -426,6 +430,7 @@ private fun PlayerTopBar(
         else -> 32.dp
     }
     val verticalPadding = when {
+        studio -> 12.dp
         screenWidth < 700.dp -> 16.dp
         !isTelevisionDevice && screenWidth < 1280.dp -> 20.dp
         else -> 24.dp
@@ -446,7 +451,8 @@ private fun PlayerTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = if (studio) Modifier.weight(1f).padding(end = 16.dp) else Modifier) {
+                if (!studio) {
                 PlayerMetaPill(
                     text = when (contentType) {
                         "LIVE" -> stringResource(R.string.nav_live_tv)
@@ -455,15 +461,20 @@ private fun PlayerTopBar(
                     }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
+                }
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = if (studio) 1 else Int.MAX_VALUE,
+                    overflow = TextOverflow.Ellipsis
                 )
-                if (contentType != "LIVE") {
+                if (studio || contentType != "LIVE") {
                     Text(
-                        text = if (contentType == "MOVIE") {
+                        text = if (contentType == "LIVE") {
+                            stringResource(R.string.nav_live_tv)
+                        } else if (contentType == "MOVIE") {
                             stringResource(R.string.player_type_movie)
                         } else {
                             stringResource(R.string.player_type_series)
@@ -573,8 +584,9 @@ private fun PlayerBottomBar(
     onSeekPreviewPositionChanged: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val isVod = contentType != "LIVE" || isCatchUpPlayback
-    val bottomBarWidthFraction = if (isVod) 0.78f else 1f
+    val bottomBarWidthFraction = if (isVod && !studio) 0.78f else 1f
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -584,8 +596,8 @@ private fun PlayerBottomBar(
                 )
             )
             .padding(
-                horizontal = if (isVod) 14.dp else 32.dp,
-                vertical = if (isVod) 10.dp else 24.dp
+                horizontal = if (studio) 0.dp else if (isVod) 14.dp else 32.dp,
+                vertical = if (studio) 0.dp else if (isVod) 10.dp else 24.dp
             )
     ) {
         Surface(
@@ -597,8 +609,9 @@ private fun PlayerBottomBar(
             } else {
                 Modifier.fillMaxWidth()
             },
-            shape = RoundedCornerShape(if (isVod) 20.dp else 28.dp),
-            colors = SurfaceDefaults.colors(containerColor = Color(0xFF0C1624).copy(alpha = 0.92f))
+            shape = RoundedCornerShape(if (studio) 0.dp else if (isVod) 20.dp else 28.dp),
+            colors = SurfaceDefaults.colors(containerColor = if (studio) MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
+                else Color(0xFF0C1624).copy(alpha = 0.92f))
         ) {
             Column(
                 modifier = Modifier
@@ -612,8 +625,8 @@ private fun PlayerBottomBar(
                         )
                     )
                     .padding(
-                        horizontal = if (isVod) 14.dp else 24.dp,
-                        vertical = if (isVod) 12.dp else 22.dp
+                        horizontal = if (studio) 18.dp else if (isVod) 14.dp else 24.dp,
+                        vertical = if (studio || isVod) 12.dp else 22.dp
                     )
             ) {
                 if (contentType == "LIVE") {

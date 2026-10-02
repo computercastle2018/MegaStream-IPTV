@@ -2,6 +2,9 @@ package com.MegaStream.app.ui.screens.movies
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.MegaStream.app.ui.screens.vod.VodCatalogRefresh
+import com.MegaStream.data.sync.ContentCachePolicy
+import com.MegaStream.domain.repository.SyncMetadataRepository
 import com.MegaStream.data.preferences.PreferencesRepository
 import com.MegaStream.app.ui.model.VodViewMode
 import com.MegaStream.app.ui.model.applyProviderCategoryDisplayPreferences
@@ -81,7 +84,8 @@ class MoviesViewModel @Inject constructor(
     private val favoriteRepository: FavoriteRepository,
     private val getContinueWatching: GetContinueWatching,
     private val getCustomCategories: GetCustomCategories,
-    private val parentalControlManager: ParentalControlManager
+    private val parentalControlManager: ParentalControlManager,
+    private val syncMetadataRepository: SyncMetadataRepository
 ) : ViewModel() {
     private companion object {
         const val UNCATEGORIZED = "Uncategorized"
@@ -105,6 +109,20 @@ class MoviesViewModel @Inject constructor(
     private val _selectedLibrarySortBy = MutableStateFlow(LibrarySortBy.LIBRARY)
     private val _previewBatchSize = MutableStateFlow(INITIAL_PREVIEW_BATCH_SIZE)
     private var activeProviderId: Long? = null
+    private val _studioMode = MutableStateFlow(false)
+    private val _catalogRevision = MutableStateFlow(0L)
+    private val catalogRefresh = VodCatalogRefresh(
+        scope = viewModelScope,
+        needsRefresh = { providerId ->
+            val metadata = syncMetadataRepository.getMetadata(providerId)
+            ContentCachePolicy.shouldRefresh(maxOf(metadata?.lastMovieSuccess ?: 0L, metadata?.lastMovieAttempt ?: 0L), ContentCachePolicy.CATALOG_TTL_MILLIS)
+        },
+        refresh = { providerId ->
+            val selectedId = resolveProviderCategoryId(_uiState.value.selectedCategory)
+            val categoryIds = (listOfNotNull(selectedId) + _uiState.value.providerCategories.map { it.id }).distinct().take(INITIAL_PREVIEW_BATCH_SIZE)
+            movieRepository.refreshMovies(providerId, categoryIds)
+        }
+    )
 
     private data class PreviewLoadResult(
         val snapshot: MovieCatalogSnapshot,
@@ -113,6 +131,20 @@ class MoviesViewModel @Inject constructor(
     )
 
     init {
+        viewModelScope.launch {
+            catalogRefresh.state.collect { refresh ->
+                _catalogRevision.value = refresh.revision
+                _uiState.update { it.copy(isCatalogRefreshing = refresh.isRefreshing, catalogRefreshError = refresh.error) }
+            }
+        }
+        viewModelScope.launch {
+            providerRepository.getActiveProvider().flatMapLatest { provider ->
+                if (provider == null) kotlinx.coroutines.flow.flowOf(null)
+                else syncMetadataRepository.observeMetadata(provider.id)
+            }.collect {
+                if (_studioMode.value) _catalogRevision.update { revision -> revision + 1 }
+            }
+        }
         viewModelScope.launch {
             providerRepository.getProviders().collectLatest { providers ->
                 _uiState.update {
@@ -125,11 +157,16 @@ class MoviesViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            var previousProviderId: Long? = null
             providerRepository.getActiveProvider().collectLatest { provider ->
+                val providerChanged = previousProviderId != provider?.id
+                previousProviderId = provider?.id
                 activeProviderId = provider?.id
+                catalogRefresh.enter(provider?.id, _studioMode.value)
                 _uiState.update {
                     it.copy(
                         hasActiveProvider = provider != null,
+                        newestAddedItems = if (providerChanged || provider == null) emptyList() else it.newestAddedItems,
                         isLoading = if (provider == null) false else it.isLoading,
                         isLoadingSelectedCategory = if (provider == null) false else it.isLoadingSelectedCategory,
                         isLoadingPreviewRows = if (provider == null) false else it.isLoadingPreviewRows
@@ -201,7 +238,7 @@ class MoviesViewModel @Inject constructor(
                     }
                 }
                 .flatMapLatest { params ->
-                    _previewBatchSize.flatMapLatest { batchSize ->
+                    combine(_previewBatchSize, _studioMode) { batchSize, studio -> batchSize to studio }.flatMapLatest { (batchSize, studio) ->
                         if (params.query.isBlank()) {
                             val categoryIds = params.providerCategories.take(batchSize).map { it.id }
                             if (categoryIds.isEmpty()) {
@@ -212,7 +249,8 @@ class MoviesViewModel @Inject constructor(
                                 movieRepository.getCategoryPreviewRows(
                                     providerId = params.providerId,
                                     categoryIds = categoryIds,
-                                    limitPerCategory = VodBrowseDefaults.PREVIEW_ROW_LIMIT
+                                    limitPerCategory = VodBrowseDefaults.PREVIEW_ROW_LIMIT,
+                                    newestFirst = studio
                                 ).map { providerPreviews ->
                                     val isLoading = categoryIds.all { id -> providerPreviews[id].isNullOrEmpty() }
                                     val hasMore = params.providerCategories.size > batchSize
@@ -357,6 +395,9 @@ class MoviesViewModel @Inject constructor(
                         )
                     }
                 }
+                .combine(combine(_studioMode, _catalogRevision) { studio, _ -> studio }) { request, studio ->
+                    request.copy(providerTimestampOnly = studio)
+                }
                 .flatMapLatest { request ->
                     flow {
                         emit(loadSelectedCategoryItems(request))
@@ -407,14 +448,16 @@ class MoviesViewModel @Inject constructor(
                         favoriteRepository.getAllFavorites(provider.id, ContentType.MOVIE),
                         playbackHistoryRepository.getRecentlyWatchedByProvider(provider.id, limit = 24),
                         movieRepository.getTopRatedPreview(provider.id, VodBrowseDefaults.PREVIEW_ROW_LIMIT),
-                        movieRepository.getFreshPreview(provider.id, VodBrowseDefaults.PREVIEW_ROW_LIMIT)
-                    ) { allFavorites, history, topRated, fresh ->
+                        movieRepository.getFreshPreview(provider.id, VodBrowseDefaults.PREVIEW_ROW_LIMIT),
+                        preferencesRepository.getHiddenCategoryIds(provider.id, ContentType.MOVIE)
+                    ) { allFavorites, history, topRated, fresh, hiddenCategoryIds ->
                         MovieLibraryLensDependencies(
                             providerId = provider.id,
                             allFavorites = allFavorites,
                             history = history,
                             topRated = topRated,
-                            fresh = fresh
+                            fresh = fresh,
+                            hiddenCategoryIds = hiddenCategoryIds
                         )
                     }
                 }
@@ -461,6 +504,10 @@ class MoviesViewModel @Inject constructor(
 
                     _uiState.update {
                         it.copy(
+                            newestAddedItems = markVodFavorites(
+                                dependencies.fresh.filter { item -> item.addedAt > 0L && item.categoryId !in dependencies.hiddenCategoryIds },
+                                globalFavoriteIds, Movie::id
+                            ) { item, favorite -> item.copy(isFavorite = favorite) },
                             libraryLensRows = mapOf(
                                 MovieLibraryLens.FAVORITES to favoritePreview,
                                 MovieLibraryLens.CONTINUE to continuePreview,
@@ -501,6 +548,15 @@ class MoviesViewModel @Inject constructor(
                     _uiState.update { it.copy(categories = categories) }
                 }
         }
+    }
+
+    fun enterStudioCatalog(enabled: Boolean = true) {
+        _studioMode.value = enabled
+        catalogRefresh.enter(activeProviderId, enabled)
+    }
+
+    fun refreshStudioCatalog() {
+        catalogRefresh.refreshIfNeeded()
     }
 
     fun selectCategory(categoryName: String?) {
@@ -1006,6 +1062,7 @@ class MoviesViewModel @Inject constructor(
             return SelectedMovieCategorySnapshot()
         }
         val effectiveQuery = request.query.takeIf { it.trim().length >= MIN_SEARCH_QUERY_LENGTH }.orEmpty()
+        val effectiveSort = if (request.providerTimestampOnly && request.sortBy == LibrarySortBy.LIBRARY) LibrarySortBy.UPDATED else request.sortBy
 
         val globalFavoriteIds = request.allFavorites
             .asSequence()
@@ -1019,7 +1076,8 @@ class MoviesViewModel @Inject constructor(
                     .browseMovies(
                         LibraryBrowseQuery(
                             providerId = request.providerId,
-                            sortBy = request.sortBy,
+                            sortBy = effectiveSort,
+                            providerTimestampOnly = request.providerTimestampOnly,
                             filterBy = LibraryFilterBy(type = request.filterType),
                             searchQuery = effectiveQuery,
                             limit = request.loadLimit,
@@ -1104,7 +1162,8 @@ class MoviesViewModel @Inject constructor(
                                 LibraryBrowseQuery(
                                     providerId = request.providerId,
                                     categoryId = providerCategory.id,
-                                    sortBy = request.sortBy,
+                                    sortBy = effectiveSort,
+                                    providerTimestampOnly = request.providerTimestampOnly,
                                     filterBy = LibraryFilterBy(type = request.filterType),
                                     searchQuery = effectiveQuery,
                                     limit = request.loadLimit,
@@ -1223,7 +1282,8 @@ private data class MovieLibraryLensDependencies(
     val allFavorites: List<com.MegaStream.domain.model.Favorite>,
     val history: List<PlaybackHistory>,
     val topRated: List<Movie>,
-    val fresh: List<Movie>
+    val fresh: List<Movie>,
+    val hiddenCategoryIds: Set<Long>
 )
 
 private data class MovieCategorySelectionDependencies(
@@ -1243,7 +1303,8 @@ private data class SelectedMovieCategoryRequest(
     val allFavorites: List<com.MegaStream.domain.model.Favorite>,
     val customCategories: List<Category>,
     val providerCategories: List<Category>,
-    val hiddenCategoryIds: Set<Long>
+    val hiddenCategoryIds: Set<Long>,
+    val providerTimestampOnly: Boolean = false
 )
 
 private data class SelectedMovieBrowseSelection(
@@ -1262,6 +1323,9 @@ private data class SelectedMovieCategorySnapshot(
 )
 
 data class MoviesUiState(
+    val isCatalogRefreshing: Boolean = false,
+    val catalogRefreshError: String? = null,
+    val newestAddedItems: List<Movie> = emptyList(),
     val moviesByCategory: Map<String, List<Movie>> = emptyMap(),
     val categoryNames: List<String> = emptyList(),
     val categoryCounts: Map<String, Int> = emptyMap(),

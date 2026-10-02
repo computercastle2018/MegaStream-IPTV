@@ -396,6 +396,10 @@ namespace MegaStream.Server.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
+                    b.Property<string>("UiStyle")
+                        .HasMaxLength(7)
+                        .HasColumnType("varchar(7)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FingerprintHash");
@@ -449,6 +453,10 @@ namespace MegaStream.Server.Migrations
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("varchar(16)");
+
+                    b.Property<string>("UiStyle")
+                        .HasMaxLength(7)
+                        .HasColumnType("varchar(7)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -852,6 +860,10 @@ namespace MegaStream.Server.Migrations
                     b.Property<int>("AppVersionCode")
                         .HasColumnType("int");
 
+                    b.Property<string>("AppVersionName")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<string>("Channel")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -867,6 +879,9 @@ namespace MegaStream.Server.Migrations
 
                     b.Property<Guid>("RegistrationIdempotencyKey")
                         .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("VersionReportedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("InstallationId");
 

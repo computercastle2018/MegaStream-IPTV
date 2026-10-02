@@ -14,6 +14,11 @@ enum class AppUiStyle(
         storageValue = "modern",
         labelResId = com.MegaStream.app.R.string.settings_app_ui_style_modern,
         descriptionResId = com.MegaStream.app.R.string.settings_app_ui_style_modern_desc
+    ),
+    STUDIO(
+        storageValue = "studio",
+        labelResId = com.MegaStream.app.R.string.settings_app_ui_style_studio,
+        descriptionResId = com.MegaStream.app.R.string.settings_app_ui_style_studio_desc
     );
 
     companion object {

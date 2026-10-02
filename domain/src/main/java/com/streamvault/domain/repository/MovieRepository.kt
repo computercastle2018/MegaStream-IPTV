@@ -13,7 +13,7 @@ interface MovieRepository {
     fun getMoviesByCategory(providerId: Long, categoryId: Long): Flow<List<Movie>>
     fun getMoviesByCategoryPage(providerId: Long, categoryId: Long, limit: Int, offset: Int): Flow<List<Movie>>
     fun getMoviesByCategoryPreview(providerId: Long, categoryId: Long, limit: Int): Flow<List<Movie>>
-    fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int): Flow<Map<Long?, List<Movie>>>
+    fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int, newestFirst: Boolean = false): Flow<Map<Long?, List<Movie>>>
     fun getTopRatedPreview(providerId: Long, limit: Int): Flow<List<Movie>>
     fun getFreshPreview(providerId: Long, limit: Int): Flow<List<Movie>>
     fun getRecommendations(providerId: Long, limit: Int): Flow<List<Movie>>
@@ -27,6 +27,6 @@ interface MovieRepository {
     suspend fun getMovie(movieId: Long): Movie?
     suspend fun getMovieDetails(providerId: Long, movieId: Long): Result<Movie>
     suspend fun getStreamInfo(movie: Movie): Result<StreamInfo>
-    suspend fun refreshMovies(providerId: Long): Result<Unit>
+    suspend fun refreshMovies(providerId: Long, categoryIds: List<Long> = emptyList()): Result<Unit>
     suspend fun getWatchProgress(movieId: Long): Long? = null
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_inbox_action_unread">Notifications, %1$d unread</string>
+    <string name="notification_inbox_back">Back to messages</string>
+    <string name="notification_inbox_unread_status">Unread</string>
+    <string name="notification_inbox_read_status">Read</string>
+    <string name="notification_inbox_refreshing">Refreshing...</string>
+    <string name="notification_inbox_refresh_failed">Could not refresh messages. Your previous messages are still available.</string>
+    <plurals name="notification_inbox_messages">
+        <item quantity="one">%d message</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
+    <plurals name="notification_inbox_unread">
+        <item quantity="one">%d unread</item>
+        <item quantity="other">%d unread</item>
+    </plurals>
+</resources>

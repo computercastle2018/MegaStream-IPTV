@@ -18,19 +18,24 @@ namespace MegaStream.Server.Controllers;
 public sealed class DeviceExperienceController(AppDbContext db) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Get(CancellationToken ct)
+    public async Task<IActionResult> Get(CancellationToken ct, [FromQuery] int version = 1)
     {
+        if (version is not (1 or 2)) return BadRequest();
         if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id)) return Unauthorized();
-        var device = await db.Installations.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.Status == InstallationStatus.Active, ct);
+        var device = await db.Installations.AsNoTracking().Include(x => x.License).SingleOrDefaultAsync(x => x.Id == id && x.Status == InstallationStatus.Active, ct);
         if (device is null) throw Disabled();
         var now = DateTime.UtcNow;
         var notifications = await db.AdminNotifications.AsNoTracking()
             .Where(x => (x.TargetInstallationId == null || x.TargetInstallationId == id) &&
                 x.CreatedAt <= now && (x.ExpiresAt == null || x.ExpiresAt > now))
             .OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).Take(50).ToListAsync(ct);
-        return Ok(new DeviceExperienceResponse(device.AllowSubscriptionDetails, notifications.Select(x =>
+        var response = new DeviceExperienceResponse(device.AllowSubscriptionDetails, notifications.Select(x =>
             new DeviceNotificationResponse(x.Id.ToString("D"), Sanitizer.CleanDiagnostic(x.Title, 128),
-                Sanitizer.CleanDiagnostic(x.Message, 2000), DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc).ToString("O", CultureInfo.InvariantCulture))).ToList(), device.MacAddress));
+                Sanitizer.CleanDiagnostic(x.Message, 2000), DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc).ToString("O", CultureInfo.InvariantCulture))).ToList(), device.MacAddress);
+        return version == 2
+            ? Ok(new DeviceExperienceV2Response(response.AllowSubscriptionDetails, response.Notifications, response.MacAddress,
+                device.UiStyle ?? device.License?.UiStyle))
+            : Ok(response);
     }
 
     [HttpPost]

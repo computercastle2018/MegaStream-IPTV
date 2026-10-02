@@ -82,6 +82,15 @@ import com.MegaStream.app.ui.components.shell.VodClassicCategoryOption
 import com.MegaStream.app.ui.components.shell.VodClassicContentHeader
 import com.MegaStream.app.ui.components.shell.VodClassicSplitLayout
 import com.MegaStream.app.ui.components.shell.VodHeroStrip
+import com.MegaStream.app.ui.components.shell.StudioCatalogHero
+import com.MegaStream.app.ui.screens.vod.StudioCatalogLayout
+import com.MegaStream.app.ui.screens.vod.StudioSectionHeading
+import com.MegaStream.app.ui.screens.vod.StudioContentAccess
+import com.MegaStream.app.ui.screens.vod.studioContentAccess
+import com.MegaStream.app.ui.model.AppUiStyle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import com.MegaStream.app.ui.interaction.TvIconButton
 import com.MegaStream.app.ui.components.shell.VodSectionHeader
 import com.MegaStream.app.ui.design.FocusRestoreHost
 import com.MegaStream.app.ui.design.requestFocusSafely
@@ -104,6 +113,8 @@ fun SeriesScreen(
         viewModel.resetPreviewRowsForScreenEntry()
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    LaunchedEffect(studio, viewModel) { viewModel.enterStudioCatalog(studio) }
     val snackbarHostState = remember { SnackbarHostState() }
     val initialContentFocusRequester = remember { FocusRequester() }
     var showPinDialog by remember { mutableStateOf(false) }
@@ -159,8 +170,19 @@ fun SeriesScreen(
             subtitle = null,
             navigationChrome = AppNavigationChrome.TopBar,
             compactHeader = true,
-            showScreenHeader = false
+            showScreenHeader = false,
+            topBarActions = {
+                if (studio) TvIconButton(onClick = viewModel::refreshStudioCatalog, enabled = !uiState.isCatalogRefreshing) {
+                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.studio_refresh_catalog))
+                }
+            }
         ) {
+        if (studio && uiState.isCatalogRefreshing) {
+            androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary)
+        }
+        if (studio && uiState.catalogRefreshError != null) {
+            Text(uiState.catalogRefreshError.orEmpty(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp))
+        }
         if (uiState.isReorderMode && uiState.reorderCategory != null) {
             ReorderTopBar(
                 categoryName = uiState.reorderCategory!!.name,
@@ -345,6 +367,7 @@ private fun SeriesVodContent(
     onDismissReorder: () -> Unit,
     initialFocusRequester: FocusRequester
 ) {
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
     val favoriteCardWidth = when {
@@ -360,7 +383,7 @@ private fun SeriesVodContent(
     }
     var showCategoryPicker by remember { mutableStateOf(false) }
     val favoriteSeries = uiState.seriesByCategory[uiState.favoriteCategoryName].orEmpty()
-    val freshSeries = uiState.libraryLensRows[SeriesLibraryLens.FRESH].orEmpty()
+    val freshSeries = if (studio) uiState.newestAddedItems else uiState.libraryLensRows[SeriesLibraryLens.FRESH].orEmpty()
     val topRatedSeries = uiState.libraryLensRows[SeriesLibraryLens.TOP_RATED].orEmpty()
     val continueWatching = uiState.continueWatching
     val heroSeries = freshSeries.firstOrNull() ?: topRatedSeries.firstOrNull() ?: favoriteSeries.firstOrNull()
@@ -461,7 +484,200 @@ private fun SeriesVodContent(
         )
     }
 
-    if (uiState.vodViewMode == VodViewMode.CLASSIC) {
+
+    if (studio) {
+        val categoriesById = remember(uiState.providerCategories, uiState.categories) {
+            (uiState.providerCategories + uiState.categories).associateBy { kotlin.math.abs(it.id) }
+        }
+        fun access(series: Series): StudioContentAccess {
+            val category = series.categoryId?.let { categoriesById[kotlin.math.abs(it)] }
+            return studioContentAccess(
+                series = series,
+                category = category,
+                parentalLevel = uiState.parentalControlLevel,
+                unlockedCategoryIds = uiState.unlockedCategoryIds
+            )
+        }
+        val openContent: (Series) -> Unit = { series ->
+            when (access(series)) {
+                StudioContentAccess.VISIBLE -> onSeriesClick(series.id)
+                StudioContentAccess.LOCKED -> onProtectedSeriesClick(series.id)
+                StudioContentAccess.HIDDEN -> Unit
+            }
+        }
+        val openOptions: (Series) -> Unit = { series ->
+            if (access(series) == StudioContentAccess.VISIBLE) onShowDialog(series) else openContent(series)
+        }
+        val overview = uiState.selectedCategory == null
+        val catalogItems = (if (uiState.isReorderMode) uiState.filteredSeries
+            else if (overview) catEntries.flatMap { it.value }.distinctBy { it.id }
+            else uiState.selectedCategoryItems).filter { access(it) != StudioContentAccess.HIDDEN }
+        val latestItems = freshSeries.filter { access(it) == StudioContentAccess.VISIBLE }
+        val featured = if (overview && searchQuery.isBlank()) latestItems.firstOrNull()
+            ?: catalogItems.firstOrNull { access(it) == StudioContentAccess.VISIBLE } else null
+        val overviewLabel = stringResource(R.string.studio_catalog_discover)
+        val allLabel = stringResource(R.string.library_full_browse_title_series)
+        val freshLabel = stringResource(R.string.studio_latest_added)
+        val continueLabel = stringResource(R.string.library_lens_continue)
+        val topLabel = stringResource(R.string.library_lens_top_rated)
+        val openLatest = {
+            onSelectFullLibraryBrowse()
+            onSelectedFilterTypeChange(LibraryFilterType.RECENTLY_UPDATED)
+            onSelectedSortByChange(LibrarySortBy.UPDATED)
+        }
+        val railOptions = listOf(
+            VodCategoryOption(overviewLabel, 0, { onSelectCategory(null) }),
+            VodCategoryOption(allLabel, uiState.libraryCount, onSelectFullLibraryBrowse),
+            VodCategoryOption(freshLabel, 0, openLatest),
+            VodCategoryOption(continueLabel, 0, onOpenContinueWatching),
+            VodCategoryOption(topLabel, 0, onOpenTopRated)
+        ) + categoryOptions
+        var optionsVisible by rememberSaveable { mutableStateOf(false) }
+        var searchVisible by rememberSaveable { mutableStateOf(searchQuery.isNotBlank()) }
+        val searchFocus = remember { FocusRequester() }
+        var dragging by remember { mutableStateOf<Series?>(null) }
+        val catalogState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+        LaunchedEffect(uiState.selectedCategory, searchQuery, selectedFilterType, selectedSortBy) {
+            catalogState.scrollToItem(0)
+        }
+        LaunchedEffect(searchVisible) {
+            if (searchVisible) {
+                catalogState.scrollToItem(if (featured == null) 0 else 1)
+                withFrameNanos { }
+                searchFocus.requestFocusSafely(tag = "StudioCatalog", target = "Search")
+            }
+        }
+        val loading = if (overview) uiState.isLoadingPreviewRows else uiState.isLoadingSelectedCategory
+        val canLoadMore = if (overview) uiState.hasMorePreviewRows else uiState.canLoadMoreSelectedCategory
+        val loadMore = if (overview) onLoadMorePreviewRows else onLoadMore
+        InfiniteScrollEffect(
+            gridState = catalogState, enabled = uiState.vodInfiniteScroll && !uiState.isReorderMode,
+            canLoadMore = canLoadMore, isLoading = loading, onLoadMore = loadMore
+        )
+        if (optionsVisible) VodBrowseOptionsDialog(
+            title = stringResource(R.string.nav_series),
+            filterTitle = stringResource(R.string.library_filter_title), filterChips = seriesFilterChips(),
+            selectedFilterKey = selectedFilterType.name,
+            onFilterSelected = { key ->
+                LibraryFilterType.entries.firstOrNull { it.name == key }?.let {
+                    if (overview) onSelectFullLibraryBrowse()
+                    onSelectedFilterTypeChange(it)
+                }
+            },
+            sortTitle = stringResource(R.string.library_sort_title), sortChips = seriesSortChips(),
+            selectedSortKey = selectedSortBy.name,
+            onSortSelected = { key ->
+                LibrarySortBy.entries.firstOrNull { it.name == key }?.let {
+                    if (overview) onSelectFullLibraryBrowse()
+                    onSelectedSortByChange(it)
+                }
+            }, onDismiss = { optionsVisible = false }
+        )
+        StudioCatalogLayout(
+            categories = railOptions,
+            selectedCategory = if (overview) overviewLabel else when (uiState.selectedCategory) {
+                uiState.fullLibraryCategoryName -> when (selectedFilterType) {
+                    LibraryFilterType.RECENTLY_UPDATED -> freshLabel
+                    LibraryFilterType.IN_PROGRESS -> continueLabel
+                    LibraryFilterType.TOP_RATED -> topLabel
+                    else -> allLabel
+                }
+                else -> uiState.selectedCategory.orEmpty()
+            },
+            gridState = catalogState,
+            modifier = Modifier.onPreviewKeyEvent { event ->
+                if (uiState.isReorderMode && event.nativeKeyEvent.action == android.view.KeyEvent.ACTION_DOWN &&
+                    event.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_BACK) {
+                    dragging = null
+                    onDismissReorder()
+                    true
+                } else false
+            }
+        ) {
+            if (featured != null && !uiState.isReorderMode) item(key = "studio_hero", span = { GridItemSpan(maxLineSpan) }) {
+                StudioCatalogHero(
+                    title = featured.name, imageUrl = featured.backdropUrl ?: featured.posterUrl,
+                    metadata = featured.plot ?: featured.genre,
+                    onClick = { openContent(featured) },
+                    modifier = Modifier.focusRequester(initialFocusRequester)
+                )
+            }
+            item(key = "studio_tools", span = { GridItemSpan(maxLineSpan) }) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    StudioSectionHeading(if (overview) allLabel else
+                        uiState.selectedCategory?.takeUnless { it == uiState.fullLibraryCategoryName } ?: allLabel)
+                    if (!uiState.isReorderMode) VodActionChipRow(
+                        actions = listOf(
+                            VodActionChip("search", stringResource(R.string.search_title), onClick = { searchVisible = !searchVisible }),
+                            VodActionChip("options", stringResource(R.string.library_action_filters_sort),
+                                detail = vodActiveFilterSortDetail(selectedFilterType, selectedSortBy),
+                                onClick = { optionsVisible = true })
+                        )
+                    )
+                    if (searchVisible && !uiState.isReorderMode) {
+                        SearchInput(
+                            value = searchQuery,
+                            onValueChange = { query ->
+                                if (overview) onSelectFullLibraryBrowse()
+                                onSearchQueryChange(query)
+                            },
+                            placeholder = stringResource(R.string.series_search_placeholder),
+                            onSearch = {},
+                            focusRequester = searchFocus
+                        )
+                    }
+                }
+            }
+            if (overview && searchQuery.isBlank() && latestItems.isNotEmpty() && !uiState.isReorderMode) {
+                item(key = "studio_latest", span = { GridItemSpan(maxLineSpan) }) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StudioSectionHeading(freshLabel, allLabel, openLatest)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(vertical = 4.dp)) {
+                            items(latestItems, key = { it.id }) { series ->
+                                SeriesCard(series = series, width = 112.dp, height = 168.dp,
+                                    onClick = { openContent(series) }, onLongClick = { openOptions(series) })
+                            }
+                        }
+                    }
+                }
+            }
+            gridItems(catalogItems, key = { it.id }) { series ->
+                val locked = access(series) == StudioContentAccess.LOCKED
+                SeriesCard(
+                    series = series, isLocked = locked,
+                    isReorderMode = uiState.isReorderMode, isDragging = dragging?.id == series.id,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f).then(
+                        if (featured == null && series.id == catalogItems.firstOrNull()?.id)
+                            Modifier.focusRequester(initialFocusRequester) else Modifier
+                    ),
+                    onClick = {
+                        if (uiState.isReorderMode) dragging = if (dragging?.id == series.id) null else series
+                        else openContent(series)
+                    },
+                    onLongClick = { if (!uiState.isReorderMode) openOptions(series) }
+                )
+            }
+            if (loading) item(key = "studio_loading", span = { GridItemSpan(maxLineSpan) }) {
+                Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            }
+            if (!loading && catalogItems.isEmpty()) item(key = "studio_empty", span = { GridItemSpan(maxLineSpan) }) {
+                AppMessageState(title = stringResource(R.string.series_no_found),
+                    subtitle = stringResource(R.string.series_no_found_subtitle))
+            }
+            if (canLoadMore && !loading && !uiState.isReorderMode) item(key = "studio_more", span = { GridItemSpan(maxLineSpan) }) {
+                LoadMoreCard(label = stringResource(R.string.library_load_more,
+                    if (overview) catalogItems.size else uiState.selectedCategoryLoadedCount,
+                    if (overview) uiState.libraryCount else uiState.selectedCategoryTotalCount), onClick = loadMore)
+            }
+        }
+        return
+    }
+
+
+    if (uiState.vodViewMode == VodViewMode.CLASSIC && !studio) {
         SeriesVodClassicContent(
             uiState = uiState,
             selectedFilterType = selectedFilterType,
@@ -487,6 +703,17 @@ private fun SeriesVodContent(
     }
 
     if (uiState.selectedCategory == null) {
+        val freshRow: @Composable () -> Unit = {
+            CategoryRow(
+                title = stringResource(if (studio) R.string.studio_latest_updated_series else R.string.library_lens_fresh_series),
+                items = freshSeries, onSeeAll = null, keySelector = { it.id }
+            ) { series ->
+                val locked = isSeriesLocked(series)
+                SeriesCard(series = series, isLocked = locked,
+                    onClick = { if (locked) onProtectedSeriesClick(series.id) else onSeriesClick(series.id) },
+                    onLongClick = { onShowDialog(series) })
+            }
+        }
         val previewListState = androidx.compose.foundation.lazy.rememberLazyListState()
         InfiniteScrollEffect(
             listState = previewListState,
@@ -502,6 +729,16 @@ private fun SeriesVodContent(
         ) {
             item(key = "hero") {
             if (heroSeries != null) {
+                if (studio) {
+                    StudioCatalogHero(
+                        title = heroSeries.name,
+                        eyebrow = stringResource(if (heroSeries.lastModified > 0) R.string.studio_latest_updated_series else R.string.nav_series),
+                        imageUrl = if (isSeriesLocked(heroSeries)) null else heroSeries.backdropUrl ?: heroSeries.posterUrl,
+                        metadata = heroSeries.plot ?: heroSeries.genre,
+                        onClick = { if (isSeriesLocked(heroSeries)) onProtectedSeriesClick(heroSeries.id) else onSeriesClick(heroSeries.id) },
+                        modifier = Modifier.focusRequester(initialFocusRequester)
+                    )
+                } else {
                 VodHeroStrip(
                         title = heroSeries.name,
                         subtitle = heroSeries.plot?.takeIf { it.isNotBlank() }
@@ -516,7 +753,11 @@ private fun SeriesVodContent(
                             .padding(top = 8.dp, bottom = 6.dp)
                             .focusRequester(initialFocusRequester)
                     )
+                }
             }
+            }
+            if (studio && freshSeries.isNotEmpty()) {
+                item(key = "fresh_row") { freshRow() }
             }
             item(key = "actions") {
             VodActionChipRow(
@@ -608,22 +849,9 @@ private fun SeriesVodContent(
                 }
             }
             }
-            if (freshSeries.isNotEmpty()) {
+            if (!studio && freshSeries.isNotEmpty()) {
             item(key = "fresh_row") {
-                CategoryRow(
-                        title = stringResource(R.string.library_lens_fresh_series),
-                        items = freshSeries,
-                        onSeeAll = null,
-                        keySelector = { it.id }
-                    ) { series ->
-                        val isLocked = isSeriesLocked(series)
-                        SeriesCard(
-                            series = series,
-                            isLocked = isLocked,
-                            onClick = { if (isLocked) onProtectedSeriesClick(series.id) else onSeriesClick(series.id) },
-                            onLongClick = { onShowDialog(series) }
-                        )
-                }
+                freshRow()
             }
             }
             if (topRatedSeries.isNotEmpty()) {
@@ -734,7 +962,7 @@ private fun SeriesVodContent(
     )
     LazyVerticalGrid(
         state = modernGridState,
-        columns = GridCells.Adaptive(minSize = 136.dp),
+        columns = GridCells.Adaptive(minSize = if (studio) 156.dp else 136.dp),
         modifier = Modifier
             .fillMaxSize()
             .onPreviewKeyEvent { event ->
@@ -1258,4 +1486,3 @@ private fun seriesSortChips(): List<SelectionChip> {
         )
     }
 }
-

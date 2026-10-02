@@ -175,7 +175,7 @@ class SeriesRepositoryImpl @Inject constructor(
             )
         }
 
-    override fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int): Flow<Map<Long?, List<Series>>> =
+    override fun getCategoryPreviewRows(providerId: Long, categoryIds: List<Long>, limitPerCategory: Int, newestFirst: Boolean): Flow<Map<Long?, List<Series>>> =
         combine(
             categoryDao.getByProviderAndType(providerId, ContentType.SERIES.name),
             preferencesRepository.parentalControlLevel
@@ -216,7 +216,8 @@ class SeriesRepositoryImpl @Inject constructor(
                     }
                 }
                 val categoryGroupFlows: List<Flow<Pair<Long?, List<Series>>>> = previewCategories.map { cat ->
-                    seriesDao.getByCategoryPreview(providerId, cat.categoryId, limitPerCategory)
+                    (if (newestFirst) seriesDao.getFreshByCategoryPreview(providerId, cat.categoryId, limitPerCategory)
+                    else seriesDao.getByCategoryPreview(providerId, cat.categoryId, limitPerCategory))
                         .map { entities ->
                             val items = if (level >= 3) entities.filter { !it.isUserProtected } else entities
                             (cat.categoryId as Long?) to items.map { it.toDomain() }
@@ -527,8 +528,17 @@ class SeriesRepositoryImpl @Inject constructor(
         Result.error(e.message ?: "Failed to resolve stream URL for episode: ${episode.title}", e)
     }
 
-    override suspend fun refreshSeries(providerId: Long): Result<Unit> =
-        Result.success(Unit) // Handled by ProviderRepository
+    override suspend fun refreshSeries(providerId: Long, categoryIds: List<Long>): Result<Unit> {
+        val outcome = syncManager.refreshVodCatalog(providerId, ContentType.SERIES)
+        if (outcome !is Result.Success) return outcome
+        if (providerDao.getById(providerId)?.type == ProviderType.STALKER_PORTAL) {
+            val refreshIds = categoryIds.ifEmpty { getCategories(providerId).first().map { it.id } }
+            for (categoryId in refreshIds.distinct().take(6)) {
+                ensureXtreamCategoryLoaded(providerId, categoryId, forceRefresh = true, requiredCount = 1, allowStalkerWildcard = false)
+            }
+        }
+        return outcome
+    }
 
     private suspend fun buildSeriesWithPersistedEpisodes(seriesEntity: SeriesEntity): Series {
         val episodes = episodeDao.getBySeriesSync(seriesEntity.id).map { it.toDomain() }
@@ -1101,7 +1111,9 @@ class SeriesRepositoryImpl @Inject constructor(
         val sorted = when (query.sortBy) {
             LibrarySortBy.LIBRARY -> filtered
             LibrarySortBy.TITLE -> filtered.sortedBy { it.name.lowercase() }
-            LibrarySortBy.RELEASE, LibrarySortBy.UPDATED -> filtered.sortedByDescending(::seriesFreshnessScore)
+            LibrarySortBy.RELEASE, LibrarySortBy.UPDATED -> filtered.sortedByDescending {
+                if (query.providerTimestampOnly) it.lastModified else seriesFreshnessScore(it)
+            }
             LibrarySortBy.RATING -> filtered.sortedByDescending { it.rating }
             LibrarySortBy.WATCH_COUNT -> filtered.sortedByDescending { watchCounts[it.id] ?: 0 }
         }
@@ -1187,7 +1199,8 @@ class SeriesRepositoryImpl @Inject constructor(
         categoryId: Long,
         requiredCount: Int = SEARCH_RESULT_LIMIT,
         refreshStaleInBackground: Boolean = true,
-        allowStalkerWildcard: Boolean = true
+        allowStalkerWildcard: Boolean = true,
+        forceRefresh: Boolean = false
     ) {
         val key = "$providerId:$categoryId"
         val provider = providerDao.getById(providerId) ?: return
@@ -1211,7 +1224,8 @@ class SeriesRepositoryImpl @Inject constructor(
                 requiredCount = requiredCount,
                 localCount = localCount,
                 hydration = hydration,
-                allowWildcard = allowStalkerWildcard
+                allowWildcard = allowStalkerWildcard,
+                forceRefresh = forceRefresh
             )
             return
         }
@@ -1258,7 +1272,8 @@ class SeriesRepositoryImpl @Inject constructor(
         requiredCount: Int,
         localCount: Int? = null,
         hydration: SeriesCategoryHydrationEntity? = null,
-        allowWildcard: Boolean = true
+        allowWildcard: Boolean = true,
+        forceRefresh: Boolean = false
     ) {
         val key = "$providerId:$categoryId"
         val lock = xtreamCategoryLoadLocks.getOrPut(key) { Mutex() }
@@ -1267,17 +1282,17 @@ class SeriesRepositoryImpl @Inject constructor(
             if (!allowWildcard && stalkerProvider.isWildcardCategory(ContentType.SERIES, categoryId)) return
             var currentCount = localCount ?: seriesDao.getCountByCategory(providerId, categoryId).first()
             var currentHydration = hydration ?: seriesCategoryHydrationDao.get(providerId, categoryId)
-            if (currentHydration?.isComplete == true || currentCount >= requiredCount) return
-            if (currentCount == 0 && currentHydration?.isEmptyRetryCoolingDown() == true) return
+            if (!forceRefresh && (currentHydration?.isComplete == true || currentCount >= requiredCount)) return
+            if (!forceRefresh && currentCount == 0 && currentHydration?.isEmptyRetryCoolingDown() == true) return
 
             val isPreviewLoad = requiredCount <= STALKER_PREVIEW_REQUIRED_COUNT_THRESHOLD
-            var nextPage = ((currentHydration?.lastLoadedPage ?: 0) + 1).coerceAtLeast(1)
+            var nextPage = if (forceRefresh) 1 else ((currentHydration?.lastLoadedPage ?: 0) + 1).coerceAtLeast(1)
             // The cached totalPages can under-report when the preview hydrate stored
             // it from a partial response. Skip the pre-fetch guard on the first
             // iteration so we always perform at least one real fetch that refreshes
             // totalPages; subsequent iterations use the in-loop updated value.
             var firstIteration = true
-            while (currentCount < requiredCount) {
+            while ((forceRefresh && firstIteration) || currentCount < requiredCount) {
                 if (isPreviewLoad && nextPage > STALKER_PREVIEW_MAX_REMOTE_PAGES) break
                 val totalPages = currentHydration?.totalPages ?: 0
                 if (!firstIteration && totalPages > 0 && nextPage > totalPages) break
@@ -1295,13 +1310,13 @@ class SeriesRepositoryImpl @Inject constructor(
                             itemCount = currentCount,
                             lastStatus = "SUCCESS",
                             lastError = null,
-                            lastLoadedPage = result.data.page,
+                                lastLoadedPage = if (forceRefresh) maxOf(currentHydration?.lastLoadedPage ?: 0, result.data.page) else result.data.page,
                             totalPages = result.data.totalPages,
                             isComplete = pageComplete,
                             pageSize = result.data.pageSize
                         )
                         seriesCategoryHydrationDao.upsert(currentHydration!!)
-                        if (pageComplete) break
+                        if (forceRefresh || pageComplete) break
                         nextPage = result.data.page + 1
                     }
                     is Result.Error -> {
@@ -1319,6 +1334,7 @@ class SeriesRepositoryImpl @Inject constructor(
                                 pageSize = currentHydration?.pageSize ?: 0
                             )
                         )
+                        if (forceRefresh) throw IllegalStateException(result.message, result.exception)
                         break
                     }
                     is Result.Loading -> break

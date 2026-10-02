@@ -30,6 +30,8 @@ internal fun LicenseActivationRoute(
     navigation: LicenseNavigationViewModel,
     onContinue: () -> Unit,
     onCancel: () -> Unit,
+    settingsMode: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
     // Not a retained hiltViewModel: the existing screen disposes this instance on every exit,
@@ -38,8 +40,8 @@ internal fun LicenseActivationRoute(
     val verdict by navigation.decision.collectAsStateWithLifecycle()
     var refreshing by remember { mutableStateOf(false) }
     var refreshFailed by remember { mutableStateOf(false) }
-    LaunchedEffect(verdict) {
-        if (verdict is PlaybackGateVerdict.Allowed) onContinue()
+    LaunchedEffect(verdict, settingsMode) {
+        if (!settingsMode && verdict is PlaybackGateVerdict.Allowed) onContinue()
     }
     LaunchedEffect(activation, navigation) {
         navigation.decision.collect { activation.updateEntitlement(it.asLicenseEntitlement()) }
@@ -51,10 +53,12 @@ internal fun LicenseActivationRoute(
             activation.updateEntitlement(navigation.verifiedEntitlement())
         }
     }
-    BackHandler(onBack = onCancel)
-    Column(Modifier.fillMaxSize()) {
+    BackHandler(enabled = !settingsMode, onBack = onCancel)
+    Column(modifier.fillMaxSize()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            TvButton(onClick = onCancel) { Text(stringResource(R.string.license_nav_cancel)) }
+            if (!settingsMode) {
+                TvButton(onClick = onCancel) { Text(stringResource(R.string.license_nav_cancel)) }
+            }
             TvButton(enabled = !refreshing, onClick = {
                 refreshing = true
                 refreshFailed = false
@@ -70,13 +74,15 @@ internal fun LicenseActivationRoute(
                     }
                 }
             }) { Text(stringResource(if (refreshing) R.string.license_refreshing else R.string.license_refresh)) }
-            TvButton(onClick = onContinue, enabled = verdict is PlaybackGateVerdict.Allowed) {
-                Text(stringResource(R.string.license_nav_continue))
+            if (!settingsMode) {
+                TvButton(onClick = onContinue, enabled = verdict is PlaybackGateVerdict.Allowed) {
+                    Text(stringResource(R.string.license_nav_continue))
+                }
             }
         }
         if (refreshFailed) Text(stringResource(R.string.license_refresh_failed),
             color = androidx.tv.material3.MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(horizontal = 16.dp))
-        LicenseActivationScreen(activation, Modifier.weight(1f))
+        LicenseActivationScreen(activation, Modifier.weight(1f), embedded = settingsMode)
     }
 }

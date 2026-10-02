@@ -63,6 +63,13 @@ class ProductionRuntimeOperationsTest {
             managedDevice = UPGRADED.managedDevice, packageName = UPGRADED.packageName,
             channel = UPGRADED.channel,
         )), client.heartbeats)
+
+        val restarted = operations(directory, client) { UPGRADED }
+        assertEquals(RuntimeResult.Registered, restarted.register())
+        restarted.heartbeat(SESSION, HeartbeatMode.FOREGROUND)
+        assertEquals(UPGRADED.appVersionCode, client.heartbeats.last().second.appVersionCode)
+        assertEquals(UPGRADED.appVersionName, client.heartbeats.last().second.appVersionName)
+        assertEquals(1L, client.heartbeats.last().second.sequence)
     }
 
     @Test fun successfulHeartbeatUploadsInventoryAndInventoryFailureDoesNotChangeEntitlement() = runBlocking {

@@ -40,9 +40,12 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
+import com.MegaStream.app.ui.components.shell.mediaCardShape
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 import com.MegaStream.app.device.rememberIsTelevisionDevice
 import com.MegaStream.app.ui.interaction.mouseClickable
-import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors as AppColors
 import com.MegaStream.app.ui.design.FocusSpec
 
 internal val LocalDialogCanInteract = compositionLocalOf { true }
@@ -74,6 +77,7 @@ fun PremiumDialog(
     content: @Composable ColumnScope.() -> Unit,
     footer: @Composable RowScope.() -> Unit = {}
 ) {
+    val isStudio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     var canInteract by remember { mutableStateOf(false) }
     val isTelevisionDevice = rememberIsTelevisionDevice()
     val blockOpenGesture = rememberDialogOpenGestureBlocker(canInteract)
@@ -101,18 +105,22 @@ fun PremiumDialog(
                         .onPreviewKeyEvent(blockOpenGesture)
                     Surface(
                         modifier = dialogModifier,
-                        shape = RoundedCornerShape(28.dp),
+                        shape = mediaCardShape(28.dp),
                         colors = SurfaceDefaults.colors(containerColor = AppColors.SurfaceElevated)
                     ) {
                         Column(
                             modifier = Modifier
                                 .background(
                                     Brush.verticalGradient(
-                                        colors = listOf(
-                                            AppColors.BrandMuted.copy(alpha = 0.18f),
-                                            AppColors.SurfaceElevated,
-                                            AppColors.Surface
-                                        )
+                                        colors = if (isStudio) {
+                                            listOf(AppColors.Surface, AppColors.Surface)
+                                        } else {
+                                            listOf(
+                                                AppColors.BrandMuted.copy(alpha = 0.18f),
+                                                AppColors.SurfaceElevated,
+                                                AppColors.Surface
+                                            )
+                                        }
                                     )
                                 )
                                 .padding(28.dp),
@@ -121,7 +129,7 @@ fun PremiumDialog(
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
                                     text = title,
-                                    style = MaterialTheme.typography.headlineMedium,
+                                    style = if (isStudio) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
                                     color = AppColors.TextPrimary
                                 )
                                 if (!subtitle.isNullOrBlank()) {
@@ -170,18 +178,22 @@ fun PremiumDialog(
 
                     Surface(
                         modifier = dialogModifier,
-                        shape = RoundedCornerShape(28.dp),
+                        shape = mediaCardShape(28.dp),
                         colors = SurfaceDefaults.colors(containerColor = AppColors.SurfaceElevated)
                     ) {
                         Column(
                             modifier = Modifier
                                 .background(
                                     Brush.verticalGradient(
-                                        colors = listOf(
-                                            AppColors.BrandMuted.copy(alpha = 0.18f),
-                                            AppColors.SurfaceElevated,
-                                            AppColors.Surface
-                                        )
+                                        colors = if (isStudio) {
+                                            listOf(AppColors.Surface, AppColors.Surface)
+                                        } else {
+                                            listOf(
+                                                AppColors.BrandMuted.copy(alpha = 0.18f),
+                                                AppColors.SurfaceElevated,
+                                                AppColors.Surface
+                                            )
+                                        }
                                     )
                                 )
                                 .padding(28.dp),
@@ -190,7 +202,7 @@ fun PremiumDialog(
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
                                     text = title,
-                                    style = MaterialTheme.typography.headlineMedium,
+                                    style = if (isStudio) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
                                     color = AppColors.TextPrimary
                                 )
                                 if (!subtitle.isNullOrBlank()) {

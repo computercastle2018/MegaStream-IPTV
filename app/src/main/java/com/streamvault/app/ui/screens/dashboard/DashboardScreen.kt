@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,11 +27,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,11 +48,19 @@ import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Search
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.shell.mediaCardShape
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 import com.MegaStream.app.device.rememberIsTelevisionDevice
 import com.MegaStream.app.ui.components.ChannelLogoBadge
 import com.MegaStream.app.navigation.Routes
@@ -65,17 +74,17 @@ import com.MegaStream.app.ui.components.shell.AppNavigationChrome
 import com.MegaStream.app.ui.components.shell.AppHeroHeader
 import com.MegaStream.app.ui.components.shell.AppScreenScaffold
 import com.MegaStream.app.ui.components.shell.StatusPill
-import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors as AppColors
 import com.MegaStream.app.ui.time.LocalAppTimeFormat
 import com.MegaStream.app.ui.time.createDateTimeFormat
-import com.MegaStream.app.ui.design.AppColors.Brand as Primary
-import com.MegaStream.app.ui.design.AppColors.Focus as FocusBorder
-import com.MegaStream.app.ui.design.AppColors.SurfaceElevated as SurfaceElevated
-import com.MegaStream.app.ui.design.AppColors.SurfaceEmphasis as SurfaceHighlight
-import com.MegaStream.app.ui.design.AppColors.TextPrimary as OnBackground
-import com.MegaStream.app.ui.design.AppColors.TextPrimary as TextPrimary
-import com.MegaStream.app.ui.design.AppColors.TextTertiary as OnSurfaceDim
-import com.MegaStream.app.ui.design.AppColors.TextTertiary as TextTertiary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand as Primary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Focus as FocusBorder
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceElevated as SurfaceElevated
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceEmphasis as SurfaceHighlight
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as OnBackground
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as TextPrimary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextTertiary as OnSurfaceDim
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextTertiary as TextTertiary
 import com.MegaStream.domain.model.Channel
 import com.MegaStream.domain.model.Movie
 import com.MegaStream.domain.model.PlaybackHistory
@@ -89,6 +98,7 @@ import com.MegaStream.app.ui.interaction.TvClickableSurface
 import com.MegaStream.app.ui.interaction.TvButton
 import com.MegaStream.app.ui.interaction.TvIconButton
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DashboardScreen(
     onNavigate: (String) -> Unit,
@@ -102,6 +112,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isStudio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val recordingChannelIds by viewModel.recordingChannelIds.collectAsStateWithLifecycle()
     val scheduledChannelIds by viewModel.scheduledChannelIds.collectAsStateWithLifecycle()
     val provider = uiState.provider
@@ -138,6 +149,41 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 28.dp)
             ) {
+                if (isStudio) {
+                    item(key = "studio_home_hero") {
+                        val movie = uiState.recentMovies.firstOrNull {
+                            !it.isAdult && !it.isUserProtected &&
+                                (!it.backdropUrl.isNullOrBlank() || !it.posterUrl.isNullOrBlank())
+                        }
+                        val series = uiState.recentSeries.firstOrNull {
+                            !it.isAdult && !it.isUserProtected &&
+                                (!it.backdropUrl.isNullOrBlank() || !it.posterUrl.isNullOrBlank())
+                        }
+                        val feature = when {
+                            movie != null -> DashboardFeature(
+                                title = movie.name,
+                                summary = movie.plot?.takeIf { it.isNotBlank() } ?: movie.year.orEmpty(),
+                                artworkUrl = movie.backdropUrl?.takeIf { it.isNotBlank() } ?: movie.posterUrl,
+                                actionLabel = stringResource(R.string.nav_movies)
+                            )
+                            series != null -> DashboardFeature(
+                                title = series.name,
+                                summary = series.plot.orEmpty(),
+                                artworkUrl = series.backdropUrl?.takeIf { it.isNotBlank() } ?: series.posterUrl,
+                                actionLabel = stringResource(R.string.nav_series)
+                            )
+                            else -> DashboardFeature(title = provider.name)
+                        }
+                        StudioDashboardHero(
+                            feature = feature,
+                            onFeatureAction = {
+                                if (movie != null) onMovieClick(movie)
+                                else if (series != null) onSeriesClick(series)
+                            },
+                            onNavigate = onNavigate
+                        )
+                    }
+                }
                 if (uiState.isLoading && orderedSections.isEmpty()) {
                     item(key = "dashboard_loading") {
                         Box(
@@ -246,6 +292,88 @@ fun DashboardScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StudioDashboardHero(
+    feature: DashboardFeature,
+    onFeatureAction: () -> Unit,
+    onNavigate: (String) -> Unit
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val compact = maxWidth < 700.dp
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = if (compact) 300.dp else 340.dp)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            feature.artworkUrl?.takeIf { it.isNotBlank() }?.let { artwork ->
+                AsyncImage(
+                    model = rememberCrossfadeImageModel(artwork),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
+                )
+            }
+            Box(
+                modifier = Modifier.matchParentSize().background(
+                    Brush.verticalGradient(
+                        listOf(Color.Transparent, AppColors.HeroTop, MaterialTheme.colorScheme.background)
+                    )
+                )
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = if (compact) 20.dp else 32.dp)
+                    .padding(top = if (compact) 100.dp else 140.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = feature.title,
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 640.dp)
+                )
+                if (feature.summary.isNotBlank()) {
+                    Text(
+                        text = feature.summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 620.dp)
+                    )
+                }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (feature.actionLabel.isNotBlank()) {
+                        TvButton(onClick = onFeatureAction) {
+                            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(feature.actionLabel)
+                        }
+                    }
+                    TvButton(onClick = { onNavigate(Routes.LIVE_TV) }) {
+                        Icon(Icons.Default.Menu, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.nav_live_tv))
+                    }
+                    TvButton(onClick = { onNavigate(Routes.SEARCH) }) {
+                        Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.search_title))
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun DashboardHero(
     providerName: String,
@@ -287,13 +415,13 @@ private fun DashboardHero(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(heroHeight)
-                    .clip(RoundedCornerShape(28.dp))
+                    .clip(mediaCardShape(28.dp))
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(heroHeight)
-                    .clip(RoundedCornerShape(28.dp))
+                    .clip(mediaCardShape(28.dp))
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
@@ -441,7 +569,7 @@ private fun DashboardShortcutCard(
         modifier = Modifier
             .width(cardWidth)
             .height(76.dp),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+        shape = ClickableSurfaceDefaults.shape(mediaCardShape(16.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = SurfaceElevated,
             focusedContainerColor = SurfaceHighlight
@@ -449,11 +577,11 @@ private fun DashboardShortcutCard(
         border = ClickableSurfaceDefaults.border(
             border = Border(
                 border = BorderStroke(1.dp, accentColor.copy(alpha = 0.28f)),
-                shape = RoundedCornerShape(16.dp)
+                shape = mediaCardShape(16.dp)
             ),
             focusedBorder = Border(
                 border = BorderStroke(2.dp, FocusBorder),
-                shape = RoundedCornerShape(16.dp)
+                shape = mediaCardShape(16.dp)
             )
         )
     ) {
@@ -551,7 +679,7 @@ private fun DashboardProviderHealthCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 48.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(22.dp),
+        shape = mediaCardShape(22.dp),
         colors = SurfaceDefaults.colors(containerColor = SurfaceHighlight)
     ) {
         Row(
@@ -623,7 +751,7 @@ private fun DashboardHealthPill(
     value: String
 ) {
     Surface(
-        shape = RoundedCornerShape(18.dp),
+        shape = mediaCardShape(18.dp),
         colors = SurfaceDefaults.colors(containerColor = Color.White.copy(alpha = 0.08f))
     ) {
         Column(
@@ -653,7 +781,7 @@ private fun DashboardProviderWarningCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 48.dp, vertical = 6.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = mediaCardShape(20.dp),
         colors = SurfaceDefaults.colors(containerColor = SurfaceElevated)
     ) {
         Column(
@@ -690,7 +818,7 @@ private fun DashboardUpdateCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 48.dp, vertical = 6.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = mediaCardShape(20.dp),
         colors = SurfaceDefaults.colors(containerColor = Primary.copy(alpha = 0.16f)),
         border = Border(BorderStroke(1.dp, Primary.copy(alpha = 0.45f)))
     ) {
@@ -755,7 +883,7 @@ private fun EmptyDashboard(
         }
 
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = mediaCardShape(28.dp),
             colors = SurfaceDefaults.colors(
                 containerColor = SurfaceHighlight
             )
@@ -899,7 +1027,7 @@ private fun FavoriteChannelLogoCard(
     TvClickableSurface(
         onClick = onClick,
         modifier = Modifier.width(86.dp),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(18.dp)),
+        shape = ClickableSurfaceDefaults.shape(mediaCardShape(18.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = SurfaceElevated,
             focusedContainerColor = SurfaceHighlight
@@ -907,7 +1035,7 @@ private fun FavoriteChannelLogoCard(
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(
                 border = BorderStroke(2.dp, FocusBorder),
-                shape = RoundedCornerShape(18.dp)
+                shape = mediaCardShape(18.dp)
             )
         )
     ) {
@@ -945,4 +1073,3 @@ private fun FavoriteChannelLogoCard(
         }
     }
 }
-

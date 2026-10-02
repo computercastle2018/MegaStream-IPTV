@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_app_ui_style_studio">Studio</string>
+    <string name="settings_app_ui_style_studio_desc">Cinematic</string>
+    <string name="studio_latest_added">Latest additions</string>
+    <string name="studio_latest_updated_series">Recently updated series</string>
+    <string name="studio_refresh_catalog">Refresh catalog</string>
+    <string name="studio_catalog_refreshing">Updating catalog</string>
+    <string name="studio_open_details">Details</string>
+</resources>

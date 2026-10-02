@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
@@ -43,6 +47,9 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
 import androidx.tv.material3.*
 import com.MegaStream.app.R
+import com.MegaStream.app.ui.components.shell.mediaCardShape
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 import com.MegaStream.app.ui.components.CategoryRow
 import com.MegaStream.app.ui.components.SearchInput
 import com.MegaStream.app.ui.components.ChannelCard
@@ -51,10 +58,18 @@ import com.MegaStream.app.ui.components.SeriesCard
 import com.MegaStream.app.ui.components.TvEmptyState
 import com.MegaStream.app.ui.components.shell.AppNavigationChrome
 import com.MegaStream.app.ui.components.shell.AppScreenScaffold
-import com.MegaStream.app.ui.design.AppColors
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors as AppColors
 import com.MegaStream.app.ui.design.requestFocusSafely
 import com.MegaStream.app.ui.interaction.mouseClickable
 import com.MegaStream.app.ui.theme.*
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Surface as Surface
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceElevated as SurfaceElevated
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.SurfaceEmphasis as SurfaceHighlight
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Brand as Primary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as TextPrimary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextSecondary as TextSecondary
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.TextPrimary as OnSurface
+import com.MegaStream.app.ui.components.shell.MediaSurfaceColors.Focus as FocusBorder
 import com.MegaStream.domain.manager.ParentalControlManager
 import com.MegaStream.domain.model.Channel
 import com.MegaStream.domain.model.ContentType
@@ -361,6 +376,10 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
+    val isStudio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    val channelColumns = if (isStudio) ((screenWidth - 48) / 232).coerceIn(1, 4) else 4
+    val posterColumns = if (isStudio) ((screenWidth - 48) / 148).coerceIn(1, 6) else 6
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val recentQueries by viewModel.recentQueries.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -404,9 +423,6 @@ fun SearchScreen(
         actionsIsFavorite = series.isFavorite
         showActionsDialog = true
     }
-    val channelRows = remember(uiState.channels) { uiState.channels.chunked(4) }
-    val movieRows = remember(uiState.movies) { uiState.movies.chunked(6) }
-    val seriesRows = remember(uiState.series) { uiState.series.chunked(6) }
 
     fun isLocked(categoryId: Long?, isAdult: Boolean, isUserProtected: Boolean): Boolean {
         if (uiState.parentalControlLevel != 1) {
@@ -525,40 +541,11 @@ fun SearchScreen(
         )
     }
 
-    AppScreenScaffold(
-        currentRoute = currentRoute,
-        onNavigate = onNavigate,
-        title = stringResource(R.string.search_title),
-        subtitle = stringResource(R.string.search_screen_subtitle),
-        navigationChrome = AppNavigationChrome.TopBar,
-        compactHeader = true,
-        showScreenHeader = false
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
-            contentPadding = PaddingValues(bottom = 32.dp)
-        ) {
-            item {
-                SearchHeroPanel(
-                    query = query,
-                    selectedTab = selectedTab,
-                    recentQueries = recentQueries,
-                    totalResults = uiState.totalResults,
-                    onQueryChange = viewModel::onQueryChange,
-                    onSearch = {
-                        viewModel.onSearchSubmitted()
-                    },
-                    onTabSelected = viewModel::onTabSelected,
-                    onRecentQuerySelected = {
-                        viewModel.onRecentQuerySelected(it)
-                    },
-                    onClearRecentQueries = viewModel::clearRecentQueries,
-                    focusRequester = searchFocusRequester,
-                    selectedStateLabel = selectedTabDescription
-                )
-            }
-
+    val resultsContent: (Int, Int) -> androidx.compose.foundation.lazy.LazyListScope.() -> Unit = { channelCount, posterCount ->
+        {
+            val channelRows = uiState.channels.chunked(channelCount)
+            val movieRows = uiState.movies.chunked(posterCount)
+            val seriesRows = uiState.series.chunked(posterCount)
             when {
                 !uiState.hasActiveProvider -> {
                     item {
@@ -573,7 +560,7 @@ fun SearchScreen(
                     item {
                         SearchMessageState(
                             title = stringResource(R.string.search_ready_title),
-                            subtitle = stringResource(R.string.search_type_to_search)
+                            subtitle = if (isStudio) "" else stringResource(R.string.search_type_to_search)
                         )
                     }
                 }
@@ -794,6 +781,177 @@ fun SearchScreen(
             }
         }
     }
+
+    AppScreenScaffold(
+        currentRoute = currentRoute,
+        onNavigate = onNavigate,
+        title = stringResource(R.string.search_title),
+        subtitle = stringResource(R.string.search_screen_subtitle),
+        navigationChrome = AppNavigationChrome.TopBar,
+        compactHeader = true,
+        showScreenHeader = false
+    ) {
+        if (isStudio) {
+            Column(Modifier.fillMaxSize().padding(16.dp).testTag("studio_search"),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.search_title), style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.search_results_title, uiState.totalResults),
+                        style = MaterialTheme.typography.labelLarge, color = TextSecondary)
+                }
+                SearchInput(value = query, onValueChange = viewModel::onQueryChange,
+                    placeholder = stringResource(R.string.search_hint), focusRequester = searchFocusRequester,
+                    onSearch = viewModel::onSearchSubmitted, autoFocus = true,
+                    modifier = Modifier.fillMaxWidth().height(48.dp))
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    StudioSearchFilters(query, selectedTab, recentQueries, uiState,
+                        onTabSelected = viewModel::onTabSelected,
+                        onRecentQuerySelected = viewModel::onRecentQuerySelected,
+                        onClearRecentQueries = viewModel::clearRecentQueries,
+                        modifier = Modifier.width(if (screenWidth >= 700) 176.dp else 120.dp).fillMaxHeight())
+                    BoxWithConstraints(Modifier.weight(1f).fillMaxHeight()) {
+                        val channelsPerRow = ((maxWidth.value + 12f) / 244f).toInt().coerceAtLeast(1)
+                        val postersPerRow = ((maxWidth.value + 12f) / 160f).toInt().coerceAtLeast(1)
+                        LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(bottom = 24.dp)) {
+                            if (!uiState.isLoading && uiState.hasSearched && !uiState.isEmpty) {
+                                val featuredMovie = uiState.movies.firstOrNull()
+                                val featuredSeries = uiState.series.firstOrNull()
+                                val featuredChannel = uiState.channels.firstOrNull()
+                                item {
+                                    when {
+                                        featuredMovie != null && selectedTab in listOf(SearchTab.ALL, SearchTab.MOVIES) ->
+                                            StudioSearchFeatured(featuredMovie.name, featuredMovie.posterUrl,
+                                                featuredMovie.genre ?: featuredMovie.year.orEmpty(),
+                                                onClick = {
+                                                    if (isLocked(featuredMovie.categoryId, featuredMovie.isAdult, featuredMovie.isUserProtected)) {
+                                                        pendingMovie = featuredMovie; showPinDialog = true
+                                                    } else onMovieClick(featuredMovie)
+                                                }, onLongClick = { showMovieActions(featuredMovie) })
+                                        featuredSeries != null && selectedTab in listOf(SearchTab.ALL, SearchTab.SERIES) ->
+                                            StudioSearchFeatured(featuredSeries.name, featuredSeries.posterUrl,
+                                                featuredSeries.genre.orEmpty(),
+                                                onClick = {
+                                                    if (isLocked(featuredSeries.categoryId, featuredSeries.isAdult, featuredSeries.isUserProtected)) {
+                                                        pendingSeries = featuredSeries; showPinDialog = true
+                                                    } else onSeriesClick(featuredSeries)
+                                                }, onLongClick = { showSeriesActions(featuredSeries) })
+                                        featuredChannel != null ->
+                                            StudioSearchFeatured(featuredChannel.name, featuredChannel.logoUrl,
+                                                featuredChannel.currentProgram?.title.orEmpty(),
+                                                onClick = {
+                                                    if (isLocked(featuredChannel.categoryId, featuredChannel.isAdult, featuredChannel.isUserProtected)) {
+                                                        pendingChannel = featuredChannel; showPinDialog = true
+                                                    } else onChannelClick(featuredChannel)
+                                                }, onLongClick = { showChannelActions(featuredChannel) })
+                                    }
+                                }
+                            }
+                            resultsContent(channelsPerRow, postersPerRow).invoke(this)
+                        }
+                    }
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
+            item {
+                SearchHeroPanel(
+                    query = query,
+                    selectedTab = selectedTab,
+                    recentQueries = recentQueries,
+                    totalResults = uiState.totalResults,
+                    onQueryChange = viewModel::onQueryChange,
+                    onSearch = {
+                        viewModel.onSearchSubmitted()
+                    },
+                    onTabSelected = viewModel::onTabSelected,
+                    onRecentQuerySelected = {
+                        viewModel.onRecentQuerySelected(it)
+                    },
+                    onClearRecentQueries = viewModel::clearRecentQueries,
+                    focusRequester = searchFocusRequester,
+                    selectedStateLabel = selectedTabDescription
+                )
+            }
+
+                resultsContent(channelColumns, posterColumns).invoke(this)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StudioSearchFilters(
+    query: String, selectedTab: SearchTab, recentQueries: List<String>, uiState: SearchUiState,
+    onTabSelected: (SearchTab) -> Unit, onRecentQuerySelected: (String) -> Unit,
+    onClearRecentQueries: () -> Unit, modifier: Modifier,
+) {
+    LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(SearchTab.entries, key = { it.name }) { tab ->
+            val count = when (tab) {
+                SearchTab.ALL -> uiState.totalResults
+                SearchTab.LIVE -> uiState.channels.size
+                SearchTab.MOVIES -> uiState.movies.size
+                SearchTab.SERIES -> uiState.series.size
+            }
+            TvClickableSurface(
+                onClick = { onTabSelected(tab) }, modifier = Modifier.fillMaxWidth().semantics { selected = tab == selectedTab },
+                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(6.dp)),
+                scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+                colors = ClickableSurfaceDefaults.colors(
+                    containerColor = if (tab == selectedTab) Primary.copy(alpha = 0.16f) else Surface,
+                    focusedContainerColor = Primary.copy(alpha = 0.25f),
+                ),
+            ) {
+                Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(tab.titleRes), style = MaterialTheme.typography.labelLarge,
+                        color = TextPrimary, modifier = Modifier.weight(1f))
+                    Text(count.toString(), style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                }
+            }
+        }
+        if (recentQueries.isNotEmpty()) {
+            item { Text(stringResource(R.string.search_recent_title), style = MaterialTheme.typography.labelLarge,
+                color = TextSecondary, modifier = Modifier.padding(top = 12.dp)) }
+            items(recentQueries, key = { it }) { recent ->
+                SearchPill(recent, recent.equals(query, ignoreCase = true), onClick = { onRecentQuerySelected(recent) },
+                    modifier = Modifier.fillMaxWidth(), compact = true)
+            }
+            item { SearchPill(stringResource(R.string.search_clear_history), false, onClearRecentQueries,
+                modifier = Modifier.fillMaxWidth(), compact = true) }
+        }
+    }
+}
+
+@Composable
+private fun StudioSearchFeatured(
+    title: String, imageUrl: String?, metadata: String, onClick: () -> Unit, onLongClick: () -> Unit,
+) {
+    TvClickableSurface(
+        onClick = onClick, onLongClick = onLongClick,
+        modifier = Modifier.fillMaxWidth().testTag("studio_search_featured"),
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+        colors = ClickableSurfaceDefaults.colors(containerColor = SurfaceElevated,
+            focusedContainerColor = Primary.copy(alpha = 0.18f)),
+    ) {
+        Row(Modifier.fillMaxWidth().height(132.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            AsyncImage(model = imageUrl, contentDescription = null, contentScale = ContentScale.Fit,
+                modifier = Modifier.width(88.dp).fillMaxHeight().background(Surface))
+            Column(Modifier.weight(1f).padding(end = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(title, style = MaterialTheme.typography.titleLarge, color = TextPrimary,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (metadata.isNotBlank()) Text(metadata, style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
 }
 
 @Composable
@@ -810,9 +968,10 @@ private fun SearchHeroPanel(
     focusRequester: FocusRequester,
     selectedStateLabel: String
 ) {
+    val isStudio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(if (isStudio) 0.dp else 24.dp),
         colors = SurfaceDefaults.colors(containerColor = SurfaceElevated.copy(alpha = 0.92f))
     ) {
         Column(
@@ -836,7 +995,7 @@ private fun SearchHeroPanel(
                         color = TextPrimary,
                         modifier = Modifier.semantics { heading() }
                     )
-                    Text(
+                    if (!isStudio) Text(
                         text = stringResource(R.string.search_command_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = TextSecondary,
@@ -846,7 +1005,7 @@ private fun SearchHeroPanel(
                     )
                 }
 
-                SearchStatusCard(
+                if (!isStudio) SearchStatusCard(
                     title = if (query.length >= 2) {
                         stringResource(R.string.search_results_title, totalResults)
                     } else {
@@ -987,7 +1146,7 @@ private fun SearchStatusCard(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
+        shape = mediaCardShape(18.dp),
         colors = SurfaceDefaults.colors(containerColor = Surface.copy(alpha = 0.78f))
     ) {
         Column(
@@ -1186,7 +1345,7 @@ private fun SearchItemActionsDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
-            shape = RoundedCornerShape(20.dp),
+            shape = mediaCardShape(20.dp),
             colors = SurfaceDefaults.colors(containerColor = AppColors.SurfaceElevated),
             modifier = Modifier
                 .width(360.dp)
@@ -1291,7 +1450,7 @@ private fun SearchActionButton(
         .border(
             width = if (isFocused) 2.dp else 0.dp,
             color = if (isFocused) AppColors.Focus else Color.Transparent,
-            shape = RoundedCornerShape(12.dp)
+            shape = mediaCardShape(12.dp)
         )
         .mouseClickable(onClick = onClick)
 
@@ -1310,7 +1469,7 @@ private fun SearchActionButton(
             disabledContainerColor = AppColors.Surface.copy(alpha = 0.3f),
             disabledContentColor = AppColors.TextSecondary
         ),
-        shape = ButtonDefaults.shape(shape = RoundedCornerShape(12.dp))
+        shape = ButtonDefaults.shape(shape = mediaCardShape(12.dp))
     ) {
         Icon(
             imageVector = icon,

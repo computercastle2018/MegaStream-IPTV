@@ -337,12 +337,12 @@ private inline fun <T> safeStorage(block: () -> T): T = try {
     storageFailure()
 }
 
-private fun strictNioDirectorySync(directory: File) {
+internal fun strictNioDirectorySync(directory: File) {
     FileChannel.open(directory.toPath(), StandardOpenOption.READ).use { it.force(true) }
 }
 
 /** Minimal checksummed atomic file with a separate permanent initialization witness. */
-private class DurableStateFile(
+internal class DurableStateFile(
     directory: File,
     name: String,
     private val initialPayload: String,

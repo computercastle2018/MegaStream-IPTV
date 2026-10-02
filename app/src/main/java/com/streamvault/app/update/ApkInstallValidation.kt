@@ -14,7 +14,10 @@ internal object ApkInstallValidation {
         val argumentSha256: String? = null,
         val installedCertificates: Set<String> = emptySet(),
         val candidateCertificates: Set<String> = emptySet(),
-        val expectedCertificate: String? = null
+        val expectedCertificate: String? = null,
+        val deviceSdk: Int,
+        val candidateMinSdk: Int?,
+        val expectedMinSdk: Int? = null,
     )
 
     /** Returns a safe, digest-free explanation, or null when all checks pass. */
@@ -32,6 +35,10 @@ internal object ApkInstallValidation {
             candidateVersionCode == null || candidateVersionCode != expectedVersionCode.toLong() || installedVersionCode == null ||
             installedVersionCode < 0 || candidateVersionCode <= installedVersionCode
         ) return "Update version must exactly match metadata and be newer than the installed app"
+        if (candidateMinSdk == null || candidateMinSdk !in 1..deviceSdk ||
+            (expectedMinSdk != null && expectedMinSdk != candidateMinSdk)) {
+            return "Update minimum Android version could not be verified"
+        }
         val installed = installedCertificates.mapNotNull(::digest).toSet()
         val candidate = candidateCertificates.mapNotNull(::digest).toSet()
         if (installed.isEmpty() || candidate.isEmpty() || installed.intersect(candidate).isEmpty()) {

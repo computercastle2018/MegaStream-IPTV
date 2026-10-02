@@ -16,6 +16,7 @@ class ProductionRuntimeOperations(
     private val entitlement: AppEntitlement,
     private val metadata: () -> RuntimeMetadata,
     private val uploadLocalSubscriptions: suspend () -> Unit = {},
+    private val refreshUpdates: suspend () -> Unit = {},
 ) : RuntimeControllerOperations {
     override suspend fun register(): RuntimeResult =
         coordinator.register(stores.registrationMetadata(installationId, metadata()))
@@ -23,6 +24,11 @@ class ProductionRuntimeOperations(
     override suspend fun heartbeat(appSessionId: String, mode: HeartbeatMode): RuntimeResult {
         val result = coordinator.heartbeat(metadata(), appSessionId, mode)
         if (result is RuntimeResult.HeartbeatApplied) {
+            try { refreshUpdates() }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) {
+                java.util.logging.Logger.getLogger("MegaStream").warning("Remote update progress unavailable; retrying on next heartbeat")
+            }
             try { uploadLocalSubscriptions() }
             catch (cancelled: CancellationException) { throw cancelled }
             // Inventory failure must not alter the playback gate; retry on the next heartbeat.

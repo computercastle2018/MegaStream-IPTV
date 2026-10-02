@@ -17,6 +17,7 @@ class ControlPlaneClientTest {
         val payload = """{"allowSubscriptionDetails":false,"notifications":[{"id":"$ID","title":"Notice","message":"Hello","createdAt":"$TIME"}],"macAddress":null}"""
         val client = ControlPlaneClient(CallExecutor {
             assertEquals("/api/v1/devices/experience", it.url.encodedPath)
+            assertEquals("2", it.url.queryParameter("version"))
             assertEquals("Bearer $CREDENTIAL", it.header("Authorization"))
             assertEquals("GET", it.method)
             response(it, payload)
@@ -24,12 +25,30 @@ class ControlPlaneClientTest {
         val result = client.deviceExperience(CREDENTIAL) as ControlPlaneResult.Success
         assertFalse(result.value.allowSubscriptionDetails)
         assertEquals("Hello", result.value.notifications.single().message)
+        assertNull(result.value.uiStyle)
         val malformed = ControlPlaneClient(CallExecutor { response(it, payload.replace("\"title\":\"Notice\"", "\"title\":\"\"")) })
         assertFailure("invalid_response", malformed.deviceExperience(CREDENTIAL))
         val invalidDate = ControlPlaneClient(CallExecutor { response(it, payload.replace(TIME, "not-a-date")) })
         assertFailure("invalid_response", invalidDate.deviceExperience(CREDENTIAL))
         val invalidCredential = ControlPlaneClient(CallExecutor { throw AssertionError("Must not send") })
         assertFailure("invalid_request", invalidCredential.deviceExperience("bad"))
+    }
+
+    @Test fun experienceAcceptsOnlyAllowlistedNullableUiStyle() {
+        for (style in listOf(null, "classic", "modern", "studio")) {
+            val wireStyle = style?.let { "\"$it\"" } ?: "null"
+            val client = ControlPlaneClient(CallExecutor {
+                response(it, """{"allowSubscriptionDetails":true,"uiStyle":$wireStyle}""")
+            })
+            val result = client.deviceExperience(CREDENTIAL) as ControlPlaneResult.Success
+            assertEquals(style, result.value.uiStyle)
+        }
+        for (wireStyle in listOf("\"future\"", "\"STUDIO\"", "\" studio\"", "\"\"", "42", "true")) {
+            val client = ControlPlaneClient(CallExecutor {
+                response(it, """{"allowSubscriptionDetails":true,"uiStyle":$wireStyle}""")
+            })
+            assertFailure("invalid_response", client.deviceExperience(CREDENTIAL))
+        }
     }
 
     @Test fun registrationIsAnonymousIdempotentAndChecksReturnedIdentity() {
@@ -107,6 +126,18 @@ class ControlPlaneClientTest {
         assertFailure("invalid_request", client.register(registration(), "1-1-1-1-1"))
         assertFailure("invalid_request", client.getProviderAssignments(CREDENTIAL, -1))
         assertFailure("invalid_request", client.reportUpdateCommandStatus(CREDENTIAL, "../escape", UpdateCommandStatusRequest(UpdateCommandStatus.FAILED)))
+    }
+
+    @Test fun updateReportsMatchExistingUpdatesModuleWireStatusNames() {
+        val bodies = mutableListOf<String>()
+        val client = ControlPlaneClient(CallExecutor { bodies += body(it); response(it, "", 204, null) })
+        for (status in listOf(UpdateCommandStatus.ACKNOWLEDGED, UpdateCommandStatus.DOWNLOADING, UpdateCommandStatus.INSTALL_PROMPTED)) {
+            assertTrue(client.reportUpdateCommandStatus(CREDENTIAL, ID, UpdateCommandStatusRequest(status)) is ControlPlaneResult.Success)
+        }
+        assertEquals(listOf("ack", "ack", "installPrompted"), bodies.map {
+            (kotlinx.serialization.json.Json.parseToJsonElement(it) as kotlinx.serialization.json.JsonObject)
+                .getValue("status").let { value -> (value as kotlinx.serialization.json.JsonPrimitive).content }
+        })
     }
 
     @Test fun redirectsPriorChainsAndAlteredResponseUrlsAreRejected() {

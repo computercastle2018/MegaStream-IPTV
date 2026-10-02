@@ -23,6 +23,8 @@ import com.MegaStream.app.ui.interaction.TvClickableSurface
 import com.MegaStream.app.ui.theme.OnBackground
 import com.MegaStream.app.ui.theme.OnSurface
 import com.MegaStream.app.ui.theme.Primary
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
+import com.MegaStream.app.ui.model.AppUiStyle
 
 internal fun LazyListScope.settingsPlaybackSection(
     uiState: SettingsUiState,
@@ -80,12 +82,18 @@ internal fun LazyListScope.settingsPlaybackSection(
         )
     }
     item {
+        val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+        val primary = if (studio) MaterialTheme.colorScheme.primary else Primary
+        val onSurface = if (studio) MaterialTheme.colorScheme.onSurface else OnSurface
+        val onBackground = if (studio) MaterialTheme.colorScheme.onBackground else OnBackground
+        val dividerColor = if (studio) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+            else Color.White.copy(alpha = 0.07f)
         TvClickableSurface(
             onClick = { viewModel.setPreventStandbyDuringPlayback(!uiState.preventStandbyDuringPlayback) },
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -96,19 +104,19 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_prevent_standby), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_prevent_standby_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_prevent_standby), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_prevent_standby_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.preventStandbyDuringPlayback, onCheckedChange = { viewModel.setPreventStandbyDuringPlayback(it) })
             }
         }
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         TvClickableSurface(
             onClick = { viewModel.setAutoPlayNextEpisode(!uiState.autoPlayNextEpisode) },
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -119,19 +127,19 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_auto_play_next_episode), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_auto_play_next_episode_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_auto_play_next_episode), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_auto_play_next_episode_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.autoPlayNextEpisode, onCheckedChange = { viewModel.setAutoPlayNextEpisode(it) })
             }
         }
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         TvClickableSurface(
             onClick = { viewModel.setPlayerMediaSessionEnabled(!uiState.playerMediaSessionEnabled) },
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -142,19 +150,19 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_media_session), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_media_session_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_media_session), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_media_session_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.playerMediaSessionEnabled, onCheckedChange = { viewModel.setPlayerMediaSessionEnabled(it) })
             }
         }
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         TvClickableSurface(
             onClick = { viewModel.setPlayerTimeshiftEnabled(!uiState.playerTimeshiftEnabled) },
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -165,8 +173,8 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_live_timeshift), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_live_timeshift_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_live_timeshift), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_live_timeshift_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.playerTimeshiftEnabled, onCheckedChange = { viewModel.setPlayerTimeshiftEnabled(it) })
             }
@@ -184,16 +192,16 @@ internal fun LazyListScope.settingsPlaybackSection(
         Text(
             text = stringResource(R.string.settings_live_timeshift_backend_subtitle),
             style = MaterialTheme.typography.bodySmall,
-            color = OnBackground.copy(alpha = 0.6f),
+            color = onBackground.copy(alpha = 0.6f),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         TvClickableSurface(
             onClick = { viewModel.setZapAutoRevert(!uiState.zapAutoRevert) },
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -204,8 +212,8 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_zap_auto_revert), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_zap_auto_revert_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_zap_auto_revert), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_zap_auto_revert_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.zapAutoRevert, onCheckedChange = { viewModel.setZapAutoRevert(it) })
             }
@@ -227,7 +235,7 @@ internal fun LazyListScope.settingsPlaybackSection(
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -238,8 +246,8 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_ffmpeg_compatibility_memory), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_ffmpeg_compatibility_memory_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_ffmpeg_compatibility_memory), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_ffmpeg_compatibility_memory_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(
                     checked = uiState.playerCompatibilityMemoryEnabled,
@@ -257,7 +265,7 @@ internal fun LazyListScope.settingsPlaybackSection(
             value = surfaceModeLabel,
             onClick = { onShowSurfaceModeDialogChange(true) }
         )
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         ClickableSettingsRow(
             label = stringResource(R.string.settings_default_playback_speed),
             value = playbackSpeedLabel,
@@ -278,7 +286,7 @@ internal fun LazyListScope.settingsPlaybackSection(
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -289,8 +297,8 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_audio_video_sync_enabled), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_audio_video_sync_enabled_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_audio_video_sync_enabled), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_audio_video_sync_enabled_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.playerAudioVideoSyncEnabled, onCheckedChange = { viewModel.setPlayerAudioVideoSyncEnabled(it) })
             }
@@ -302,13 +310,13 @@ internal fun LazyListScope.settingsPlaybackSection(
                 onClick = { onShowAudioVideoOffsetDialogChange(true) }
             )
         }
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         TvClickableSurface(
             onClick = { viewModel.setCenterTwoSlotMultiviewLayout(!uiState.centerTwoSlotMultiviewLayout) },
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.Transparent,
-                focusedContainerColor = Primary.copy(alpha = 0.15f)
+                focusedContainerColor = primary.copy(alpha = 0.15f)
             ),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             modifier = Modifier.fillMaxWidth()
@@ -319,8 +327,8 @@ internal fun LazyListScope.settingsPlaybackSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.settings_multiview_center_two_slot_layout), style = MaterialTheme.typography.bodyMedium, color = OnSurface)
-                    Text(text = stringResource(R.string.settings_multiview_center_two_slot_layout_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.settings_multiview_center_two_slot_layout), style = MaterialTheme.typography.bodyMedium, color = onSurface)
+                    Text(text = stringResource(R.string.settings_multiview_center_two_slot_layout_subtitle), style = MaterialTheme.typography.bodySmall, color = onBackground.copy(alpha = 0.6f))
                 }
                 Switch(checked = uiState.centerTwoSlotMultiviewLayout, onCheckedChange = { viewModel.setCenterTwoSlotMultiviewLayout(it) })
             }
@@ -365,7 +373,7 @@ internal fun LazyListScope.settingsPlaybackSection(
             value = subtitleBackgroundLabel,
             onClick = { onShowSubtitleBackgroundDialogChange(true) }
         )
-        HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(color = dividerColor, modifier = Modifier.padding(vertical = 4.dp))
         ClickableSettingsRow(
             label = stringResource(R.string.settings_wifi_quality_cap),
             value = wifiQualityLabel,

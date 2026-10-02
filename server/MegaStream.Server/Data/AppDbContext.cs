@@ -20,12 +20,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         MegaStream.Server.V1.V1Persistence.ConfigureV1Protocol(b);
         MegaStream.Server.RemoteProviders.ModelConfiguration.Configure(b);
         b.Entity<License>(e => {
+            e.Property(x=>x.UiStyle).HasMaxLength(7);
             e.Property(x=>x.KeyHash).HasMaxLength(64).IsRequired(); e.HasIndex(x=>x.KeyHash).IsUnique();
             e.Property(x=>x.KeyLast4).HasMaxLength(4); e.Property(x=>x.Label).HasMaxLength(128);
             e.Property(x=>x.Status).HasConversion<string>().HasMaxLength(16);
             e.HasIndex(x=>new {x.Status,x.ValidUntil});
         });
         b.Entity<Installation>(e => {
+            e.Property(x=>x.UiStyle).HasMaxLength(7);
             e.Property(x=>x.LocalSubscriptionsJson).HasColumnType("longtext");
             e.Property(x=>x.TokenHash).HasMaxLength(64).IsRequired(); e.HasIndex(x=>x.TokenHash).IsUnique();
             e.Property(x=>x.FingerprintHash).HasMaxLength(64); e.HasIndex(x=>x.FingerprintHash);

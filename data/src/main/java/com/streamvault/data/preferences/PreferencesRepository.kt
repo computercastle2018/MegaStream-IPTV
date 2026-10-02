@@ -445,6 +445,7 @@ class PreferencesRepository @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_UI_STYLE] = when (style.lowercase()) {
                 "modern" -> "modern"
+                "studio" -> "studio"
                 else -> "classic"
             }
         }

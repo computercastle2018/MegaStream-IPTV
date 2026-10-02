@@ -77,6 +77,7 @@ class AppUpdateInstaller @Inject constructor(
         .callTimeout(10, TimeUnit.MINUTES).build()
     private val _downloadState = MutableStateFlow(AppUpdateDownloadState())
     val downloadState: StateFlow<AppUpdateDownloadState> = _downloadState.asStateFlow()
+    internal var remoteInstallReceipt: suspend (GitHubReleaseInfo, RemoteUpdateCommandStatus) -> Unit = { _, _ -> }
     private var backupJob: Job? = null
     private val managedCallbacks = mutableMapOf<BroadcastReceiver, PendingIntent>()
     private val downloadCompleteReceiver = object : BroadcastReceiver() {
@@ -203,6 +204,8 @@ class AppUpdateInstaller @Inject constructor(
                 // Full identity and a distinct incomplete phase are durable BEFORE any network download.
                 commitActive(active.edit().clear().putString("release", json.encodeToString(release))
                     .putString("token", token).putString("phase", "downloading"))
+                preferencesRepository.setCachedAppUpdateRelease(release.versionName, release.versionCode,
+                    release.releaseUrl, release.downloadUrl, release.releaseNotes, release.publishedAt)
                 preferencesRepository.setDownloadedAppUpdateVersionName(null)
                 preferencesRepository.setAppUpdateDownloadVersionName(release.versionName)
                 preferencesRepository.setAppUpdateDownloadId(null)
@@ -322,13 +325,21 @@ class AppUpdateInstaller @Inject constructor(
                     return@withLock Result.error("No downloaded update is ready to install")
                 }
                 val file = apkFileForVersion(release.versionName)
-                validationFailure(release, file, expectedSha256)?.let { return@withLock Result.error(it) }
-                if (preferManaged && tryManagedInstall(release, file)) Result.success(Unit)
+                validationFailure(release, file, expectedSha256)?.let {
+                    remoteInstallReceipt(release, RemoteUpdateCommandStatus.Failed)
+                    return@withLock Result.error(it)
+                }
+                if (!preferManaged && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+                    return@withLock promptInstall(file)
+                }
+                remoteInstallReceipt(release, RemoteUpdateCommandStatus.Downloaded)
+                val result = if (preferManaged && tryManagedInstall(release, file)) Result.success(Unit)
                 else {
                     // A denied/failed managed submission may have taken time; never reuse stale verification.
-                    validationFailure(release, file, expectedSha256)?.let { return@withLock Result.error(it) }
-                    promptInstall(file)
+                    validationFailure(release, file, expectedSha256)?.let { Result.error(it) } ?: promptInstall(file)
                 }
+                remoteInstallReceipt(release, if (result is Result.Success) RemoteUpdateCommandStatus.InstallPrompted else RemoteUpdateCommandStatus.Failed)
+                result
             } catch (error: CancellationException) { throw error }
             catch (_: Exception) { Result.error("The downloaded update could not be verified or installed") }
         }
@@ -357,7 +368,10 @@ class AppUpdateInstaller @Inject constructor(
             argumentSha256 = argumentHash,
             installedCertificates = signatureSha256Set(installed, Build.VERSION.SDK_INT),
             candidateCertificates = signatureSha256Set(candidate, Build.VERSION.SDK_INT),
-            expectedCertificate = persisted.signingCertificateSha256
+            expectedCertificate = persisted.signingCertificateSha256,
+            deviceSdk = Build.VERSION.SDK_INT,
+            candidateMinSdk = candidate?.applicationInfo?.minSdkVersion,
+            expectedMinSdk = persisted.minSdk,
         ))
     }
 

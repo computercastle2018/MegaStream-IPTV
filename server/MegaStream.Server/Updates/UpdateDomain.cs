@@ -179,7 +179,7 @@ public sealed class UpdateService(AppDbContext db, ApkStorage storage)
         var latest = await db.Set<UpdateRelease>().AsNoTracking().Where(x => x.Status == UpdateReleaseStatus.Published &&
             x.VersionCode > request.VersionCode && x.PackageName == request.PackageName && x.Channel == request.Channel &&
             x.MinSdk <= request.Sdk && (x.Abi == "universal" || x.Abi == request.Abi))
-            .OrderByDescending(x => x.Abi == request.Abi).ThenByDescending(x => x.VersionCode).FirstOrDefaultAsync(ct);
+            .OrderByDescending(x => x.VersionCode).ThenByDescending(x => x.Abi == request.Abi).FirstOrDefaultAsync(ct);
         var pending = await PendingCoreAsync(installationId, ct);
         await tx.CommitAsync(ct);
         return new(latest is null ? null : Manifest(latest), pending);
@@ -291,7 +291,7 @@ public sealed class UpdateService(AppDbContext db, ApkStorage storage)
         if (channel is not ("stable" or "beta") || !DeviceAbi(abi)) throw Invalid("Invalid channel or ABI.");
         var release = await db.Set<UpdateRelease>().AsNoTracking().Where(x => x.Status == UpdateReleaseStatus.Published &&
             x.Channel == channel && (x.Abi == "universal" || x.Abi == abi))
-            .OrderByDescending(x => x.Abi == abi).ThenByDescending(x => x.VersionCode).FirstOrDefaultAsync(ct);
+            .OrderByDescending(x => x.VersionCode).ThenByDescending(x => x.Abi == abi).FirstOrDefaultAsync(ct);
         return release is null ? null : Manifest(release);
     }
 
