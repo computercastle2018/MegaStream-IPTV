@@ -7,6 +7,8 @@ import { refreshAllContent } from "../services/content";
 import { onBack } from "../remote/keys";
 import { useLang } from "../i18n/LanguageContext";
 
+declare const __APP_VERSION__: string;
+
 interface Props {
   provider: Provider;
   onOpenType: (type: ContentType) => void;
@@ -126,7 +128,7 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
         </div>
       </div>
 
-      <div className="home-version">v3.0.4</div>
+      <div className="home-version">v{__APP_VERSION__}</div>
 
       {syncing && <LoadingOverlay message={t("home.syncing")} />}
     </div>

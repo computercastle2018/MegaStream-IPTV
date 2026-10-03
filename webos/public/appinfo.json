@@ -1,10 +1,10 @@
 {
   "id": "uk.megastation.megastream",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "vendor": "Megastation LTD",
   "type": "web",
   "main": "index.html",
-  "title": "MegaStream 3.0.5",
+  "title": "MegaStream 3.0.6",
   "icon": "icon.png",
   "largeIcon": "icon.png",
   "iconColor": "#0f766e",

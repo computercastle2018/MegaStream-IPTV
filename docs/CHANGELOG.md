@@ -2,6 +2,13 @@
 
 All notable product changes are recorded in this document.
 
+## [3.0.15 / 3.0.6] - 2026-10-03
+
+### Fixed
+
+- Fixed the webOS home screen showing a stale hardcoded version label (`v3.0.4`); it now reads the webOS package version at build time.
+- Version maintenance release: Android `3.0.15` (versionCode 48) and webOS `3.0.6`. A design critique of the webOS home screen was recorded read-only under `.impeccable/critique/`; no visual design changes were made in this release.
+
 ## [2.1.6] - 2026-09-16
 
 ### Fixed

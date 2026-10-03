@@ -1,6 +1,6 @@
 {
   "name": "MegaStream-webos",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "private": true,
   "description": "MegaStream IPTV — standalone webOS TV app (Live TV MVP)",
   "type": "module",
@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "package": "npm run build && ares-package dist -o out",
-    "install-tv": "ares-install -d tv out/uk.megastation.megastream_3.0.5_all.ipk",
+    "install-tv": "ares-install -d tv out/uk.megastation.megastream_3.0.6_all.ipk",
     "launch-tv": "ares-launch -d tv uk.megastation.megastream"
   },
   "dependencies": {
