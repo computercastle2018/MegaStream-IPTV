@@ -4,10 +4,27 @@ import type { ContentItem, ContentType, Provider } from "../types";
 import { groupByCategory, loadContent, supportedTypes } from "../services/content";
 import { compareNames, matchesQuery, normalizeText } from "../services/text";
 import { onBack } from "../remote/keys";
-import { BackButton, FocusButton, LanguageToggle, SearchInput } from "../components/Focusable";
+import { BackButton, FocusButton, HomeButton, LanguageToggle, SearchInput } from "../components/Focusable";
 import { useLang } from "../i18n/LanguageContext";
+import ContentImage from "../components/ContentImage";
+import { RefreshCw, Star } from "lucide-react";
+import { groupGenre, groupGenreLabels, type GroupGenre } from "../services/groupGenre";
 
 type SortBy = "added" | "name";
+
+export interface BrowseState {
+  category: string;
+  sortBy: SortBy;
+  query: string;
+  searchOpen: boolean;
+  selectedId: string | null;
+  favoritesOnly: boolean;
+  genre: GroupGenre;
+}
+
+export const initialBrowseState: BrowseState = {
+  category: "__all__", sortBy: "added", query: "", searchOpen: false, selectedId: null, favoritesOnly: false, genre: "all",
+};
 
 const TYPE_KEYS: Record<ContentType, string> = {
   live: "content.live",
@@ -23,6 +40,8 @@ interface Props {
   onSelectProvider: (id: string) => void;
   onSelect: (item: ContentItem) => void;
   onManageProviders: () => void;
+  viewState: BrowseState;
+  onViewStateChange: (next: BrowseState) => void;
 }
 
 const ALL = "__all__";
@@ -39,24 +58,58 @@ export default function ContentScreen({
   onChangeType,
   onSelect,
   onManageProviders,
+  viewState,
+  onViewStateChange,
 }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const ar = lang === "ar";
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState<string>(ALL);
-  const [sortBy, setSortBy] = useState<SortBy>("added");
-  const [query, setQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [restoreFocus, setRestoreFocus] = useState(true);
+  const [refresh, setRefresh] = useState(0);
+  const orderKey = `MegaStream.groupOrder.${provider.id}.${contentType}`;
+  const [groupOrder, setGroupOrder] = useState(() => {
+    const saved = localStorage.getItem(orderKey);
+    return saved === "asc" || saved === "desc" ? saved : "provider";
+  });
+  const favoritesKey = `MegaStream.favorites.${provider.id}`;
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(favoritesKey) || "[]");
+      return new Set(Array.isArray(saved) ? saved.filter((id): id is string => typeof id === "string") : []);
+    } catch { return new Set(); }
+  });
+  const { category, sortBy, query, searchOpen, selectedId, favoritesOnly, genre } = viewState;
+  const { ref: orderRef, focused: orderFocused, focusSelf: focusOrder } = useFocusable<HTMLSelectElement>({
+    onEnterPress: () => orderRef.current?.focus(),
+  });
+  useEffect(() => { if (orderFocused) orderRef.current?.focus(); }, [orderFocused, orderRef]);
+  const { ref: genreRef, focused: genreFocused, focusSelf: focusGenre } = useFocusable<HTMLSelectElement>({
+    onEnterPress: () => genreRef.current?.focus(),
+  });
+  useEffect(() => { if (genreFocused) genreRef.current?.focus(); }, [genreFocused, genreRef]);
+  const toggleFavorite = (id: string) => {
+    const next = new Set(favorites);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    localStorage.setItem(favoritesKey, JSON.stringify([...next]));
+    setFavorites(next);
+  };
+  const setCategory = (category: string) => {
+    setRestoreFocus(false);
+    onViewStateChange({ ...viewState, category, selectedId: null });
+  };
+  const setSortBy = (sortBy: SortBy) => onViewStateChange({ ...viewState, sortBy });
+  const setQuery = (query: string) => onViewStateChange({ ...viewState, query, selectedId: null });
+  const setSearchOpen = (searchOpen: boolean) => onViewStateChange({ ...viewState, searchOpen });
 
   const types = useMemo(() => supportedTypes(provider), [provider]);
 
   const closeSearch = () => {
-    setSearchOpen(false);
-    setQuery("");
+    onViewStateChange({ ...viewState, searchOpen: false, query: "" });
   };
 
-  // Back closes the search box first (if open), otherwise leaves to providers.
+  // Return one level at a time; opening connection settings is an explicit action.
   useEffect(
     () => onBack(() => (searchOpen ? closeSearch() : onManageProviders())),
     [searchOpen, onManageProviders],
@@ -71,11 +124,9 @@ export default function ContentScreen({
     const controller = new AbortController();
     setLoading(true);
     setError(null);
-    setCategory(ALL);
-    setQuery("");
-    setSearchOpen(false);
-    loadContent(provider, contentType, controller.signal)
+    loadContent(provider, contentType, controller.signal, refresh > 0)
       .then((list) => {
+        if (controller.signal.aborted) return;
         setItems(list);
         setLoading(false);
       })
@@ -85,10 +136,12 @@ export default function ContentScreen({
         setLoading(false);
       });
     return () => controller.abort();
-  }, [provider, contentType]);
+  }, [provider, contentType, refresh]);
 
+  const genreItems = useMemo(() => genre === "all" ? items : items.filter(item => groupGenre(item.groupTitle || "") === genre), [items, genre]);
+  const availableGenres = useMemo(() => new Set(items.map(item => groupGenre(item.groupTitle || ""))), [items]);
   const sorted = useMemo(() => {
-    const copy = [...items];
+    const copy = [...genreItems];
     if (sortBy === "name") {
       copy.sort((a, b) => compareNames(a.name, b.name));
     } else {
@@ -97,24 +150,29 @@ export default function ContentScreen({
       copy.sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0));
     }
     return copy;
-  }, [items, sortBy]);
+  }, [genreItems, sortBy]);
 
   const grouped = useMemo(() => groupByCategory(sorted), [sorted]);
 
   const categoryEntries = useMemo<CategoryEntry[]>(() => {
     const entries: CategoryEntry[] = [{ key: ALL, label: t("common.all"), count: sorted.length }];
-    for (const [name, list] of grouped) entries.push({ key: name, label: name, count: list.length });
+    const categories = [...groupByCategory(genreItems)].map(([name, list]) => ({ key: name, label: name, count: list.length }));
+    if (groupOrder !== "provider") categories.sort((a, b) => compareNames(a.label, b.label) * (groupOrder === "desc" ? -1 : 1));
+    entries.push(...categories);
     return entries;
-  }, [grouped, sorted.length, t]);
+  }, [genreItems, groupOrder, sorted.length, t]);
 
   const normalizedQuery = useMemo(() => normalizeText(query), [query]);
-  const base = category === ALL ? sorted : grouped.get(category) ?? [];
+  const selectedGroup = category === ALL || !grouped.has(category) ? sorted : grouped.get(category)!;
+  const base = favoritesOnly ? selectedGroup.filter(item => favorites.has(item.id)) : selectedGroup;
   const visible = normalizedQuery ? base.filter((i) => matchesQuery(i.name, normalizedQuery)) : base;
+  const focusId = visible.find(item => item.id === selectedId)?.id ?? visible[0]?.id;
 
   return (
     <div className="screen">
       <header className="app-header">
         <BackButton onEnter={onManageProviders} />
+        <HomeButton onEnter={onManageProviders} />
         <h1>MegaStream</h1>
         <span className="subtitle">{provider.name}</span>
         <div className="type-tabs">
@@ -129,6 +187,13 @@ export default function ContentScreen({
             </FocusButton>
           ))}
         </div>
+        <FocusButton className="back-btn sync-current" disabled={loading} title={ar ? "مزامنة القائمة" : "Sync this list"} onEnter={() => setRefresh(value => value + 1)}>
+          <RefreshCw size={20} aria-hidden="true" />{ar ? "مزامنة" : "Sync"}
+        </FocusButton>
+        {window.megastreamDesktop && contentType === "live" && <FocusButton className={`back-btn favorites-toggle ${favoritesOnly ? "active" : ""}`}
+          pressed={favoritesOnly} onEnter={() => onViewStateChange({ ...viewState, favoritesOnly: !favoritesOnly })}>
+          <Star size={20} aria-hidden="true" fill={favoritesOnly ? "currentColor" : "none"} />{ar ? "المفضلة" : "Favorites"}
+        </FocusButton>}
         <LanguageToggle />
       </header>
 
@@ -143,6 +208,16 @@ export default function ContentScreen({
       {!loading && !error && (
         <>
           <div className="browse-toolbar">
+            <label className="genre-control"><span>{ar ? "الفئة" : "Category"}</span>
+              <select className="genre-select" ref={genreRef} value={genre} onFocus={() => focusGenre()}
+                onKeyDown={event => event.stopPropagation()} onChange={event => {
+                  setRestoreFocus(false);
+                  onViewStateChange({ ...viewState, genre: event.target.value as GroupGenre, category: ALL, selectedId: null });
+                }}>
+                {(Object.keys(groupGenreLabels[lang]) as GroupGenre[]).filter(key => key === "all" || availableGenres.has(key) || key === genre).map(key =>
+                  <option value={key} key={key}>{groupGenreLabels[lang][key]}</option>)}
+              </select>
+            </label>
             {searchOpen ? (
               <SearchInput value={query} onChange={setQuery} placeholder={t("common.searchPh")} autoFocus />
             ) : (
@@ -172,6 +247,17 @@ export default function ContentScreen({
           </div>
           <div className="channels-body">
             <nav className="category-rail">
+            <label className="group-sort-control">
+              <span>{ar ? "ترتيب المجموعات" : "Group order"}</span>
+              <select ref={orderRef} className="group-sort" value={groupOrder} onFocus={() => focusOrder()}
+                onKeyDown={event => event.stopPropagation()} onChange={event => {
+                  setGroupOrder(event.target.value); localStorage.setItem(orderKey, event.target.value);
+                }}>
+                <option value="provider">{ar ? "حسب الفئة · ترتيب المزوّد" : "Category · provider order"}</option>
+                <option value="asc">{ar ? "أبجديًا · أ–ي" : "Alphabetical · A–Z"}</option>
+                <option value="desc">{ar ? "أبجديًا · ي–أ" : "Alphabetical · Z–A"}</option>
+              </select>
+            </label>
             <div className="rail-label">{t("common.categories")}</div>
             {categoryEntries.map((entry) => (
               <CategoryItem
@@ -182,12 +268,18 @@ export default function ContentScreen({
               />
             ))}
           </nav>
-          <div className={`content-grid ${contentType === "live" ? "live" : "poster"}`}>
+          <div key={JSON.stringify([category, genre, normalizedQuery, sortBy])} className={`content-grid ${contentType === "live" ? "live" : "poster"}`}>
             {visible.length === 0 ? (
               <div className="center-msg">{t("common.nothingHere")}</div>
             ) : (
-              visible.map((item, i) => (
-                <ContentCard key={item.id} item={item} autoFocus={i === 0} onSelect={() => onSelect(item)} />
+              visible.map((item) => (
+                <ContentCard key={item.id} item={item}
+                  favorite={favorites.has(item.id)} onFavorite={window.megastreamDesktop && contentType === "live" ? () => toggleFavorite(item.id) : undefined}
+                  autoFocus={restoreFocus && !searchOpen && item.id === focusId}
+                  onSelect={() => {
+                    onViewStateChange({ ...viewState, selectedId: item.id });
+                    onSelect(item);
+                  }} />
               ))
             )}
             </div>
@@ -207,12 +299,18 @@ function CategoryItem({
   active: boolean;
   onSelect: () => void;
 }) {
-  const { ref, focused } = useFocusable({ onEnterPress: onSelect });
+  const { ref, focused, focusSelf } = useFocusable({
+    onEnterPress: onSelect,
+    onFocus: ({ node }) => node.scrollIntoView({ block: "nearest", inline: "nearest" }),
+  });
   return (
     <div
       ref={ref}
       className={`category-item ${active ? "active" : ""} ${focused ? "focused" : ""}`}
-      onClick={onSelect}
+      onClick={() => { focusSelf(); onSelect(); }}
+      onFocus={() => focusSelf()}
+      role="button"
+      tabIndex={0}
       title={entry.label}
     >
       <span className="cat-name">{entry.label}</span>
@@ -225,35 +323,45 @@ function ContentCard({
   item,
   autoFocus,
   onSelect,
+  favorite,
+  onFavorite,
 }: {
   item: ContentItem;
   autoFocus: boolean;
   onSelect: () => void;
+  favorite: boolean;
+  onFavorite?: () => void;
 }) {
-  const { ref, focused, focusSelf } = useFocusable({ onEnterPress: onSelect });
+  const { lang } = useLang();
+  const { ref, focused, focusSelf } = useFocusable({
+    onEnterPress: onSelect,
+    onFocus: ({ node }) => node.scrollIntoView({ block: "nearest", inline: "nearest" }),
+  });
   useEffect(() => {
     if (autoFocus) focusSelf();
   }, [autoFocus, focusSelf]);
 
   if (item.kind === "live") {
     return (
-      <div ref={ref} className={`channel-card focusable ${focused ? "focused" : ""}`} onClick={onSelect}>
+      <div ref={ref} role="button" tabIndex={0} onFocus={event => { if (event.target === event.currentTarget) focusSelf(); }} className={`channel-card focusable ${focused ? "focused" : ""}`} onClick={() => { focusSelf(); onSelect(); }}>
         <span className="num">{item.number ?? ""}</span>
-        {item.imageUrl ? <img className="logo" src={item.imageUrl} alt="" loading="lazy" /> : <span className="logo" />}
+        <ContentImage src={item.imageUrl} name={item.name} logo />
         <span className="name">{item.name}</span>
+        {onFavorite && <button className="favorite-button" aria-pressed={favorite}
+          title={lang === "ar" ? (favorite ? "إزالة من المفضلة" : "إضافة إلى المفضلة") : (favorite ? "Remove favorite" : "Add favorite")}
+          onFocus={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}
+          onClick={event => { event.stopPropagation(); onFavorite(); }}>
+          <Star size={21} fill={favorite ? "currentColor" : "none"} aria-hidden="true" />
+        </button>}
       </div>
     );
   }
 
   // Movie / series poster card
   return (
-    <div ref={ref} className={`poster-card focusable ${focused ? "focused" : ""}`} onClick={onSelect}>
+    <div ref={ref} role="button" tabIndex={0} onFocus={() => focusSelf()} className={`poster-card focusable ${focused ? "focused" : ""}`} onClick={() => { focusSelf(); onSelect(); }}>
       <div className="poster-img">
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt="" loading="lazy" />
-        ) : (
-          <span className="poster-fallback">{item.name.charAt(0).toUpperCase()}</span>
-        )}
+        <ContentImage src={item.imageUrl} name={item.name} />
       </div>
       <span className="poster-name" title={item.name}>
         {item.name}

@@ -75,7 +75,7 @@
         <form asp-action="SetDeviceUiStyle" method="post">
             <input type="hidden" name="Id" value="@Model.Device.Id" />
             <label for="device-ui-style">تجاوز تصميم الجهاز</label>
-            <select id="device-ui-style" name="UiStyle">
+            <select id="device-ui-style" name="UiStyle" data-apply-appearance>
                 <option value="">وراثة الترخيص أو اختيار الجهاز المحلي</option>
                 @foreach (var style in new[] { "classic", "modern", "studio" })
                 { <option value="@style" selected="@(Model.Device.UiStyle == style)">@AdminDisplay.UiStyleName(style)</option> }
@@ -117,6 +117,7 @@
 @section Scripts {
     <script src="~/js/device-version-refresh.js" asp-append-version="true" defer></script>
     <script src="~/js/provider-credentials.js" asp-append-version="true" defer></script>
+    <script src="~/js/apply-appearance.js" asp-append-version="true" defer></script>
 }
 <section id="device-subscription-policy" class="panel">
     <h2>سياسة معلومات الاشتراك</h2>

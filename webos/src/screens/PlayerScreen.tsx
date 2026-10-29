@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import type { Playable } from "../types";
 import { useHlsPlayer } from "../player/useHlsPlayer";
 import { onBack } from "../remote/keys";
-import { BackButton } from "../components/Focusable";
+import { BackButton, FocusButton, HomeButton } from "../components/Focusable";
+import { RefreshCw } from "lucide-react";
 import { useLang } from "../i18n/LanguageContext";
 
 interface Props {
   channel: Playable;
   onBack: () => void;
+  onHome: () => void;
 }
 
-export default function PlayerScreen({ channel, onBack: goBack }: Props) {
-  const { t } = useLang();
-  const { videoRef, state, error } = useHlsPlayer(channel);
+export default function PlayerScreen({ channel, onBack: goBack, onHome }: Props) {
+  const { t, lang } = useLang();
+  const { videoRef, state, error, retry } = useHlsPlayer(channel);
   const [overlayVisible, setOverlayVisible] = useState(true);
+  const [interaction, setInteraction] = useState(0);
 
   useEffect(() => onBack(goBack), [goBack]);
 
@@ -25,21 +28,23 @@ export default function PlayerScreen({ channel, onBack: goBack }: Props) {
     }
     const t = setTimeout(() => setOverlayVisible(false), 4000);
     return () => clearTimeout(t);
-  }, [state]);
+  }, [state, interaction]);
 
   // Any key press re-shows the banner.
   useEffect(() => {
-    const show = () => setOverlayVisible(true);
+    const show = () => { setOverlayVisible(true); setInteraction((value) => value + 1); };
     window.addEventListener("keydown", show);
-    return () => window.removeEventListener("keydown", show);
+    window.addEventListener("pointermove", show);
+    return () => { window.removeEventListener("keydown", show); window.removeEventListener("pointermove", show); };
   }, []);
 
   return (
-    <div className="player-screen">
-      <video ref={videoRef} autoPlay playsInline />
+    <div className={`player-screen ${window.megastreamDesktop ? "desktop-player" : ""}`}>
+      <video ref={videoRef} autoPlay playsInline controls={Boolean(window.megastreamDesktop)} />
 
       <div className={`player-top ${overlayVisible ? "" : "hidden"}`}>
         <BackButton onEnter={goBack} autoFocus />
+        <HomeButton onEnter={onHome} />
       </div>
 
       {state === "loading" && <div className="center-msg">{t("player.tuning")}</div>}
@@ -47,6 +52,9 @@ export default function PlayerScreen({ channel, onBack: goBack }: Props) {
         <div className="center-msg error">
           <div>{t("player.failed")}</div>
           {error && <div style={{ fontSize: 22 }}>{error}</div>}
+          <FocusButton className="back-btn retry-playback" onEnter={retry} autoFocus>
+            <RefreshCw size={20} aria-hidden="true" />{lang === "ar" ? "إعادة المحاولة" : "Retry playback"}
+          </FocusButton>
           <div style={{ fontSize: 20 }}>{t("player.back")}</div>
         </div>
       )}

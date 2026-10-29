@@ -6,6 +6,8 @@ namespace MegaStream.Server.V1;
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record V1RegisterRequest
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Platform { get; init; }
     public required Guid InstallationId { get; init; }
     public required string Credential { get; init; }
     public required int AppVersionCode { get; init; }

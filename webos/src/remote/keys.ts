@@ -25,6 +25,10 @@ export const RemoteKey = {
  */
 export function onBack(handler: () => void): () => void {
   const listener = (e: KeyboardEvent) => {
+    if (e.defaultPrevented || e.isComposing || e.repeat) return;
+    const target = e.target instanceof Element ? e.target : null;
+    if (target?.closest('[role="dialog"]')) return;
+    if (e.key === "Backspace" && target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
     if (e.keyCode === RemoteKey.Back || e.key === "Backspace" || e.key === "Escape") {
       e.preventDefault();
       handler();

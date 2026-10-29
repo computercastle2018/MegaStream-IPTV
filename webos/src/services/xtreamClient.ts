@@ -8,6 +8,7 @@
 //   {server}/live|movie|series/{user}/{pass}/{id}.{ext}         -> playback
 import type { ContentItem, Episode, XtreamProvider } from "../types";
 import { episodeTimestamp } from "./episodes";
+import { resolveImageUrl } from "./images";
 
 interface XtreamAuthResponse {
   user_info?: { auth?: number; status?: string; message?: string; exp_date?: string | number | null };
@@ -169,9 +170,10 @@ export async function getLiveStreams(p: XtreamProvider, signal?: AbortSignal): P
       kind: "live" as const,
       name: String(d.name),
       number: normalizeNum(d.num),
-      imageUrl: d.stream_icon || undefined,
+      imageUrl: resolveImageUrl(d.stream_icon, trimServer(p.serverUrl) + "/"),
       groupTitle: resolveCategory(cats, d.category_id, d.category_name),
       streamUrl: `${trimServer(p.serverUrl)}/live/${seg(p.username)}/${seg(p.password)}/${seg(String(d.stream_id))}.m3u8`,
+      fallbackStreamUrl: `${trimServer(p.serverUrl)}/live/${seg(p.username)}/${seg(p.password)}/${seg(String(d.stream_id))}.ts`,
       streamFormat: "hls" as const,
       addedAt: normalizeNum(d.added),
     }));
@@ -191,7 +193,7 @@ export async function getMovies(p: XtreamProvider, signal?: AbortSignal): Promis
         id: `${p.id}:movie:${d.stream_id}`,
         kind: "movie" as const,
         name: String(d.name),
-        imageUrl: d.stream_icon || undefined,
+        imageUrl: resolveImageUrl(d.stream_icon, trimServer(p.serverUrl) + "/"),
         groupTitle: resolveCategory(cats, d.category_id, d.category_name),
         streamUrl: `${trimServer(p.serverUrl)}/movie/${seg(p.username)}/${seg(p.password)}/${seg(String(d.stream_id))}.${ext}`,
         streamFormat: "auto" as const,
@@ -212,7 +214,7 @@ export async function getSeries(p: XtreamProvider, signal?: AbortSignal): Promis
       id: `${p.id}:series:${d.series_id}`,
       kind: "series" as const,
       name: String(d.name),
-      imageUrl: d.cover || undefined,
+      imageUrl: resolveImageUrl(d.cover, trimServer(p.serverUrl) + "/"),
       groupTitle: resolveCategory(cats, d.category_id, d.category_name),
       streamFormat: "auto" as const,
       seriesId: String(d.series_id),

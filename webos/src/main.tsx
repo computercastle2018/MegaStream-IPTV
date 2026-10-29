@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { init } from "@noriginmedia/norigin-spatial-navigation";
 import App from "./App";
 import ConnectionStatus from "./components/ConnectionStatus";
+import DesktopControl from "./components/DesktopControl";
+import { AppearanceProvider } from "./components/Appearance";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import "./index.css";
 
@@ -16,7 +18,7 @@ init({
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LanguageProvider>
-      <App />
+      <AppearanceProvider><DesktopControl><App /></DesktopControl></AppearanceProvider>
       <ConnectionStatus />
     </LanguageProvider>
   </StrictMode>,

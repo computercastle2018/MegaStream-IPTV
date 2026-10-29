@@ -3,7 +3,7 @@ import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import type { ContentItem, Episode, Playable, Provider } from "../types";
 import { getEpisodes } from "../services/xtreamClient";
 import { onBack } from "../remote/keys";
-import { BackButton, FocusButton, SearchInput } from "../components/Focusable";
+import { BackButton, FocusButton, HomeButton, SearchInput } from "../components/Focusable";
 import { useLang } from "../i18n/LanguageContext";
 import { selectEpisodes, type EpisodeOrder } from "../services/episodes";
 import "./EpisodesScreen.css";
@@ -18,9 +18,10 @@ interface Props {
   series: ContentItem;
   onPlay: (episode: Playable) => void;
   onBack: () => void;
+  onHome: () => void;
 }
 
-export default function EpisodesScreen({ provider, series, onPlay, onBack: goBack }: Props) {
+export default function EpisodesScreen({ provider, series, onPlay, onBack: goBack, onHome }: Props) {
   const { t, lang } = useLang();
   const labels = episodeLabels[lang];
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -81,6 +82,7 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
     <div className="screen episodes-screen">
       <header className="app-header">
         <BackButton onEnter={goBack} autoFocus />
+        <HomeButton onEnter={onHome} />
         <h1 className="series-title">{series.name}</h1>
         <span className="subtitle">{t("episodes.series")}</span>
       </header>

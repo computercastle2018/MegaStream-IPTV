@@ -6,6 +6,7 @@ import { getAccountInfo } from "../services/xtreamClient";
 import { refreshAllContent } from "../services/content";
 import { onBack } from "../remote/keys";
 import { useLang } from "../i18n/LanguageContext";
+import { AppearanceDialog, useAppearance } from "../components/Appearance";
 
 declare const __APP_VERSION__: string;
 
@@ -17,11 +18,14 @@ interface Props {
 }
 
 export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onSettings }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const { design } = useAppearance();
   const [expiry, setExpiry] = useState<string>(t("home.unlimited"));
   const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<"done" | "failed" | null>(null);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
-  useEffect(() => onBack(onChangePlaylist), [onChangePlaylist]);
+  useEffect(() => onBack(() => {}), []);
 
   const refreshExpiry = useCallback(
     async (signal?: AbortSignal) => {
@@ -54,10 +58,12 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
   const handleReload = useCallback(async () => {
     if (syncing) return;
     setSyncing(true);
+    setSyncResult(null);
     try {
       await Promise.all([refreshAllContent(provider), refreshExpiry()]);
+      setSyncResult("done");
     } catch {
-      // Errors surface again when the user opens a section; keep the home calm.
+      setSyncResult("failed");
     } finally {
       setSyncing(false);
     }
@@ -67,7 +73,7 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
     <div className="home-screen">
       <header className="home-header">
         <div className="home-brand">
-          <svg className="home-logo" viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true">
+          {design !== "classic" ? <img className="home-logo" src="./icon.png" alt="" /> : <svg className="home-logo" viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true">
             <defs>
               <linearGradient id="home-grad" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stopColor="#a855f7" />
@@ -76,7 +82,7 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
             </defs>
             <rect x="3" y="3" width="42" height="42" rx="12" fill="url(#home-grad)" />
             <path d="M20 17l11 7-11 7z" fill="#fff" />
-          </svg>
+          </svg>}
           <span className="home-title">MegaStream</span>
         </div>
         <div className="home-meta">
@@ -101,11 +107,11 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
           <span className="tile-label">{t("home.series")}</span>
         </FocusButton>
 
-        <FocusButton className="home-tile tile-muted" onEnter={() => {}}>
+        {design === "classic" && <FocusButton className="home-tile tile-muted" onEnter={() => {}}>
           <IconSports />
           <span className="tile-label">{t("home.sportsGuide")}</span>
           <span className="tile-badge">{t("home.soon")}</span>
-        </FocusButton>
+        </FocusButton>}
 
         <FocusButton className="home-tile" onEnter={onChangePlaylist}>
           <IconSwap />
@@ -113,13 +119,13 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
         </FocusButton>
 
         <div className="home-side">
-          <FocusButton className="side-btn" onEnter={onSettings}>
+          <FocusButton className="side-btn appearance-open" onEnter={() => setAppearanceOpen(true)}>
             <IconGear />
             <span>{t("home.settings")}</span>
           </FocusButton>
-          <FocusButton className="side-btn" onEnter={handleReload}>
+          <FocusButton className="side-btn sync-all" onEnter={handleReload} disabled={syncing}>
             <IconReload />
-            <span>{t("home.reload")}</span>
+            <span>{lang === "ar" ? "مزامنة جميع القوائم" : "Sync all lists"}</span>
           </FocusButton>
           <FocusButton className="side-btn" onEnter={() => window.close()}>
             <IconExit />
@@ -128,9 +134,17 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
         </div>
       </div>
 
+      {syncResult && <div role="status" className="sync-result">{syncResult === "done"
+        ? (lang === "ar" ? "تمت المزامنة" : "Sync complete")
+        : (lang === "ar" ? "تعذرت المزامنة. أعد المحاولة." : "Sync failed. Try again.")}</div>}
+
       <div className="home-version">v{__APP_VERSION__}</div>
 
       {syncing && <LoadingOverlay message={t("home.syncing")} />}
+      {appearanceOpen && <AppearanceDialog onClose={() => setAppearanceOpen(false)} onAccount={() => {
+        if (window.megastreamDesktop) window.dispatchEvent(new Event("megastream-license-open"));
+        else onSettings();
+      }} />}
     </div>
   );
 }

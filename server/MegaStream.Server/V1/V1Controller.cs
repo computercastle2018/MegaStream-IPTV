@@ -40,7 +40,7 @@ public sealed class V1Controller(V1Service service, V1Diagnostics diagnostics, U
     {
         var installationId = InstallationId();
         var entitlement = await service.HeartbeatAsync(installationId, request, ct);
-        var update = entitlement.Decision.State == "installation_disabled"
+        var update = entitlement.Decision.State == "installation_disabled" || request.PackageName == "uk.megastation.megastream.desktop"
             ? null : await updates.GetPendingAsync(installationId, ct);
         return Ok(new V1HeartbeatResponse(entitlement.Decision, entitlement.ServerTime, entitlement.RefreshAfterSeconds,
             entitlement.Lease, update, entitlement.DevicePolicy));

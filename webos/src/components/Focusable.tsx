@@ -2,18 +2,23 @@ import { useEffect } from "react";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useLang } from "../i18n/LanguageContext";
 import { LANGUAGES } from "../i18n/translations";
+import { Home } from "lucide-react";
 
 interface FocusButtonProps {
   className?: string;
   onEnter: () => void;
   focusKey?: string;
   autoFocus?: boolean;
+  title?: string;
+  disabled?: boolean;
+  pressed?: boolean;
   children: React.ReactNode;
 }
 
 /** A D-pad-focusable button. Enter/OK triggers onEnter. */
-export function FocusButton({ className = "", onEnter, focusKey, autoFocus, children }: FocusButtonProps) {
-  const { ref, focused, focusSelf } = useFocusable({ focusKey, onEnterPress: onEnter });
+export function FocusButton({ className = "", onEnter, focusKey, autoFocus, title, disabled = false, pressed, children }: FocusButtonProps) {
+  const activate = () => { if (!disabled) onEnter(); };
+  const { ref, focused, focusSelf } = useFocusable({ focusKey, focusable: !disabled, onEnterPress: activate });
 
   useEffect(() => {
     if (autoFocus) focusSelf();
@@ -23,19 +28,32 @@ export function FocusButton({ className = "", onEnter, focusKey, autoFocus, chil
     <div
       ref={ref}
       className={`focusable ${className} ${focused ? "focused" : ""}`}
-      onClick={onEnter}
+      onClick={() => { if (!disabled) { focusSelf(); activate(); } }}
+      onFocus={() => focusSelf()}
       role="button"
-      tabIndex={0}
+      title={title}
+      aria-label={title}
+      aria-disabled={disabled || undefined}
+      aria-pressed={pressed}
+      tabIndex={disabled ? -1 : 0}
     >
       {children}
     </div>
   );
 }
 
+export function HomeButton({ onEnter }: { onEnter: () => void }) {
+  const { lang } = useLang();
+  const label = lang === "ar" ? "الرئيسية" : "Home";
+  return <FocusButton className="back-btn home-btn" onEnter={onEnter} title={label}>
+    <Home size={20} aria-hidden="true" /><span>{label}</span>
+  </FocusButton>;
+}
+
 /** A focusable button that cycles the UI language (EN ⇄ العربية). */
 export function LanguageToggle() {
   const { lang, setLang } = useLang();
-  const { ref, focused } = useFocusable({
+  const { ref, focused, focusSelf } = useFocusable({
     onEnterPress: () => setLang(lang === "ar" ? "en" : "ar"),
   });
   const next = LANGUAGES.find((l) => l.code !== lang);
@@ -44,6 +62,7 @@ export function LanguageToggle() {
       ref={ref}
       className={`focusable lang-toggle ${focused ? "focused" : ""}`}
       onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+      onFocus={() => focusSelf()}
       role="button"
       tabIndex={0}
       aria-label={`Switch to ${next?.label}`}
@@ -83,6 +102,7 @@ export function BackButton({ onEnter, label, autoFocus }: BackButtonProps) {
       ref={ref}
       className={`focusable back-btn ${focused ? "focused" : ""}`}
       onClick={onEnter}
+      onFocus={() => focusSelf()}
       role="button"
       tabIndex={0}
       aria-label={text}
@@ -141,6 +161,8 @@ export function SearchInput({ value, onChange, placeholder = "Search", autoFocus
         dir="auto"
         autoComplete="off"
         onChange={(e) => onChange(e.target.value)}
+        onFocus={() => focusSelf()}
+        onKeyDown={(e) => { if (e.key.startsWith("Arrow")) e.stopPropagation(); }}
       />
       {value && (
         <>
@@ -173,7 +195,7 @@ interface FocusInputProps {
  * the on-screen keyboard; Enter/OK from the remote focuses it for typing.
  */
 export function FocusInput({ label, value, onChange, type = "text", placeholder }: FocusInputProps) {
-  const { ref, focused } = useFocusable<HTMLInputElement>({
+  const { ref, focused, focusSelf } = useFocusable<HTMLInputElement>({
     focusable: true,
     onEnterPress: () => ref.current?.focus(),
   });
@@ -195,6 +217,8 @@ export function FocusInput({ label, value, onChange, type = "text", placeholder 
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={() => focusSelf()}
+        onKeyDown={(e) => { if (e.key.startsWith("Arrow")) e.stopPropagation(); }}
       />
     </div>
   );

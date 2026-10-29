@@ -1,0 +1,29 @@
+{
+  "name": "megastream-desktop",
+  "version": "3.0.24",
+  "private": true,
+  "description": "MegaStream desktop IPTV player",
+  "author": "Megastation LTD",
+  "main": "main.cjs",
+  "scripts": {
+    "build": "node build.cjs",
+    "start": "electron .",
+    "test": "node --test *.test.cjs",
+    "package:mac": "electron-builder --mac zip --arm64 --x64",
+    "package:win": "electron-builder --win zip --x64",
+    "package": "npm run build && npm run package:mac && npm run package:win"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "uk.megastation.megastream.desktop",
+    "productName": "MegaStream",
+    "directories": { "output": "release" },
+    "files": ["main.cjs", "preload.cjs", "security.cjs", "encrypted-store.cjs", "control-plane.cjs", "lease.cjs", "ui/**/*", "package.json"],
+    "artifactName": "MegaStream-${version}-${os}-${arch}.${ext}",
+    "mac": { "icon": "../webos/store/icon-512.png", "category": "public.app-category.entertainment", "target": [{"target": "zip", "arch": ["arm64", "x64"]}], "identity": null },
+    "win": { "target": [{"target": "zip", "arch": ["x64"]}], "signAndEditExecutable": false }
+  }
+}

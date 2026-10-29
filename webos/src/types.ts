@@ -32,6 +32,7 @@ export interface ContentItem {
   groupTitle: string;
   /** Present for directly-playable items (live + movie); absent for series cards. */
   streamUrl?: string;
+  fallbackStreamUrl?: string;
   streamFormat: StreamFormat;
   /** Present for series cards — used to fetch episodes. */
   seriesId?: string;
@@ -56,6 +57,7 @@ export interface Playable {
   number?: number;
   groupTitle: string;
   streamUrl: string;
+  fallbackStreamUrl?: string;
   streamFormat: StreamFormat;
 }
 

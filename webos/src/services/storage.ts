@@ -2,18 +2,20 @@ import type { Provider } from "../types";
 
 const PROVIDERS_KEY = "MegaStream.providers";
 const ACTIVE_KEY = "MegaStream.activeProviderId";
+const storage = () => window.megastreamDesktop?.storage ?? localStorage;
 
 export function loadProviders(): Provider[] {
   try {
-    const raw = localStorage.getItem(PROVIDERS_KEY);
+    const raw = storage().getItem(PROVIDERS_KEY);
     return raw ? (JSON.parse(raw) as Provider[]) : [];
-  } catch {
+  } catch (error) {
+    if (window.megastreamDesktop) throw error;
     return [];
   }
 }
 
 export function saveProviders(providers: Provider[]): void {
-  localStorage.setItem(PROVIDERS_KEY, JSON.stringify(providers));
+  storage().setItem(PROVIDERS_KEY, JSON.stringify(providers));
 }
 
 export function addProvider(provider: Provider): Provider[] {
@@ -34,12 +36,12 @@ export function removeProvider(id: string): Provider[] {
 }
 
 export function getActiveProviderId(): string | null {
-  return localStorage.getItem(ACTIVE_KEY);
+  return storage().getItem(ACTIVE_KEY);
 }
 
 export function setActiveProviderId(id: string | null): void {
-  if (id) localStorage.setItem(ACTIVE_KEY, id);
-  else localStorage.removeItem(ACTIVE_KEY);
+  if (id) storage().setItem(ACTIVE_KEY, id);
+  else storage().removeItem(ACTIVE_KEY);
 }
 
 export function newId(): string {

@@ -7,7 +7,7 @@ import {
 } from "./services/storage";
 import ProviderSetupScreen from "./screens/ProviderSetupScreen";
 import HomeScreen from "./screens/HomeScreen";
-import ContentScreen from "./screens/ContentScreen";
+import ContentScreen, { initialBrowseState, type BrowseState } from "./screens/ContentScreen";
 import EpisodesScreen from "./screens/EpisodesScreen";
 import PlayerScreen from "./screens/PlayerScreen";
 
@@ -23,8 +23,19 @@ export default function App() {
   const [series, setSeries] = useState<ContentItem | null>(null);
   const [playable, setPlayable] = useState<Playable | null>(null);
   const [playerReturn, setPlayerReturn] = useState<Route>("browse");
+  const [browseViews, setBrowseViews] = useState<Record<string, BrowseState>>({});
 
   const activeProvider = providers.find((p) => p.id === activeId) ?? providers[0] ?? null;
+  useEffect(() => {
+    const sync = () => {
+      const next = loadProviders();
+      setProviders(next);
+      setActiveId(getActiveProviderId());
+      setRoute(current => current === "setup" && next.length > 0 ? "home" : current);
+    };
+    window.addEventListener("megastream-provider-sync", sync);
+    return () => window.removeEventListener("megastream-provider-sync", sync);
+  }, []);
 
   useEffect(() => {
     if ((route === "browse" || route === "home") && !activeProvider) setRoute("setup");
@@ -39,6 +50,13 @@ export default function App() {
     persistActiveId(id);
     setActiveId(id);
   };
+  const manageProviders = () => {
+    if (!window.megastreamDesktop) { setRoute("setup"); return; }
+    window.megastreamDesktop.control.state().then(state => {
+      if (state.allowSubscriptionDetails) setRoute("setup");
+      else window.dispatchEvent(new Event("megastream-license-open"));
+    });
+  };
 
   const playItem = (item: ContentItem) => {
     if (item.kind === "series" && item.seriesId) {
@@ -52,6 +70,7 @@ export default function App() {
       number: item.number,
       groupTitle: item.groupTitle,
       streamUrl: item.streamUrl,
+      fallbackStreamUrl: item.fallbackStreamUrl,
       streamFormat: item.streamFormat,
     });
     setPlayerReturn("browse");
@@ -59,7 +78,7 @@ export default function App() {
   };
 
   if (route === "player" && playable) {
-    return <PlayerScreen channel={playable} onBack={() => setRoute(playerReturn)} />;
+    return <PlayerScreen channel={playable} onBack={() => setRoute(playerReturn)} onHome={() => setRoute("home")} />;
   }
 
   if (route === "episodes" && series && activeProvider) {
@@ -73,6 +92,7 @@ export default function App() {
           setRoute("player");
         }}
         onBack={() => setRoute("browse")}
+        onHome={() => setRoute("home")}
       />
     );
   }
@@ -80,6 +100,7 @@ export default function App() {
   if (route === "browse" && activeProvider) {
     return (
       <ContentScreen
+        key={`${activeProvider.id}:${contentType}`}
         provider={activeProvider}
         providers={providers}
         contentType={contentType}
@@ -87,6 +108,8 @@ export default function App() {
         onSelectProvider={selectActive}
         onSelect={playItem}
         onManageProviders={() => setRoute("home")}
+        viewState={browseViews[`${activeProvider.id}:${contentType}`] ?? initialBrowseState}
+        onViewStateChange={next => setBrowseViews(previous => ({ ...previous, [`${activeProvider.id}:${contentType}`]: next }))}
       />
     );
   }
@@ -99,8 +122,8 @@ export default function App() {
           setContentType(type);
           setRoute("browse");
         }}
-        onChangePlaylist={() => setRoute("setup")}
-        onSettings={() => setRoute("setup")}
+        onChangePlaylist={manageProviders}
+        onSettings={manageProviders}
       />
     );
   }
