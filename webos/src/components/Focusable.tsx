@@ -13,11 +13,13 @@ interface FocusButtonProps {
   title?: string;
   disabled?: boolean;
   pressed?: boolean;
+  expanded?: boolean;
+  hasPopup?: "dialog";
   children: React.ReactNode;
 }
 
 /** A D-pad-focusable button. Enter/OK triggers onEnter. */
-export function FocusButton({ className = "", onEnter, focusKey, autoFocus, title, disabled = false, pressed, children }: FocusButtonProps) {
+export function FocusButton({ className = "", onEnter, focusKey, autoFocus, title, disabled = false, pressed, expanded, hasPopup, children }: FocusButtonProps) {
   const activate = () => { if (!disabled) onEnter(); };
   const { ref, focused, focusSelf } = useFocusable({ focusKey, focusable: !disabled, onEnterPress: activate });
 
@@ -36,6 +38,8 @@ export function FocusButton({ className = "", onEnter, focusKey, autoFocus, titl
       aria-label={title}
       aria-disabled={disabled || undefined}
       aria-pressed={pressed}
+      aria-expanded={expanded}
+      aria-haspopup={hasPopup}
       tabIndex={disabled ? -1 : 0}
     >
       {children}

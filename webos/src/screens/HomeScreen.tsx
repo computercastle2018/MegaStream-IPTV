@@ -7,6 +7,7 @@ import { refreshAllContent } from "../services/content";
 import { onBack } from "../remote/keys";
 import { useLang } from "../i18n/LanguageContext";
 import { AppearanceDialog, useAppearance } from "../components/Appearance";
+import { supportedTypes } from "../services/content";
 
 declare const __APP_VERSION__: string;
 
@@ -20,6 +21,8 @@ interface Props {
 export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onSettings }: Props) {
   const { t, lang } = useLang();
   const { design } = useAppearance();
+  const tv = !!window.megastreamWebos && !window.megastreamDesktop;
+  const types = supportedTypes(provider);
   const [expiry, setExpiry] = useState<string>(t("home.unlimited"));
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<"done" | "failed" | null>(null);
@@ -93,16 +96,19 @@ export default function HomeScreen({ provider, onOpenType, onChangePlaylist, onS
 
       <div className="home-grid">
         <FocusButton className="home-tile tile-live" autoFocus onEnter={() => onOpenType("live")}>
+          {tv && <span className="remote-key remote-live" data-remote-key="403" aria-hidden="true" />}
           <IconLive />
           <span className="tile-label">{t("home.live")}</span>
         </FocusButton>
 
         <FocusButton className="home-tile" onEnter={() => onOpenType("movie")}>
+          {tv && <span className="remote-key remote-movie" data-remote-key="404" aria-hidden="true" />}
           <IconMovies />
           <span className="tile-label">{t("home.movies")}</span>
         </FocusButton>
 
-        <FocusButton className="home-tile" onEnter={() => onOpenType("series")}>
+        <FocusButton className="home-tile" disabled={tv && !types.includes("series")} onEnter={() => onOpenType("series")}>
+          {tv && types.includes("series") && <span className="remote-key remote-series" data-remote-key="405" aria-hidden="true" />}
           <IconSeries />
           <span className="tile-label">{t("home.series")}</span>
         </FocusButton>

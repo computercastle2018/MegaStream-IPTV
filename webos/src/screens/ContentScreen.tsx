@@ -10,6 +10,7 @@ import ContentImage from "../components/ContentImage";
 import { ChevronLeft, ChevronRight, RefreshCw, Star } from "lucide-react";
 import { groupGenre, groupGenreLabels, type GroupGenre } from "../services/groupGenre";
 import { useAppearance } from "../components/Appearance";
+import RemoteSelect from "../components/RemoteSelect";
 
 type SortBy = "added" | "name";
 
@@ -67,7 +68,8 @@ export default function ContentScreen({
   const { t, lang } = useLang();
   const ar = lang === "ar";
   const { design } = useAppearance();
-  const tvLayout = document.documentElement.dataset.platform === "webos" && design !== "classic";
+  const tvRemote = document.documentElement.dataset.platform === "webos";
+  const tvLayout = tvRemote && design !== "classic";
   const contentPageSize = tvLayout ? 40 : CONTENT_PAGE_SIZE;
   const categoryPageSize = tvLayout ? 20 : CATEGORY_PAGE_SIZE;
   const PreviousIcon = tvLayout && ar ? ChevronRight : ChevronLeft;
@@ -96,10 +98,12 @@ export default function ContentScreen({
   });
   const { category, sortBy, query, searchOpen, selectedId, favoritesOnly, genre } = viewState;
   const { ref: orderRef, focused: orderFocused, focusSelf: focusOrder } = useFocusable<HTMLSelectElement>({
+    focusable: !tvRemote,
     onEnterPress: () => orderRef.current?.focus(),
   });
   useEffect(() => { if (orderFocused) orderRef.current?.focus(); }, [orderFocused, orderRef]);
   const { ref: genreRef, focused: genreFocused, focusSelf: focusGenre } = useFocusable<HTMLSelectElement>({
+    focusable: !tvRemote,
     onEnterPress: () => genreRef.current?.focus(),
   });
   useEffect(() => { if (genreFocused) genreRef.current?.focus(); }, [genreFocused, genreRef]);
@@ -164,6 +168,21 @@ export default function ContentScreen({
   }, [items]);
   const genreItems = useMemo(() => genre === "all" ? items : items.filter(item => groupGenres.get(item.groupTitle || "") === genre), [items, genre, groupGenres]);
   const availableGenres = useMemo(() => new Set(groupGenres.values()), [groupGenres]);
+  const genreOptions = (Object.keys(groupGenreLabels[lang]) as GroupGenre[])
+    .filter(key => key === "all" || availableGenres.has(key) || key === genre)
+    .map(key => ({ value: key, label: groupGenreLabels[lang][key] }));
+  const changeGenre = (value: string) => {
+    setRestoreFocus(false);
+    onViewStateChange({ ...viewState, genre: value as GroupGenre, category: ALL, selectedId: null });
+  };
+  const changeGroupOrder = (value: string) => {
+    setGroupOrder(value); localStorage.setItem(orderKey, value);
+  };
+  const orderOptions = [
+    { value: "provider", label: ar ? "حسب الفئة · ترتيب المزوّد" : "Category · provider order" },
+    { value: "asc", label: ar ? "أبجديًا · أ–ي" : "Alphabetical · A–Z" },
+    { value: "desc", label: ar ? "أبجديًا · ي–أ" : "Alphabetical · Z–A" },
+  ];
   const sorted = useMemo(() => {
     const copy = [...genreItems];
     if (sortBy === "name") {
@@ -274,6 +293,7 @@ export default function ContentScreen({
               onEnter={() => onChangeType(ct)}
             >
               {t(TYPE_KEYS[ct])}
+              {tvRemote && <span className={`remote-key remote-${ct}`} aria-hidden="true" />}
             </FocusButton>
           ))}
         </div>
@@ -300,14 +320,11 @@ export default function ContentScreen({
         <>
           <div className="browse-toolbar">
             <label className="genre-control"><span>{ar ? "الفئة" : "Category"}</span>
-              <select className="genre-select" ref={genreRef} value={genre} onFocus={() => focusGenre()}
-                onKeyDown={event => event.stopPropagation()} onChange={event => {
-                  setRestoreFocus(false);
-                  onViewStateChange({ ...viewState, genre: event.target.value as GroupGenre, category: ALL, selectedId: null });
-                }}>
-                {(Object.keys(groupGenreLabels[lang]) as GroupGenre[]).filter(key => key === "all" || availableGenres.has(key) || key === genre).map(key =>
-                  <option value={key} key={key}>{groupGenreLabels[lang][key]}</option>)}
-              </select>
+              {tvRemote ? <RemoteSelect label={ar ? "الفئة" : "Category"} value={genre} options={genreOptions} onChange={changeGenre} />
+                : <select className="genre-select" ref={genreRef} value={genre} onFocus={() => focusGenre()}
+                  onKeyDown={event => event.stopPropagation()} onChange={event => changeGenre(event.target.value)}>
+                  {genreOptions.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
+                </select>}
             </label>
             {searchOpen ? (
               <SearchInput value={query} onChange={setQuery} placeholder={t("common.searchPh")} autoFocus />
@@ -318,6 +335,7 @@ export default function ContentScreen({
                   <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 <span>{t("common.search")}</span>
+                {tvRemote && <span className="remote-key remote-search" aria-hidden="true" />}
               </FocusButton>
             )}
             <div className="sort-control">
@@ -340,14 +358,11 @@ export default function ContentScreen({
             <nav className="category-rail">
             <label className="group-sort-control">
               <span>{ar ? "ترتيب المجموعات" : "Group order"}</span>
-              <select ref={orderRef} className="group-sort" value={groupOrder} onFocus={() => focusOrder()}
-                onKeyDown={event => event.stopPropagation()} onChange={event => {
-                  setGroupOrder(event.target.value); localStorage.setItem(orderKey, event.target.value);
-                }}>
-                <option value="provider">{ar ? "حسب الفئة · ترتيب المزوّد" : "Category · provider order"}</option>
-                <option value="asc">{ar ? "أبجديًا · أ–ي" : "Alphabetical · A–Z"}</option>
-                <option value="desc">{ar ? "أبجديًا · ي–أ" : "Alphabetical · Z–A"}</option>
-              </select>
+              {tvRemote ? <RemoteSelect label={ar ? "ترتيب المجموعات" : "Group order"} value={groupOrder} options={orderOptions} onChange={changeGroupOrder} />
+                : <select ref={orderRef} className="group-sort" value={groupOrder} onFocus={() => focusOrder()}
+                  onKeyDown={event => event.stopPropagation()} onChange={event => changeGroupOrder(event.target.value)}>
+                  {orderOptions.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
+                </select>}
             </label>
             <div className="rail-label">{t("common.categories")}</div>
             {categoryPages > 1 && <div className="browse-pagination category-pagination">
