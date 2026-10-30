@@ -83,6 +83,9 @@ namespace MegaStream.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -97,6 +100,9 @@ namespace MegaStream.Server.Migrations
                     b.Property<Guid?>("TargetInstallationId")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("TargetLicenseId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -106,7 +112,12 @@ namespace MegaStream.Server.Migrations
 
                     b.HasIndex("TargetInstallationId", "CreatedAt");
 
-                    b.ToTable("AdminNotifications");
+                    b.HasIndex("TargetLicenseId", "CreatedAt");
+
+                    b.ToTable("AdminNotifications", t =>
+                        {
+                            t.HasCheckConstraint("CK_AdminNotifications_OneTarget", "TargetInstallationId IS NULL OR TargetLicenseId IS NULL");
+                        });
                 });
 
             modelBuilder.Entity("MegaStream.Server.Models.DevicePolicyAudit", b =>
@@ -542,6 +553,33 @@ namespace MegaStream.Server.Migrations
                     b.ToTable("RemoteProviderReports", (string)null);
                 });
 
+            modelBuilder.Entity("MegaStream.Server.RemoteProviders.Core.ProviderRedemptionCode", b =>
+                {
+                    b.Property<string>("CodeHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("RedeemedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("RedeemedInstallationId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("CodeHash");
+
+                    b.HasIndex("ProfileId");
+
+                    b.HasIndex("RedeemedInstallationId");
+
+                    b.ToTable("ProviderRedemptionCodes", (string)null);
+                });
+
             modelBuilder.Entity("MegaStream.Server.RemoteProviders.Core.RemoteProviderAssignment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -613,6 +651,23 @@ namespace MegaStream.Server.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("bigint");
 
+                    b.Property<string>("SourceContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool?>("SourceEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid?>("SourceInstallationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<long?>("SourceLocalId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SourceStatus")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -629,6 +684,9 @@ namespace MegaStream.Server.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Revision");
+
+                    b.HasIndex("SourceInstallationId", "SourceLocalId")
+                        .IsUnique();
 
                     b.ToTable("RemoteProviderProfiles", (string)null);
                 });
@@ -1193,7 +1251,14 @@ namespace MegaStream.Server.Migrations
                         .HasForeignKey("TargetInstallationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("MegaStream.Server.Models.License", "TargetLicense")
+                        .WithMany()
+                        .HasForeignKey("TargetLicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("TargetInstallation");
+
+                    b.Navigation("TargetLicense");
                 });
 
             modelBuilder.Entity("MegaStream.Server.Models.DevicePolicyAudit", b =>
@@ -1249,6 +1314,20 @@ namespace MegaStream.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MegaStream.Server.RemoteProviders.Core.ProviderRedemptionCode", b =>
+                {
+                    b.HasOne("MegaStream.Server.RemoteProviders.Core.RemoteProviderProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MegaStream.Server.Models.Installation", null)
+                        .WithMany()
+                        .HasForeignKey("RedeemedInstallationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("MegaStream.Server.RemoteProviders.Core.RemoteProviderAssignment", b =>
                 {
                     b.HasOne("MegaStream.Server.Models.Installation", null)
@@ -1262,6 +1341,14 @@ namespace MegaStream.Server.Migrations
                         .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MegaStream.Server.RemoteProviders.Core.RemoteProviderProfile", b =>
+                {
+                    b.HasOne("MegaStream.Server.Models.Installation", null)
+                        .WithMany()
+                        .HasForeignKey("SourceInstallationId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("MegaStream.Server.Updates.DeviceUpdateCommand", b =>

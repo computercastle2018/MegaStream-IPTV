@@ -9,7 +9,7 @@ class ControlPlane {
     this.store = store; this.version = version; this.notify = notify; this.fetcher = fetcher;
     this.sessionId = crypto.randomUUID(); this.sequence = 0;
     this.state = { state: 'checking', online: false, installationId: '', allowSubscriptionDetails: false,
-      uiStyle: this.store.get('desktop.uiStyle') };
+      uiStyle: this.store.get('desktop.pending-ui-style')?.uiStyle ?? this.store.get('desktop.uiStyle') };
   }
   async request(route, body, anonymous = false) {
     const response = await this.fetcher(origin + '/api/v1/' + route, {
@@ -75,11 +75,33 @@ class ControlPlane {
     if (!this.registered || this.state.state === 'installation_disabled') return;
     if (this.pendingExperience) return this.pendingExperience;
     this.pendingExperience = (async () => {
-      const experience = await this.request('devices/experience?version=2');
-      this.state.allowSubscriptionDetails = experience.allowSubscriptionDetails;
-      this.state.uiStyle = ['classic', 'modern', 'studio'].includes(experience.uiStyle) ? experience.uiStyle : null;
-      this.store.set('desktop.uiStyle', this.state.uiStyle);
-      this.notify({ ...this.state, providersChanged: false });
+      let conflict = false, pendingFailed = false;
+      do {
+        const pendingStyle = this.store.get('desktop.pending-ui-style');
+        if (pendingStyle) {
+          try { await this.request('devices/appearance', pendingStyle); }
+          catch (error) { if (error.status === 409) conflict = true; else pendingFailed = true; }
+          if (!conflict && !pendingFailed) {
+            const queued = this.store.get('desktop.pending-ui-style');
+            if (queued?.uiStyle === pendingStyle.uiStyle && queued?.expectedUiStyle === pendingStyle.expectedUiStyle)
+              this.store.set('desktop.pending-ui-style', null);
+            else if (queued)
+              this.store.set('desktop.pending-ui-style', { ...queued, expectedUiStyle: pendingStyle.uiStyle });
+            if (!this.store.get('desktop.pending-ui-style')) this.state.uiStyle = pendingStyle.uiStyle;
+          }
+        }
+        const experience = await this.request('devices/experience?version=2');
+        if (conflict) this.store.set('desktop.pending-ui-style', null);
+        const queued = this.store.get('desktop.pending-ui-style');
+        this.state.allowSubscriptionDetails = experience.allowSubscriptionDetails;
+        this.state.notifications = experience.notifications;
+        this.state.uiStyle = queued ? queued.uiStyle : ['classic', 'modern', 'studio'].includes(experience.uiStyle) ? experience.uiStyle : null;
+        this.store.set('desktop.uiStyle', this.state.uiStyle);
+        if (conflict) this.state.error = 'appearance_conflict';
+        else if (pendingFailed) this.state.error = 'appearance_sync_pending';
+        else if (this.state.error === 'appearance_sync_pending') this.state.error = null;
+        this.notify({ ...this.state, providersChanged: false });
+      } while (this.store.get('desktop.pending-ui-style') && !conflict && !pendingFailed);
     })().finally(() => { this.pendingExperience = null; });
     return this.pendingExperience;
   }
@@ -101,6 +123,12 @@ class ControlPlane {
       if (result.decision.state !== 'installation_disabled') {
         await this.syncExperience();
         this.state.providersChanged = await this.applyAssignments(await this.request('providers/assignments'));
+        if (result.decision.state === 'allowed') {
+          try {
+            const { localSubscriptionReport } = await import('./subscription-report.mjs');
+            await this.request('devices/subscriptions', await localSubscriptionReport(JSON.parse(this.store.get('MegaStream.providers') || '[]')));
+          } catch { this.state.error = 'subscription_report_failed'; }
+        }
       }
     } catch (error) {
       const cached = this.store.get('desktop.lease');
@@ -122,6 +150,23 @@ class ControlPlane {
     const result = await this.request('activation-codes/request', {});
     this.code = result;
     return { code: result.code, expiresAt: result.expiresAt };
+  }
+  async redeemSubscription(code) {
+    if (typeof code !== 'string' || !code.trim() || code.length > 64) throw new Error('Invalid subscription code');
+    await this.sync();
+    if (this.state.state !== 'allowed') throw new Error('A valid license is required');
+    await this.request('providers/redeem', { code: code.trim() });
+    return this.sync();
+  }
+  async setAppearance(uiStyle) {
+    if (!['classic', 'modern', 'studio'].includes(uiStyle)) throw new Error('Invalid design');
+    const queued = this.store.get('desktop.pending-ui-style');
+    this.store.set('desktop.pending-ui-style', { uiStyle, expectedUiStyle: queued ? queued.expectedUiStyle : this.state.uiStyle ?? null });
+    this.state.uiStyle = uiStyle;
+    this.notify({ ...this.state, providersChanged: false });
+    try { await this.syncExperience(); }
+    catch { this.state.error = 'appearance_sync_pending'; this.notify({ ...this.state, providersChanged: false }); }
+    return this.state;
   }
   async pollCode() {
     if (!this.code) return;

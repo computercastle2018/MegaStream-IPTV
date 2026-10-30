@@ -215,7 +215,7 @@ internal fun SettingsContentPane(
                     StudioSettingsTemplates(
                         selectedStyle = effectiveStyle,
                         managed = managed,
-                        onStyleSelected = { if (!managed) viewModel.setAppUiStyle(it) },
+                        onStyleSelected = { viewModel.setAppUiStyle(it) },
                     )
                 } else {
                     val displayedStyle = if (managed) effectiveStyle else uiState.appUiStyle
@@ -225,8 +225,7 @@ internal fun SettingsContentPane(
                         AppUiStyle.STUDIO -> listOf(Color(0xFF191F1E), Color(0xFF69DCB1), Color(0xFFECCB7B))
                     }
                     TvClickableSurface(
-                        onClick = { if (!managed) dialogState.showAppUiStyleDialog = true },
-                        enabled = !managed,
+                        onClick = { dialogState.showAppUiStyleDialog = true },
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -250,7 +249,7 @@ internal fun SettingsContentPane(
                             Text(stringResource(displayedStyle.labelResId),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface)
-                            Text(stringResource(if (managed) R.string.settings_template_managed else displayedStyle.descriptionResId),
+                            Text(stringResource(R.string.settings_template_sync),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }

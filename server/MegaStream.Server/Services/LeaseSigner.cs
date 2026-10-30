@@ -67,7 +67,12 @@ public sealed class LeaseSigner : IDisposable
         var payload = EncodeJson(new
         {
             iss = "https://megastrem.megastation.uk",
-            aud = installation.Platform is "macos" or "windows" ? "megastream-desktop" : "megastream-android",
+            aud = installation.Platform switch
+            {
+                "webos" => "megastream-webos",
+                "macos" or "windows" => "megastream-desktop",
+                _ => "megastream-android"
+            },
             sub = installation.Id,
             lid = license.Id,
             lrv = Math.Max(1, license.Revision),

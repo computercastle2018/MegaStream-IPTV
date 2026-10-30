@@ -322,6 +322,7 @@ fun ProviderSetupScreen(
                         modifier = Modifier.width(200.dp).fillMaxHeight()
                     )
                     ProviderFormContent(
+                        onSubscriptionAdded = onProviderAdded,
                         sourceType = sourceType,
                         uiState = uiState,
                         name = name, onNameChange = { name = ProviderInputSanitizer.sanitizeProviderNameForEditing(it) },
@@ -364,6 +365,7 @@ fun ProviderSetupScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     ProviderFormContent(
+                        onSubscriptionAdded = onProviderAdded,
                         sourceType = sourceType,
                         uiState = uiState,
                         name = name, onNameChange = { name = ProviderInputSanitizer.sanitizeProviderNameForEditing(it) },
@@ -517,6 +519,7 @@ fun ProviderSetupScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProviderFormContent(
+    onSubscriptionAdded: () -> Unit,
     sourceType: SourceType,
     uiState: ProviderSetupState,
     name: String, onNameChange: (String) -> Unit,
@@ -563,6 +566,10 @@ private fun ProviderFormContent(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (!uiState.isEditing) {
+                ProviderSubscriptionCode(onSubscriptionAdded)
+                HorizontalDivider(color = SurfaceHighlight.copy(alpha = 0.6f))
+            }
             // Playlist name ן¿½ always shown
             ProviderTextField(
                 value = name,
@@ -781,6 +788,38 @@ private fun ProviderFormContent(
             }
         }
     }
+}
+
+@Composable
+private fun ProviderSubscriptionCode(
+    onProviderAdded: () -> Unit,
+    viewModel: ProviderSubscriptionViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    // Subscription codes are transient secrets, not saved-instance state.
+    var code by remember { mutableStateOf("") }
+    LaunchedEffect(state.success) { if (state.success) onProviderAdded() }
+    Text(stringResource(R.string.provider_code_label), style = MaterialTheme.typography.titleMedium)
+    if (!state.redeemed) {
+        ProviderTextField(
+            value = code,
+            onValueChange = { if (!state.busy) code = it },
+            placeholder = stringResource(R.string.provider_code_label),
+            isPassword = true,
+            keyboardOptions = KeyboardOptions(
+                autoCorrectEnabled = false, keyboardType = KeyboardType.Password, imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(onDone = {
+                if (!state.busy) { val entered = code; code = ""; viewModel.redeem(entered) }
+            }),
+        )
+    }
+    state.error?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
+    ActionButton(
+        text = stringResource(if (state.busy) R.string.provider_code_fetching else R.string.provider_code_fetch),
+        isLoading = state.busy,
+        onClick = { if (!state.busy) { val entered = code; code = ""; viewModel.redeem(entered) } },
+    )
 }
 
 @Composable

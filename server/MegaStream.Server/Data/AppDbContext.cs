@@ -51,10 +51,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             e.HasData(new PlaybackQualityDefault { Id = 1, Quality = "1080" });
         });
         b.Entity<AdminNotification>(e => {
+            e.ToTable(t => t.HasCheckConstraint("CK_AdminNotifications_OneTarget", "TargetInstallationId IS NULL OR TargetLicenseId IS NULL"));
             e.Property(x=>x.Title).HasMaxLength(128).IsRequired();
             e.Property(x=>x.Message).HasMaxLength(2000).IsRequired();
             e.HasIndex(x=>new{x.TargetInstallationId,x.CreatedAt});
+            e.HasIndex(x=>new{x.TargetLicenseId,x.CreatedAt});
             e.HasOne(x=>x.TargetInstallation).WithMany().HasForeignKey(x=>x.TargetInstallationId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x=>x.TargetLicense).WithMany().HasForeignKey(x=>x.TargetLicenseId).OnDelete(DeleteBehavior.Restrict);
         });
         b.Entity<DevicePolicyAudit>(e => {
             e.Property(x=>x.ActorId).HasMaxLength(128).IsRequired();

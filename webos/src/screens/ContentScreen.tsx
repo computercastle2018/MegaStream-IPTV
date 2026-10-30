@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { setFocus, useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import type { ContentItem, ContentType, Provider } from "../types";
 import { groupByCategory, loadContent, supportedTypes } from "../services/content";
 import { compareNames, matchesQuery, normalizeText } from "../services/text";
@@ -7,8 +7,9 @@ import { onBack } from "../remote/keys";
 import { BackButton, FocusButton, HomeButton, LanguageToggle, SearchInput } from "../components/Focusable";
 import { useLang } from "../i18n/LanguageContext";
 import ContentImage from "../components/ContentImage";
-import { RefreshCw, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw, Star } from "lucide-react";
 import { groupGenre, groupGenreLabels, type GroupGenre } from "../services/groupGenre";
+import { useAppearance } from "../components/Appearance";
 
 type SortBy = "added" | "name";
 
@@ -45,6 +46,8 @@ interface Props {
 }
 
 const ALL = "__all__";
+const CONTENT_PAGE_SIZE = 100;
+const CATEGORY_PAGE_SIZE = 40;
 
 interface CategoryEntry {
   key: string;
@@ -63,11 +66,22 @@ export default function ContentScreen({
 }: Props) {
   const { t, lang } = useLang();
   const ar = lang === "ar";
+  const { design } = useAppearance();
+  const tvLayout = document.documentElement.dataset.platform === "webos" && design !== "classic";
+  const contentPageSize = tvLayout ? 40 : CONTENT_PAGE_SIZE;
+  const categoryPageSize = tvLayout ? 20 : CATEGORY_PAGE_SIZE;
+  const PreviousIcon = tvLayout && ar ? ChevronRight : ChevronLeft;
+  const NextIcon = tvLayout && ar ? ChevronLeft : ChevronRight;
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [restoreFocus, setRestoreFocus] = useState(true);
   const [refresh, setRefresh] = useState(0);
+  const [contentPage, setContentPage] = useState({ scope: "", index: 0 });
+  const [categoryPage, setCategoryPage] = useState({ scope: "", index: 0 });
+  const [focusCategoryPage, setFocusCategoryPage] = useState(false);
+  const [categoryFocusEnd, setCategoryFocusEnd] = useState(false);
+  const [pageFocusEnd, setPageFocusEnd] = useState(false);
   const orderKey = `MegaStream.groupOrder.${provider.id}.${contentType}`;
   const [groupOrder, setGroupOrder] = useState(() => {
     const saved = localStorage.getItem(orderKey);
@@ -96,6 +110,8 @@ export default function ContentScreen({
     setFavorites(next);
   };
   const setCategory = (category: string) => {
+    setPageFocusEnd(false);
+    setFocusCategoryPage(false);
     setRestoreFocus(false);
     onViewStateChange({ ...viewState, category, selectedId: null });
   };
@@ -138,8 +154,16 @@ export default function ContentScreen({
     return () => controller.abort();
   }, [provider, contentType, refresh]);
 
-  const genreItems = useMemo(() => genre === "all" ? items : items.filter(item => groupGenre(item.groupTitle || "") === genre), [items, genre]);
-  const availableGenres = useMemo(() => new Set(items.map(item => groupGenre(item.groupTitle || ""))), [items]);
+  const groupGenres = useMemo(() => {
+    const groups = new Map<string, GroupGenre>();
+    for (const item of items) {
+      const title = item.groupTitle || "";
+      if (!groups.has(title)) groups.set(title, groupGenre(title));
+    }
+    return groups;
+  }, [items]);
+  const genreItems = useMemo(() => genre === "all" ? items : items.filter(item => groupGenres.get(item.groupTitle || "") === genre), [items, genre, groupGenres]);
+  const availableGenres = useMemo(() => new Set(groupGenres.values()), [groupGenres]);
   const sorted = useMemo(() => {
     const copy = [...genreItems];
     if (sortBy === "name") {
@@ -164,14 +188,80 @@ export default function ContentScreen({
 
   const normalizedQuery = useMemo(() => normalizeText(query), [query]);
   const selectedGroup = category === ALL || !grouped.has(category) ? sorted : grouped.get(category)!;
-  const base = favoritesOnly ? selectedGroup.filter(item => favorites.has(item.id)) : selectedGroup;
-  const visible = normalizedQuery ? base.filter((i) => matchesQuery(i.name, normalizedQuery)) : base;
-  const focusId = visible.find(item => item.id === selectedId)?.id ?? visible[0]?.id;
+  const visible = useMemo(() => {
+    const base = favoritesOnly ? selectedGroup.filter(item => favorites.has(item.id)) : selectedGroup;
+    return normalizedQuery ? base.filter(item => matchesQuery(item.name, normalizedQuery)) : base;
+  }, [selectedGroup, favoritesOnly, favorites, normalizedQuery]);
+  const contentScope = JSON.stringify([category, genre, normalizedQuery, sortBy, favoritesOnly, refresh]);
+  const selectedIndex = restoreFocus ? visible.findIndex(item => item.id === selectedId) : -1;
+  const contentPages = Math.max(1, Math.ceil(visible.length / contentPageSize));
+  const pageIndex = Math.min(contentPages - 1, contentPage.scope === contentScope ? contentPage.index : Math.max(0, Math.floor(selectedIndex / contentPageSize)));
+  const pageItems = visible.slice(pageIndex * contentPageSize, (pageIndex + 1) * contentPageSize);
+  const focusId = pageFocusEnd ? pageItems[pageItems.length - 1]?.id : pageItems.find(item => item.id === selectedId)?.id ?? pageItems[0]?.id;
+  const categoryScope = JSON.stringify([genre, groupOrder]);
+  const categoryPages = Math.max(1, Math.ceil((categoryEntries.length - 1) / categoryPageSize));
+  const activeCategoryIndex = categoryEntries.findIndex(entry => entry.key === category) - 1;
+  const categoryPageIndex = Math.min(categoryPages - 1, categoryPage.scope === categoryScope ? categoryPage.index : Math.max(0, Math.floor(activeCategoryIndex / categoryPageSize)));
+  const pageCategories = categoryEntries.slice(1 + categoryPageIndex * categoryPageSize, 1 + (categoryPageIndex + 1) * categoryPageSize);
+  const changeContentPage = (index: number, end = false) => {
+    setFocusCategoryPage(false);
+    setPageFocusEnd(end);
+    setRestoreFocus(true);
+    setContentPage({ scope: contentScope, index });
+  };
+  const cardArrow = (direction: string, index: number, node: HTMLElement | null) => {
+    if (!tvLayout || !node?.parentElement) return true;
+    const columns = getComputedStyle(node.parentElement).gridTemplateColumns.split(" ").length;
+    if (direction === (ar ? "right" : "left") && index % columns === 0) {
+      setRestoreFocus(false);
+      setFocus(`tv-group:${pageCategories.some(entry => entry.key === category) ? category : ALL}`);
+      return false;
+    }
+    if (direction === "down" && index + columns >= pageItems.length && pageIndex + 1 < contentPages) {
+      changeContentPage(pageIndex + 1);
+      return false;
+    }
+    if (direction === "up" && index < columns && pageIndex > 0) {
+      changeContentPage(pageIndex - 1, true);
+      return false;
+    }
+    return true;
+  };
+  const changeCategoryPage = (index: number, end = false) => {
+    setRestoreFocus(false);
+    setFocusCategoryPage(true);
+    setCategoryFocusEnd(end);
+    setCategoryPage({ scope: categoryScope, index });
+  };
+  const groupArrow = (direction: string, index: number) => {
+    if (!tvLayout) return true;
+    if (direction === (ar ? "left" : "right") && pageItems.length) {
+      setFocus(`tv-content:${pageItems[0].id}`);
+      return false;
+    }
+    if (direction === "down" && index === pageCategories.length - 1 && categoryPageIndex + 1 < categoryPages) {
+      changeCategoryPage(categoryPageIndex + 1);
+      return false;
+    }
+    if (direction === "up" && index === 0) {
+      if (categoryPageIndex > 0) changeCategoryPage(categoryPageIndex - 1, true);
+      else setFocus(`tv-group:${ALL}`);
+      return false;
+    }
+    return true;
+  };
+  const categoryList = <>
+    <CategoryItem entry={categoryEntries[0]} active={category === ALL} onSelect={() => setCategory(ALL)}
+      focusKey={tvLayout ? `tv-group:${ALL}` : undefined} onArrowPress={direction => groupArrow(direction, -1)} />
+    {pageCategories.map((entry, index) => <CategoryItem key={entry.key} entry={entry} active={entry.key === category}
+      onSelect={() => setCategory(entry.key)} autoFocus={focusCategoryPage && index === (categoryFocusEnd ? pageCategories.length - 1 : 0)}
+      focusKey={tvLayout ? `tv-group:${entry.key}` : undefined} onArrowPress={direction => groupArrow(direction, index)} />)}
+  </>;
 
   return (
     <div className="screen">
       <header className="app-header">
-        <BackButton onEnter={onManageProviders} />
+        {!tvLayout && <BackButton onEnter={onManageProviders} />}
         <HomeButton onEnter={onManageProviders} />
         <h1>MegaStream</h1>
         <span className="subtitle">{provider.name}</span>
@@ -188,11 +278,12 @@ export default function ContentScreen({
           ))}
         </div>
         <FocusButton className="back-btn sync-current" disabled={loading} title={ar ? "مزامنة القائمة" : "Sync this list"} onEnter={() => setRefresh(value => value + 1)}>
-          <RefreshCw size={20} aria-hidden="true" />{ar ? "مزامنة" : "Sync"}
+          <RefreshCw size={20} aria-hidden="true" /><span>{ar ? "مزامنة" : "Sync"}</span>
         </FocusButton>
-        {window.megastreamDesktop && contentType === "live" && <FocusButton className={`back-btn favorites-toggle ${favoritesOnly ? "active" : ""}`}
+        {contentType === "live" && <FocusButton className={`back-btn favorites-toggle ${favoritesOnly ? "active" : ""}`}
+          title={tvLayout ? (ar ? "المفضلة" : "Favorites") : undefined}
           pressed={favoritesOnly} onEnter={() => onViewStateChange({ ...viewState, favoritesOnly: !favoritesOnly })}>
-          <Star size={20} aria-hidden="true" fill={favoritesOnly ? "currentColor" : "none"} />{ar ? "المفضلة" : "Favorites"}
+          <Star size={20} aria-hidden="true" fill={favoritesOnly ? "currentColor" : "none"} /><span>{ar ? "المفضلة" : "Favorites"}</span>
         </FocusButton>}
         <LanguageToggle />
       </header>
@@ -259,22 +350,39 @@ export default function ContentScreen({
               </select>
             </label>
             <div className="rail-label">{t("common.categories")}</div>
-            {categoryEntries.map((entry) => (
-              <CategoryItem
-                key={entry.key}
-                entry={entry}
-                active={entry.key === category}
-                onSelect={() => setCategory(entry.key)}
-              />
-            ))}
+            {categoryPages > 1 && <div className="browse-pagination category-pagination">
+              <FocusButton title={ar ? "المجموعات السابقة" : "Previous groups"} disabled={categoryPageIndex === 0}
+                onEnter={() => changeCategoryPage(categoryPageIndex - 1)}>
+                <PreviousIcon size={22} aria-hidden="true" />
+              </FocusButton>
+              <span dir={tvLayout ? "ltr" : undefined}>{categoryPageIndex + 1} / {categoryPages}</span>
+              <FocusButton title={ar ? "المجموعات التالية" : "Next groups"} disabled={categoryPageIndex + 1 === categoryPages}
+                onEnter={() => changeCategoryPage(categoryPageIndex + 1)}>
+                <NextIcon size={22} aria-hidden="true" />
+              </FocusButton>
+            </div>}
+            {tvLayout ? <div className="tv-category-list">{categoryList}</div> : categoryList}
           </nav>
-          <div key={JSON.stringify([category, genre, normalizedQuery, sortBy])} className={`content-grid ${contentType === "live" ? "live" : "poster"}`}>
+          <div className="browse-content">
+          {(contentPages > 1 || tvLayout) && <div className="browse-pagination content-pagination">
+            {tvLayout && <h2>{category === ALL ? t(TYPE_KEYS[contentType]) : category}</h2>}
+            <FocusButton title={ar ? "الصفحة السابقة" : "Previous channels"} disabled={pageIndex === 0} onEnter={() => changeContentPage(pageIndex - 1)}>
+              <PreviousIcon size={22} aria-hidden="true" />{tvLayout && <span>{ar ? "السابق" : "Previous"}</span>}
+            </FocusButton>
+            <span dir={tvLayout ? "ltr" : undefined}>{visible.length ? pageIndex * contentPageSize + 1 : 0}–{Math.min((pageIndex + 1) * contentPageSize, visible.length)} / {visible.length}</span>
+            <FocusButton title={ar ? "الصفحة التالية" : "Next channels"} disabled={pageIndex + 1 === contentPages} onEnter={() => changeContentPage(pageIndex + 1)}>
+              <NextIcon size={22} aria-hidden="true" />{tvLayout && <span>{ar ? "التالي" : "Next"}</span>}
+            </FocusButton>
+          </div>}
+          <div key={JSON.stringify([contentScope, pageIndex])} className={`content-grid ${contentType === "live" ? "live" : "poster"}`}>
             {visible.length === 0 ? (
               <div className="center-msg">{t("common.nothingHere")}</div>
             ) : (
-              visible.map((item) => (
+              pageItems.map((item, index) => (
                 <ContentCard key={item.id} item={item}
-                  favorite={favorites.has(item.id)} onFavorite={window.megastreamDesktop && contentType === "live" ? () => toggleFavorite(item.id) : undefined}
+                  focusKey={tvLayout ? `tv-content:${item.id}` : undefined}
+                  onArrowPress={(direction, node) => cardArrow(direction, index, node)}
+                  favorite={favorites.has(item.id)} onFavorite={contentType === "live" ? () => toggleFavorite(item.id) : undefined}
                   autoFocus={restoreFocus && !searchOpen && item.id === focusId}
                   onSelect={() => {
                     onViewStateChange({ ...viewState, selectedId: item.id });
@@ -283,6 +391,7 @@ export default function ContentScreen({
               ))
             )}
             </div>
+          </div>
           </div>
         </>
       )}
@@ -294,15 +403,23 @@ function CategoryItem({
   entry,
   active,
   onSelect,
+  autoFocus = false,
+  focusKey,
+  onArrowPress,
 }: {
   entry: CategoryEntry;
   active: boolean;
   onSelect: () => void;
+  autoFocus?: boolean;
+  focusKey?: string;
+  onArrowPress?: (direction: string) => boolean;
 }) {
   const { ref, focused, focusSelf } = useFocusable({
+    focusKey, onArrowPress,
     onEnterPress: onSelect,
     onFocus: ({ node }) => node.scrollIntoView({ block: "nearest", inline: "nearest" }),
   });
+  useEffect(() => { if (autoFocus) focusSelf(); }, [autoFocus, focusSelf]);
   return (
     <div
       ref={ref}
@@ -325,15 +442,21 @@ function ContentCard({
   onSelect,
   favorite,
   onFavorite,
+  focusKey,
+  onArrowPress,
 }: {
   item: ContentItem;
   autoFocus: boolean;
   onSelect: () => void;
   favorite: boolean;
   onFavorite?: () => void;
+  focusKey?: string;
+  onArrowPress?: (direction: string, node: HTMLElement | null) => boolean;
 }) {
   const { lang } = useLang();
   const { ref, focused, focusSelf } = useFocusable({
+    focusKey,
+    onArrowPress: (direction): boolean => onArrowPress?.(direction, ref.current) ?? true,
     onEnterPress: onSelect,
     onFocus: ({ node }) => node.scrollIntoView({ block: "nearest", inline: "nearest" }),
   });

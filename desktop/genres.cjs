@@ -23,8 +23,8 @@ const path = require('node:path');
       env: { ...process.env, TEST_XTREAM_URL: `http://127.0.0.1:${server.address().port}` } });
     const page = await application.firstWindow();
     page.setDefaultTimeout(15000);
-    await page.locator('#desktop-license-key').fill('TEST-LICENSE');
-    await page.locator('.license-key-row button').click();
+    await page.getByLabel('License key', { exact: true }).fill('TEST-LICENSE');
+    await page.getByRole('button', { name: 'Activate', exact: true }).click();
     await page.locator('.tile-live').click();
     await page.locator('.channel-card').first().waitFor();
     for (const [genre, names] of [['news', ['Channel 0', 'Channel 1']], ['sports', ['Channel 2', 'Channel 3']],

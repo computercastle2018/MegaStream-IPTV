@@ -43,8 +43,8 @@ const path = require('node:path');
       env: { ...process.env, TEST_XTREAM_URL: `http://127.0.0.1:${server.address().port}` } });
     const page = await application.firstWindow();
     await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].hide());
-    await page.locator('#desktop-license-key').fill('TEST-LICENSE');
-    await page.locator('.license-key-row button').click();
+    await page.getByLabel('License key', { exact: true }).fill('TEST-LICENSE');
+    await page.getByRole('button', { name: 'Activate', exact: true }).click();
     await page.locator('.tile-live').click();
     for (const channel of ['Recovered', 'HTTP recovered']) {
     await page.getByText(channel, { exact: true }).click();

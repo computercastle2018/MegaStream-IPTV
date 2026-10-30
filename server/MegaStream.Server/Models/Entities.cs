@@ -59,10 +59,13 @@ public class AdminNotification
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? TargetInstallationId { get; set; }
     public Installation? TargetInstallation { get; set; }
+    public Guid? TargetLicenseId { get; set; }
+    public License? TargetLicense { get; set; }
     public string Title { get; set; } = "";
     public string Message { get; set; } = "";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ExpiresAt { get; set; }
+    public DateTime? ArchivedAt { get; set; }
 }
 public class DevicePolicyAudit
 {

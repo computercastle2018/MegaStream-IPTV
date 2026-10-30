@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="category_genre_title">الفئة</string>
+    <string name="home_select_genre_group">اختر مجموعة</string>
+    <string name="category_genre_all">كل الفئات</string>
+    <string name="category_genre_news">أخبار</string>
+    <string name="category_genre_sports">رياضة</string>
+    <string name="category_genre_kids">أطفال</string>
+    <string name="category_genre_documentary">وثائقيات</string>
+    <string name="category_genre_religion">دينية</string>
+    <string name="category_genre_music">موسيقى</string>
+    <string name="category_genre_other">أخرى</string>
     <string name="app_name">MegaStream</string>
     <string name="nav_home">الرئيسية</string>
     <string name="nav_live_tv">البث التلفزيوني المباشر</string>
@@ -1507,4 +1517,11 @@
     <string name="license_error_rejected">رفض السيرفر طلب التفعيل.</string>
     <string name="license_error_invalid_response">تعذر التحقق من استجابة الترخيص.</string>
     <string name="license_error_unknown">تعذر إكمال التفعيل. حاول مجددًا.</string>
+    <string name="provider_code_label">كود اشتراك المزوّد</string>
+    <string name="provider_code_fetch">جلب الاشتراك</string>
+    <string name="provider_code_fetching">جارٍ جلب الاشتراك…</string>
+    <string name="provider_code_invalid">أدخل كود اشتراك مزوّد صالحًا، بحد أقصى 64 حرفًا.</string>
+    <string name="provider_code_unlicensed">يلزم ترخيص تطبيق ساري لجلب الاشتراك.</string>
+    <string name="provider_code_failed">تعذّر جلب الاشتراك. تحقق من الاتصال وحاول مجددًا.</string>
+    <string name="provider_code_sync_failed">تم قبول الكود ولم تكتمل مزامنة الاشتراك. اضغط جلب الاشتراك للمحاولة مجددًا.</string>
 </resources>

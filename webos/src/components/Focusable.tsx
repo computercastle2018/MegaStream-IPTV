@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useLang } from "../i18n/LanguageContext";
 import { LANGUAGES } from "../i18n/translations";
 import { Home } from "lucide-react";
+import { NotificationBell } from "./Notifications";
 
 interface FocusButtonProps {
   className?: string;
@@ -58,7 +59,7 @@ export function LanguageToggle() {
   });
   const next = LANGUAGES.find((l) => l.code !== lang);
   return (
-    <div
+    <div className="language-notifications"><div
       ref={ref}
       className={`focusable lang-toggle ${focused ? "focused" : ""}`}
       onClick={() => setLang(lang === "ar" ? "en" : "ar")}
@@ -77,7 +78,7 @@ export function LanguageToggle() {
         />
       </svg>
       <span>{next?.label}</span>
-    </div>
+    </div><NotificationBell /></div>
   );
 }
 
@@ -188,13 +189,16 @@ interface FocusInputProps {
   onChange: (value: string) => void;
   type?: string;
   placeholder?: string;
+  maxLength?: number;
+  autoComplete?: string;
 }
 
 /**
  * A focusable text field. On webOS, focusing the underlying <input> brings up
  * the on-screen keyboard; Enter/OK from the remote focuses it for typing.
  */
-export function FocusInput({ label, value, onChange, type = "text", placeholder }: FocusInputProps) {
+export function FocusInput({ label, value, onChange, type = "text", placeholder, maxLength, autoComplete }: FocusInputProps) {
+  const id = useId();
   const { ref, focused, focusSelf } = useFocusable<HTMLInputElement>({
     focusable: true,
     onEnterPress: () => ref.current?.focus(),
@@ -209,13 +213,16 @@ export function FocusInput({ label, value, onChange, type = "text", placeholder 
 
   return (
     <div className="field">
-      <label>{label}</label>
+      <label htmlFor={id}>{label}</label>
       <input
+        id={id}
         ref={ref}
         className={focused ? "focused" : ""}
         type={type}
         value={value}
         placeholder={placeholder}
+        maxLength={maxLength}
+        autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => focusSelf()}
         onKeyDown={(e) => { if (e.key.startsWith("Arrow")) e.stopPropagation(); }}

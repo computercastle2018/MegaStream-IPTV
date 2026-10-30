@@ -44,6 +44,15 @@ test('upgrade retains identity and local accounts, synchronizes remote changes a
       result = { allowSubscriptionDetails: false, uiStyle };
     }
     if (route === 'providers/assignments') result = { assignments, tombstones: [] };
+    if (route === 'devices/appearance') {
+      const body = JSON.parse(options.body);
+      if (body.expectedUiStyle !== uiStyle) return new Response('{}', { status: 409 });
+      uiStyle = body.uiStyle;
+    }
+    if (route === 'providers/redeem') {
+      assert.deepEqual(JSON.parse(options.body), { code: 'SUBSCRIPTION-TEST' });
+      assignments = [{ assignmentId: crypto.randomUUID(), profileRevision: 1, type: 'm3u', policy: 'required', configuration: { m3uUrl: 'https://example.com/code.m3u' } }];
+    }
     return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' } });
   };
   const first = new ControlPlane(store, '3.0.16', () => {}, fetcher);
@@ -77,6 +86,16 @@ test('upgrade retains identity and local accounts, synchronizes remote changes a
     await upgrade.sync();
     assert.equal(upgrade.state.uiStyle, uiStyle === 'unknown' ? null : uiStyle);
   }
+  uiStyle = 'classic'; await upgrade.syncExperience();
+  await upgrade.setAppearance('studio');
+  assert.equal(uiStyle, 'studio');
+  uiStyle = 'modern';
+  await upgrade.setAppearance('classic');
+  assert.equal(upgrade.state.uiStyle, 'modern');
+  assert.equal(store.get('desktop.pending-ui-style'), null);
+  await upgrade.redeemSubscription('SUBSCRIPTION-TEST');
+  assert.equal(upgrade.state.providerCount, 2);
+  assert.equal(JSON.parse(store.get('MegaStream.providers'))[1].url, 'https://example.com/code.m3u');
   offline = false; allowed = false;
   await upgrade.sync();
   assert.equal(upgrade.state.state, 'revoked');
@@ -85,3 +104,53 @@ test('upgrade retains identity and local accounts, synchronizes remote changes a
   assert.notEqual(upgrade.state.state, 'allowed');
   assert.equal(calls.filter(route => route === 'installations/register').length, 2);
 });
+
+for (const mode of ['save', 'read', 'admin', 'offline']) {
+  test(`appearance queue preserves newer choices during ${mode} and keeps compare-and-set semantics`, async () => {
+    const data = new Map();
+    const store = { get: key => data.has(key) ? structuredClone(data.get(key)) : null,
+      set: (key, value) => value === null ? data.delete(key) : data.set(key, structuredClone(value)) };
+    let release, entered;
+    const gate = new Promise(resolve => { release = resolve; });
+    const started = new Promise(resolve => { entered = resolve; });
+    let server = 'classic', paused = false, offline = false;
+    const posts = [];
+    const fetcher = async (url, options) => {
+      const route = new URL(url).pathname.split('/api/v1/')[1];
+      if (route === 'devices/appearance') {
+        const body = JSON.parse(options.body); posts.push(body);
+        if (!paused && mode !== 'read') { paused = true; entered(); await gate; }
+        if (offline) throw new Error('Offline');
+        if (body.expectedUiStyle !== server) return new Response('{}', { status: 409 });
+        server = body.uiStyle;
+        if (mode === 'admin' && posts.length === 1) server = 'classic';
+        return new Response(null, { status: 204 });
+      }
+      assert.equal(route, 'devices/experience');
+      if (!paused && mode === 'read') { paused = true; entered(); await gate; }
+      if (offline) throw new Error('Offline');
+      return new Response(JSON.stringify({ uiStyle: server, allowSubscriptionDetails: false, notifications: [] }));
+    };
+    const control = new ControlPlane(store, 'test', () => {}, fetcher);
+    control.registered = true; control.identity = { credential: 'test' }; control.state.uiStyle = 'classic';
+    const first = mode === 'read' ? control.syncExperience() : control.setAppearance('modern');
+    await started;
+    const middle = mode === 'read' ? control.setAppearance('modern') : Promise.resolve();
+    const last = control.setAppearance('studio');
+    if (mode === 'offline') offline = true;
+    release();
+    await Promise.all([first, middle, last]);
+    if (mode === 'offline') {
+      assert.deepEqual(store.get('desktop.pending-ui-style'), { uiStyle: 'studio', expectedUiStyle: 'classic' });
+      assert.equal(control.state.uiStyle, 'studio');
+      offline = false; await control.syncExperience();
+    }
+    assert.equal(server, mode === 'admin' ? 'classic' : 'studio');
+    assert.equal(control.state.uiStyle, server);
+    assert.equal(store.get('desktop.pending-ui-style'), null);
+    if (mode === 'read') assert.deepEqual(posts, [{ uiStyle: 'studio', expectedUiStyle: 'classic' }]);
+    else assert.deepEqual(posts, [{ uiStyle: 'modern', expectedUiStyle: 'classic' },
+      { uiStyle: 'studio', expectedUiStyle: mode === 'offline' ? 'classic' : 'modern' }]);
+    if (mode === 'admin') assert.equal(control.state.error, 'appearance_conflict');
+  });
+}

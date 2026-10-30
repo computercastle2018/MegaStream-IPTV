@@ -17,6 +17,7 @@ class ProductionRuntimeOperations(
     private val metadata: () -> RuntimeMetadata,
     private val uploadLocalSubscriptions: suspend () -> Unit = {},
     private val refreshUpdates: suspend () -> Unit = {},
+    private val refreshProviders: suspend () -> Unit = {},
 ) : RuntimeControllerOperations {
     override suspend fun register(): RuntimeResult =
         coordinator.register(stores.registrationMetadata(installationId, metadata()))
@@ -24,6 +25,11 @@ class ProductionRuntimeOperations(
     override suspend fun heartbeat(appSessionId: String, mode: HeartbeatMode): RuntimeResult {
         val result = coordinator.heartbeat(metadata(), appSessionId, mode)
         if (result is RuntimeResult.HeartbeatApplied) {
+            if (result.decision.allowed) {
+                try { refreshProviders() }
+                catch (cancelled: CancellationException) { throw cancelled }
+                catch (_: Exception) { /* Retry assignments on the next heartbeat. */ }
+            }
             try { refreshUpdates() }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) {

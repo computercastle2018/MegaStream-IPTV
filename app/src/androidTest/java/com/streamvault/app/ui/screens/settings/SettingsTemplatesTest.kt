@@ -2,7 +2,6 @@ package com.MegaStream.app.ui.screens.settings
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -20,34 +19,28 @@ class SettingsTemplatesTest {
     @get:Rule val composeRule = createComposeRule()
 
     @Test
-    fun managedChoiceIsDisabledAndClearingOverrideRestoresLocalChoice() {
-        val managed = mutableStateOf(true)
-        val local = mutableStateOf(AppUiStyle.CLASSIC)
+    fun remoteTemplateRemainsEditableAndLaterAdminChoiceIsReflected() {
+        val selected = mutableStateOf(AppUiStyle.STUDIO)
         var changes = 0
         composeRule.setContent {
             MegaStreamTheme {
                 StudioSettingsTemplates(
-                    selectedStyle = if (managed.value) AppUiStyle.STUDIO else local.value,
-                    managed = managed.value,
-                    onStyleSelected = { local.value = it; changes++ }
+                    selectedStyle = selected.value,
+                    managed = true,
+                    onStyleSelected = { selected.value = it; changes++ }
                 )
             }
         }
         AppUiStyle.entries.forEach { style ->
-            composeRule.onNodeWithTag("template_option_${style.storageValue}").assertIsNotEnabled()
+            composeRule.onNodeWithTag("template_option_${style.storageValue}").assertIsEnabled()
         }
         composeRule.onNodeWithTag("template_option_${AppUiStyle.STUDIO.storageValue}").assertIsSelected()
-        composeRule.runOnIdle {
-            assertEquals(0, changes)
-            assertEquals(AppUiStyle.CLASSIC, local.value)
-            managed.value = false
-        }
-        composeRule.onNodeWithTag("template_option_${AppUiStyle.CLASSIC.storageValue}")
-            .assertIsSelected().assertIsEnabled()
         composeRule.onNodeWithTag("template_option_${AppUiStyle.MODERN.storageValue}").performClick()
         composeRule.runOnIdle {
             assertEquals(1, changes)
-            assertEquals(AppUiStyle.MODERN, local.value)
+            assertEquals(AppUiStyle.MODERN, selected.value)
+            selected.value = AppUiStyle.CLASSIC
         }
+        composeRule.onNodeWithTag("template_option_${AppUiStyle.CLASSIC.storageValue}").assertIsSelected().assertIsEnabled()
     }
 }

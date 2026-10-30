@@ -16,7 +16,8 @@ namespace MegaStream.Server.Controllers;
 [Authorize(AuthenticationSchemes = DeviceAuthenticationHandler.SchemeName)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [RequestSizeLimit(65536)]
-public sealed class LocalSubscriptionsController(AppDbContext db, LocalSubscriptionCredentialsStore credentials) : ControllerBase
+public sealed class LocalSubscriptionsController(AppDbContext db, LocalSubscriptionCredentialsStore credentials,
+    IRemoteProviderService providers, IConfiguration configuration) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Report(LocalSubscriptionsRequest request, CancellationToken ct)
@@ -34,6 +35,15 @@ public sealed class LocalSubscriptionsController(AppDbContext db, LocalSubscript
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.LocalSubscriptionsJson, json)
                 .SetProperty(x => x.LocalSubscriptionsReportedAt, DateTime.UtcNow), ct);
         if (updated != 1) throw new DomainException(403, "installation_disabled", "Installation is disabled.");
+        try
+        {
+            await providers.ImportLocalSubscriptionsAsync(id, DateTime.UtcNow.AddMinutes(-AdminController.OnlineWindowMinutes(configuration)), ct);
+        }
+        catch (DomainException error) when (error.Code is "license_required" or "license_unavailable" or
+            "subscription_device_offline" or "installation_disabled" or "invalid_device")
+        {
+            // Retain reports from ineligible devices, but never promote them to saved profiles.
+        }
         return NoContent();
     }
 }

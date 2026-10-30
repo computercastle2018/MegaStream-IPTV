@@ -19,6 +19,7 @@
     <title>@ViewData["Title"] — MegaStream</title>
     <link rel="icon" type="image/png" href="~/images/megastream.png" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <script>try{var d=document.documentElement,t=localStorage.getItem("ms-theme");if(t==="light"||t==="dark")d.dataset.theme=t;var a=localStorage.getItem("ms-accent");if(a==="blue"||a==="violet")d.dataset.accent=a;}catch(e){}</script>
 </head>
 <body class="@(authenticated ? "admin-shell" : "account-shell")">
     <a class="skip" href="#main">تخطي إلى المحتوى</a>
@@ -47,7 +48,19 @@
     <div class="workspace">
         <div class="topbar">
             <span>لوحة التحكم <span class="breadcrumb-divider" aria-hidden="true">/</span> @ViewData["Title"]</span>
-            <span class="timezone"><bdi>UTC</bdi><span>التوقيت العالمي</span></span>
+            <div class="topbar-tools">
+                <div class="accent-switch" role="group" aria-label="اللون الرئيسي">
+                    <button type="button" data-accent-choice="green" title="أخضر" aria-label="أخضر"></button>
+                    <button type="button" data-accent-choice="blue" title="أزرق" aria-label="أزرق"></button>
+                    <button type="button" data-accent-choice="violet" title="بنفسجي" aria-label="بنفسجي"></button>
+                </div>
+                <div class="theme-switch" role="group" aria-label="سمة اللوحة">
+                    <button type="button" data-theme-choice="auto">تلقائي</button>
+                    <button type="button" data-theme-choice="light">فاتح</button>
+                    <button type="button" data-theme-choice="dark">داكن</button>
+                </div>
+                <span class="timezone"><bdi>UTC</bdi><span>التوقيت العالمي</span></span>
+            </div>
         </div>
         <main id="main" tabindex="-1">
             <h1>@ViewData["Title"]</h1>
@@ -55,6 +68,7 @@
         </main>
         <footer><bdi>MegaStream</bdi></footer>
     </div>
+    <script src="~/js/admin-theme.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

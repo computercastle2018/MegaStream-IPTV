@@ -79,18 +79,34 @@ public sealed class BulkPlaybackQualityForm : IValidatableObject
 }
 public sealed class AdminNotificationForm : IValidatableObject
 {
+    [RegularExpression("^(ALL|DEVICE|CUSTOMER_LICENSE)$")] public string? Audience { get; set; }
     public Guid? TargetInstallationId { get; set; }
+    public Guid? TargetLicenseId { get; set; }
     [Required, StringLength(128)] public string Title { get; set; } = "";
     [Required, StringLength(2000)] public string Message { get; set; } = "";
     public DateTime? ExpiresAt { get; set; }
     public IEnumerable<ValidationResult> Validate(ValidationContext context)
     {
+        if (TargetInstallationId.HasValue && TargetLicenseId.HasValue)
+            yield return new ValidationResult("اختر مستلماً واحداً فقط", [nameof(TargetLicenseId)]);
+        if (Audience is not null && Audience != (TargetInstallationId.HasValue ? "DEVICE" : TargetLicenseId.HasValue ? "CUSTOMER_LICENSE" : "ALL"))
+            yield return new ValidationResult("اختر مستلماً مطابقاً للجمهور", [nameof(Audience)]);
         if (ExpiresAt is { } expires && (expires <= DateTime.UtcNow || expires.Year > 2100))
             yield return new ValidationResult("اختر تاريخ انتهاء مستقبلي حتى عام 2100", [nameof(ExpiresAt)]);
     }
 }
 public sealed record NotificationsViewModel(AdminNotificationForm Form, IReadOnlyList<Installation> Devices,
-    IReadOnlyList<AdminNotification> Notifications);
+    IReadOnlyList<AdminNotification> Notifications)
+{
+    public IReadOnlyList<License> Licenses { get; init; } = [];
+    public string? Audience { get; init; }
+    public string State { get; init; } = "active";
+}
+public sealed class ArchiveNotificationsForm
+{
+    [Required] public string CutoffUtc { get; set; } = "";
+    public bool Confirm { get; set; }
+}
 public sealed record DashboardViewModel(int LicenseCount, int DeviceCount, int OnlineDeviceCount, int IncidentCount, int OnlineWindowMinutes, IReadOnlyList<DiagnosticEvent> RecentIncidents);
 public sealed record LicenseCreatedViewModel(License License, string FullKey);
 public sealed record LicenseDetailsViewModel(License License, IReadOnlyList<Installation> Devices, LicenseLimitsForm Limits);

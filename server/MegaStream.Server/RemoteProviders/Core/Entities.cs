@@ -12,6 +12,11 @@ public sealed class RemoteProviderProfile
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
+    public Guid? SourceInstallationId { get; set; }
+    public long? SourceLocalId { get; set; }
+    public string? SourceContentHash { get; set; }
+    public string? SourceStatus { get; set; }
+    public bool? SourceEnabled { get; set; }
 }
 public sealed class RemoteProviderAssignment
 {
@@ -39,4 +44,12 @@ public sealed class RemoteProviderRevisionSequence
 {
     public int Id { get; set; } = 1;
     public long Revision { get; set; }
+}
+public sealed class ProviderRedemptionCode
+{
+    public string CodeHash { get; set; } = "";
+    public Guid ProfileId { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public Guid? RedeemedInstallationId { get; set; }
+    public DateTime? RedeemedAt { get; set; }
 }

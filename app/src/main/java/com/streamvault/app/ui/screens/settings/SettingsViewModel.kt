@@ -424,6 +424,7 @@ class SettingsViewModel @Inject constructor(
     fun setAppUiStyle(style: AppUiStyle) {
         viewModelScope.launch {
             preferencesRepository.setAppUiStyle(style.storageValue)
+            experience.queueAppUiStyle(style)
         }
     }
 

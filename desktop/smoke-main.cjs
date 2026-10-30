@@ -11,7 +11,8 @@ global.fetch = async (url, options) => {
   if (route === 'installations/register') identity = JSON.parse(options.body);
   if (route === 'licenses/activate') activated = true;
   if (route === 'public/signing-key') result = { keys: [key] };
-  if (route === 'devices/experience?version=2') result = { allowSubscriptionDetails: process.env.TEST_ALLOW_DETAILS === '1', uiStyle: global.testUiStyle ?? null };
+  if (route === 'devices/experience?version=2') result = { allowSubscriptionDetails: process.env.TEST_ALLOW_DETAILS === '1', uiStyle: global.testUiStyle ?? null, notifications: global.testNotifications ?? [] };
+  if (route === 'devices/appearance') global.testUiStyle = JSON.parse(options.body).uiStyle;
   if (route === 'providers/assignments') result = { assignments: activated ? [{ assignmentId: '41f81556-efb6-4136-a748-cc46e974906f',
     type: process.env.TEST_XTREAM_URL ? 'xtream_codes' : 'm3u', displayName: 'Desktop test', profileRevision: 1, policy: 'required',
     configuration: process.env.TEST_XTREAM_URL ? { serverUrl: process.env.TEST_XTREAM_URL, username: 'fixture', password: 'fixture' } : { m3uUrl: process.env.TEST_PLAYLIST_URL } }] : [], tombstones: [] };
