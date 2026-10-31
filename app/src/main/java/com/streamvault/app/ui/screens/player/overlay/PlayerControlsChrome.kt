@@ -622,7 +622,7 @@ private fun PlayerBottomBar(
             },
             shape = RoundedCornerShape(if (studio) 0.dp else if (isVod) 20.dp else 28.dp),
             colors = SurfaceDefaults.colors(containerColor = if (studio) MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
-                else Color(0xFF0C1624).copy(alpha = 0.92f))
+                else Color(0xFF160A0E).copy(alpha = 0.92f))
         ) {
             Column(
                 modifier = Modifier

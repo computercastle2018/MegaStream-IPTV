@@ -2,7 +2,7 @@
 <resources>
     <!-- Matches the dark navy of the MegaStream brand logo. -->
     <color name="ic_launcher_background">#0E0E20</color>
-    <!-- Splash screen background — deeper than the icon bg to match the
-         brand splash design (body bg #060610). -->
-    <color name="megastream_splash_bg">#060610</color>
+    <!-- Splash screen background — warm near-black matching the crimson
+         theme canvas (#100608) so cold start doesn't flash navy. -->
+    <color name="megastream_splash_bg">#100608</color>
 </resources>

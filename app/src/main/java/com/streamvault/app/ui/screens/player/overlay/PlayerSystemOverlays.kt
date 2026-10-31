@@ -103,7 +103,7 @@ fun PlayerNoticeBanner(
 
     val (containerColor, focusedContainerColor) = when {
         notice.isRetryNotice || notice.recoveryType == PlayerRecoveryType.NETWORK || notice.recoveryType == PlayerRecoveryType.CATCH_UP ->
-            Color(0xCC17314E) to Color(0xFF214C78)
+            Color(0xCC33161C) to Color(0xFF3F1A22)
         notice.recoveryType == PlayerRecoveryType.SOURCE ||
             notice.recoveryType == PlayerRecoveryType.BUFFER_TIMEOUT ||
             notice.recoveryType == PlayerRecoveryType.DECODER ->

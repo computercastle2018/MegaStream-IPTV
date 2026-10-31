@@ -91,14 +91,14 @@ internal fun AppUiStyleOption(
 @Composable
 internal fun AppUiStyleMiniPreview(style: AppUiStyle, modifier: Modifier = Modifier) {
     val canvas = when (style) {
-        AppUiStyle.CLASSIC -> Color(0xFF07111B)
-        AppUiStyle.MODERN -> Color(0xFF111822)
-        AppUiStyle.STUDIO -> Color(0xFF101414)
+        AppUiStyle.CLASSIC -> Color(0xFF100608)
+        AppUiStyle.MODERN -> Color(0xFF1D1115)
+        AppUiStyle.STUDIO -> Color(0xFF100608)
     }
     val accent = when (style) {
-        AppUiStyle.CLASSIC -> Color(0xFF69A8FF)
-        AppUiStyle.MODERN -> Color(0xFF64D2FF)
-        AppUiStyle.STUDIO -> Color(0xFF69DCB1)
+        AppUiStyle.CLASSIC -> Color(0xFFE01B32)
+        AppUiStyle.MODERN -> Color(0xFFE01B32)
+        AppUiStyle.STUDIO -> Color(0xFFFF4053)
     }
     val tile = Color.White.copy(alpha = 0.15f)
     Box(modifier.fillMaxWidth().aspectRatio(16f / 9f)

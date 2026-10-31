@@ -321,8 +321,8 @@ private fun CategoryModeChip(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(999.dp)),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (selected) Color(0xFF3E7BFA).copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant,
-            focusedContainerColor = Color(0xFF3E7BFA).copy(alpha = 0.28f)
+            containerColor = if (selected) Color(0xFFE01B32).copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = Color(0xFFE01B32).copy(alpha = 0.28f)
         ),
         border = ClickableSurfaceDefaults.border(),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f)
@@ -330,7 +330,7 @@ private fun CategoryModeChip(
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            color = if (selected) Color(0xFF7EB1FF) else MaterialTheme.colorScheme.onSurface,
+            color = if (selected) Color(0xFFFF4053) else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
         )
     }
@@ -355,7 +355,7 @@ private fun ProtectionSummaryCard(
         Text(
             text = selectedTypeLabel,
             style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFF7EB1FF)
+            color = Color(0xFFFF4053)
         )
         Text(
             text = stringResource(R.string.settings_category_protection_summary_title),
@@ -413,7 +413,7 @@ private fun VisibilitySummaryCard(
         Text(
             text = selectedTypeLabel,
             style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFF7EB1FF)
+            color = Color(0xFFFF4053)
         )
         Text(
             text = stringResource(R.string.settings_category_visibility_summary_title),
@@ -459,11 +459,11 @@ private fun SettingsActionButton(
         colors = ClickableSurfaceDefaults.colors(
             containerColor = when {
                 !enabled -> MaterialTheme.colorScheme.surface.copy(alpha = 0.55f)
-                emphasized -> Color(0xFF3E7BFA).copy(alpha = 0.18f)
+                emphasized -> Color(0xFFE01B32).copy(alpha = 0.18f)
                 else -> MaterialTheme.colorScheme.surface
             },
             focusedContainerColor = if (enabled) {
-                if (emphasized) Color(0xFF3E7BFA).copy(alpha = 0.28f) else MaterialTheme.colorScheme.surface
+                if (emphasized) Color(0xFFE01B32).copy(alpha = 0.28f) else MaterialTheme.colorScheme.surface
             } else {
                 MaterialTheme.colorScheme.surface.copy(alpha = 0.55f)
             }
@@ -475,7 +475,7 @@ private fun SettingsActionButton(
             style = MaterialTheme.typography.labelLarge,
             color = when {
                 !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                emphasized -> Color(0xFF7EB1FF)
+                emphasized -> Color(0xFFFF4053)
                 else -> MaterialTheme.colorScheme.onSurface
             },
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
@@ -551,7 +551,7 @@ private fun CategoryProtectionCard(
                 style = MaterialTheme.typography.labelLarge,
                 color = when {
                     item.category.isAdult -> MaterialTheme.colorScheme.error
-                    item.isProtected -> Color(0xFF7EB1FF)
+                    item.isProtected -> Color(0xFFFF4053)
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )
@@ -602,7 +602,7 @@ private fun CategoryVisibilityCard(
                         Text(
                             text = stringResource(R.string.settings_category_status_hidden),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF7EB1FF)
+                            color = Color(0xFFFF4053)
                         )
                     }
                 }
@@ -622,7 +622,7 @@ private fun CategoryVisibilityCard(
                     stringResource(R.string.settings_hide_category)
                 },
                 style = MaterialTheme.typography.labelLarge,
-                color = if (item.isHidden) Color(0xFF7EB1FF) else MaterialTheme.colorScheme.onSurface
+                color = if (item.isHidden) Color(0xFFFF4053) else MaterialTheme.colorScheme.onSurface
             )
         }
     }

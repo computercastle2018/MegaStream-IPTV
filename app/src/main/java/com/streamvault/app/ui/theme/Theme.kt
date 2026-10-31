@@ -18,17 +18,17 @@ val LocalAppUiStyle = staticCompositionLocalOf { AppUiStyle.CLASSIC }
 val LocalAppUiStyleManaged = staticCompositionLocalOf { false }
 
 private val StudioColorScheme = darkColorScheme(
-    primary = androidx.compose.ui.graphics.Color(0xFF69DCB1),
-    onPrimary = androidx.compose.ui.graphics.Color(0xFF09221B),
-    background = androidx.compose.ui.graphics.Color(0xFF101414),
-    onBackground = androidx.compose.ui.graphics.Color(0xFFF3F5F2),
-    surface = androidx.compose.ui.graphics.Color(0xFF191F1E),
-    onSurface = androidx.compose.ui.graphics.Color(0xFFF3F5F2),
-    surfaceVariant = androidx.compose.ui.graphics.Color(0xFF252E2B),
-    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFB9C8C1),
+    primary = androidx.compose.ui.graphics.Color(0xFFFF4053),
+    onPrimary = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    background = androidx.compose.ui.graphics.Color(0xFF100608),
+    onBackground = androidx.compose.ui.graphics.Color(0xFFF5ECEE),
+    surface = androidx.compose.ui.graphics.Color(0xFF1D1115),
+    onSurface = androidx.compose.ui.graphics.Color(0xFFF5ECEE),
+    surfaceVariant = androidx.compose.ui.graphics.Color(0xFF2A1A1F),
+    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFC3A6AC),
     secondary = androidx.compose.ui.graphics.Color(0xFFECCB7B),
     onSecondary = androidx.compose.ui.graphics.Color(0xFF292012),
-    tertiary = androidx.compose.ui.graphics.Color(0xFF9DCEE2),
+    tertiary = androidx.compose.ui.graphics.Color(0xFFFF4053),
     error = androidx.compose.ui.graphics.Color(0xFFFF7C87)
 )
 
@@ -46,16 +46,16 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val ModernColorScheme = darkColorScheme(
-    primary = androidx.compose.ui.graphics.Color(0xFF64D2FF),
-    onPrimary = androidx.compose.ui.graphics.Color(0xFF02131B),
-    surface = androidx.compose.ui.graphics.Color(0xFF111822),
-    onSurface = androidx.compose.ui.graphics.Color(0xFFF3F7FA),
-    surfaceVariant = androidx.compose.ui.graphics.Color(0xFF1A2532),
-    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFB8C8D6),
-    background = androidx.compose.ui.graphics.Color(0xFF070B10),
-    onBackground = androidx.compose.ui.graphics.Color(0xFFF3F7FA),
-    secondary = androidx.compose.ui.graphics.Color(0xFF7BE4B6),
-    onSecondary = androidx.compose.ui.graphics.Color(0xFF02130D),
+    primary = androidx.compose.ui.graphics.Color(0xFFE01B32),
+    onPrimary = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    surface = androidx.compose.ui.graphics.Color(0xFF1D1115),
+    onSurface = androidx.compose.ui.graphics.Color(0xFFF5ECEE),
+    surfaceVariant = androidx.compose.ui.graphics.Color(0xFF2A1A1F),
+    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFC3A6AC),
+    background = androidx.compose.ui.graphics.Color(0xFF100608),
+    onBackground = androidx.compose.ui.graphics.Color(0xFFF5ECEE),
+    secondary = androidx.compose.ui.graphics.Color(0xFFFF4053),
+    onSecondary = androidx.compose.ui.graphics.Color(0xFF2A0A12),
     tertiary = androidx.compose.ui.graphics.Color(0xFFFFCF6E),
     onTertiary = androidx.compose.ui.graphics.Color(0xFF1E1300),
     error = androidx.compose.ui.graphics.Color(0xFFFF6B7A),

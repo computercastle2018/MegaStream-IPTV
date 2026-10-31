@@ -75,9 +75,9 @@ internal fun AppUiStyleDialog(
                             ) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     val palette = when (style) {
-                                        AppUiStyle.CLASSIC -> listOf(Color(0xFF07111B), Color(0xFF69A8FF), Color(0xFF4FD39A))
-                                        AppUiStyle.MODERN -> listOf(Color(0xFF111822), Color(0xFF64D2FF), Color(0xFFFFCF6E))
-                                        AppUiStyle.STUDIO -> listOf(Color(0xFF191F1E), Color(0xFF69DCB1), Color(0xFFECCB7B))
+                                        AppUiStyle.CLASSIC -> listOf(Color(0xFF100608), Color(0xFFE01B32), Color(0xFF4FD39A))
+                                        AppUiStyle.MODERN -> listOf(Color(0xFF1D1115), Color(0xFFE01B32), Color(0xFFFFCF6E))
+                                        AppUiStyle.STUDIO -> listOf(Color(0xFF1D1115), Color(0xFFFF4053), Color(0xFFECCB7B))
                                     }
                                     palette.forEach { color ->
                                         androidx.compose.foundation.layout.Box(Modifier.size(18.dp).background(color, RoundedCornerShape(4.dp)))
