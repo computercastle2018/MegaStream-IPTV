@@ -47,10 +47,22 @@ export async function verifyWebosLease(lease: string, key: JsonWebKey & { kid?: 
   } catch { return false; }
 }
 
+/** Signed-lease window in epoch seconds — claims were already signature-verified. */
+function leaseWindow(lease: string): { licenseEndsAt: number; exp: number } | null {
+  try {
+    const claims = JSON.parse(new TextDecoder().decode(decode(lease.split(".")[1] ?? "")));
+    return Number.isSafeInteger(claims.licenseEndsAt) && Number.isSafeInteger(claims.exp)
+      ? { licenseEndsAt: claims.licenseEndsAt, exp: claims.exp } : null;
+  } catch { return null; }
+}
+
 export function createWebosControl(storage: Storage, version: string, fetcher: Fetcher = fetch) {
   let device: Identity, registered = false, sequence = 0;
   const session = uuid(), listeners = new Set<(state: DesktopControlState) => void>();
   let state: DesktopControlState = { state: "checking", online: false, installationId: "", allowSubscriptionDetails: false };
+  // Window of the last signature-verified lease. Lets a licensed device ride out
+  // transient control-plane outages until the verified window actually passes.
+  let verifiedLease: { licenseEndsAt: number; exp: number } | null = null;
   let pending: Promise<DesktopControlState> | null = null;
   let experiencePending: Promise<void> | null = null;
   const publish = () => listeners.forEach(listener => listener({ ...state }));
@@ -96,7 +108,8 @@ export function createWebosControl(storage: Storage, version: string, fetcher: F
         state = { ...state, allowSubscriptionDetails: result.allowSubscriptionDetails,
           uiStyle: queued ? JSON.parse(queued).uiStyle : ["classic", "modern", "studio"].includes(result.uiStyle) ? result.uiStyle : null,
           notifications: result.notifications, providersChanged: false,
-          error: conflict ? "appearance_conflict" : pendingFailed ? "appearance_sync_pending" : state.error === "appearance_sync_pending" ? null : state.error };
+          error: conflict ? "appearance_conflict" : pendingFailed ? "appearance_sync_pending"
+            : state.error === "appearance_sync_pending" || state.error === "sync_failed" ? null : state.error };
         publish();
       } while (storage.getItem("MegaStream.webos.pending-design.v1") && !conflict && !pendingFailed);
     })().finally(() => { experiencePending = null; });
@@ -149,6 +162,7 @@ export function createWebosControl(storage: Storage, version: string, fetcher: F
         const keys = await request("public/signing-key", undefined, true);
         if (!Array.isArray(keys.keys) || !(await Promise.all(keys.keys.map((key: JsonWebKey) => verifyWebosLease(result.lease, key, device)))).some(Boolean))
           throw new Error("Invalid signed license");
+        verifiedLease = leaseWindow(result.lease);
       }
       state = { ...state, state: result.decision.state, online: true, error: null,
         startsAt: result.decision.startsAt, endsAt: result.decision.endsAt };
@@ -160,7 +174,16 @@ export function createWebosControl(storage: Storage, version: string, fetcher: F
         } catch { state = { ...state, error: "subscription_report_failed" }; }
       }
     } catch {
-      state = { ...state, state: "verification_required", online: false, error: "sync_failed" };
+      // A licensed device rides out transient control-plane failures while its
+      // last signature-verified lease window is still in the future; once the
+      // window passes — or when the last explicit decision was a denial — the
+      // fail-closed verification_required gate returns.
+      const seconds = Math.floor(Date.now() / 1000);
+      const grace = state.state === "allowed" && verifiedLease !== null &&
+        verifiedLease.licenseEndsAt > seconds && verifiedLease.exp > seconds;
+      state = grace
+        ? { ...state, online: false, error: "sync_failed" }
+        : { ...state, state: "verification_required", online: false, error: "sync_failed" };
     }
     publish();
     return { ...state };

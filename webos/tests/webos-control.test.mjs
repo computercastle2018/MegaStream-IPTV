@@ -95,6 +95,61 @@ test('TV upgrades reuse identity, receive admin licensing and remote profiles, t
     assert.equal((await upgrade.state()).state, 'revoked');
 });
 
+test('transient outages keep licensed devices usable until the verified lease window passes', async () => {
+    const saved = storage();
+    let device, offline = false, shortLease = false, decision = 'allowed';
+    const fetcher = async (url, options) => {
+        const route = url.split('/api/v1/')[1];
+        if (offline && route !== 'installations/register') throw new Error('Offline');
+        const body = options.body ? JSON.parse(options.body) : null;
+        let result = {};
+        if (route === 'installations/register') device = body;
+        if (route === 'devices/heartbeat') {
+            const now = Math.floor(Date.now() / 1000);
+            result = { decision: { state: decision }, ...(decision === 'allowed'
+                ? { lease: lease(device, shortLease ? { exp: now + 2, licenseEndsAt: now + 2 } : {}) } : {}) };
+        }
+        if (route === 'public/signing-key') result = { keys: [key] };
+        if (route.startsWith('devices/experience')) result = { allowSubscriptionDetails: false, notifications: [], uiStyle: 'classic' };
+        if (route === 'providers/assignments') result = { assignments: [], tombstones: [] };
+        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
+    };
+    const control = createWebosControl(saved, '3.0.7', fetcher);
+    await control.sync();
+    assert.equal((await control.state()).state, 'allowed');
+
+    // A network blip right after a verified lease must NOT kick the user out.
+    offline = true; await control.sync();
+    let state = await control.state();
+    assert.equal(state.state, 'allowed');
+    assert.equal(state.online, false);
+    assert.equal(state.error, 'sync_failed');
+
+    // Recovery on the next successful sync.
+    offline = false; await control.sync();
+    state = await control.state();
+    assert.equal(state.state, 'allowed');
+    assert.equal(state.online, true);
+    assert.equal(state.error, null);
+
+    // Once the signed lease window itself has passed, the gate closes again.
+    shortLease = true; await control.sync();
+    assert.equal((await control.state()).state, 'allowed');
+    const realNow = Date.now;
+    try {
+        Date.now = () => realNow() + 10_000;
+        offline = true; await control.sync();
+        assert.equal((await control.state()).state, 'verification_required');
+    } finally { Date.now = realNow; }
+
+    // A denial followed by an outage must never resurrect the app.
+    offline = false; decision = 'expired'; await control.sync();
+    assert.equal((await control.state()).state, 'expired');
+    offline = true; await control.sync();
+    assert.equal((await control.state()).state, 'verification_required');
+    assert.notEqual((await control.state()).state, 'allowed');
+});
+
 test('corrupt or unwritable identity storage never registers another device', async () => {
     let requests = 0;
     const fetcher = async () => { requests++; throw new Error('Unexpected network request'); };

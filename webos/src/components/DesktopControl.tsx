@@ -73,8 +73,18 @@ export default function DesktopControl({ children }: { children: ReactNode }) {
       {code && <output className="activation-code" dir="ltr">{code}</output>}</>}
     {(error || state?.error) && <p role="alert">{ar ? "تعذرت المزامنة. تحقق من الاتصال وأعد المحاولة." : "Sync failed. Check the connection and retry."}</p>}
   </section>;
-  if (!allowed || (state.providerCount === 0 && !state.allowSubscriptionDetails)) return <div className="desktop-license-screen">{panel}</div>;
+  // Licensed devices always see the app — the license screen is reserved for
+  // unlicensed/denied states and reappears on its own when a license expires.
+  // The only in-app reminder while licensed is a non-blocking notice when the
+  // control panel has not assigned a subscription yet.
+  if (!allowed) return <div className="desktop-license-screen">{panel}</div>;
+  const waitingForSubscription = state.providerCount === 0 && !state.allowSubscriptionDetails;
   return <><div className={`desktop-app ${state.allowSubscriptionDetails ? "" : "desktop-details-hidden"}`}>{children}</div>
     <FocusButton className="desktop-license-trigger" title={ar ? "الترخيص والجهاز" : "License and device"} onEnter={() => setOpen(true)}><ShieldCheck size={22} /></FocusButton>
+    {waitingForSubscription && <div className="license-waiting" role="status" style={{
+      position: "fixed", bottom: 18, insetInlineEnd: 18, zIndex: 60, display: "flex", alignItems: "center", gap: 8,
+      padding: "10px 14px", borderRadius: 12, background: "rgba(29, 17, 21, 0.92)", border: "1px solid #3a2429",
+      color: "#f5ecee", fontSize: 13, maxWidth: 380, boxShadow: "0 8px 30px rgba(0,0,0,0.4)", pointerEvents: "none",
+    }}><ShieldCheck size={16} aria-hidden="true" />{ar ? "بانتظار إسناد الاشتراك من لوحة التحكم" : "Waiting for a subscription from the control panel"}</div>}
     {open && <div className="desktop-license-modal">{panel}</div>}</>;
 }

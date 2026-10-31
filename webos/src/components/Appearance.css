@@ -38,9 +38,9 @@
 
 /* Keep the original layout untouched; new layouts share playback and catalog logic. */
 :root:is([data-design="modern"], [data-design="studio"]) {
-  --bg: #101214; --bg-2: #16191c; --surface: #1b1f22; --surface-2: #262c30;
-  --border: #41494f; --text: #f2f5f6; --text-dim: #b3bec5;
-  --accent: #176758; --accent-bright: #63dfbc; --focus: #63dfbc;
+  --bg: #100608; --bg-2: #160a0e; --surface: #1d1115; --surface-2: #2a1a1f;
+  --border: #3a2429; --text: #f5ecee; --text-dim: #c3a6ac;
+  --accent: #a30d20; --accent-bright: #e01b32; --focus: #ff4053;
   --radius: 8px; --radius-sm: 6px; --fs-base: 16px;
 }
 [data-design]:not([data-design="classic"]) .home-screen { background: var(--bg); padding: 32px; gap: 24px; overflow-y: auto; }
@@ -50,12 +50,12 @@
 [data-design]:not([data-design="classic"]) .home-logo { filter: none; }
 [data-design]:not([data-design="classic"]) .home-expiry { font-size: 14px; }
 [data-design]:not([data-design="classic"]) .home-tile { background: var(--surface); box-shadow: none; border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
-[data-design]:not([data-design="classic"]) .home-tile .tile-icon { color: #63dfbc; }
-[data-design]:not([data-design="classic"]) .home-tile:nth-child(2) .tile-icon { color: #f3a0b4; }
-[data-design]:not([data-design="classic"]) .home-tile:nth-child(3) .tile-icon { color: #8abcf8; }
+[data-design]:not([data-design="classic"]) .home-tile .tile-icon { color: #ff4053; }
+[data-design]:not([data-design="classic"]) .home-tile:nth-child(2) .tile-icon { color: #ff8a95; }
+[data-design]:not([data-design="classic"]) .home-tile:nth-child(3) .tile-icon { color: #ffd166; }
 [data-design]:not([data-design="classic"]) .home-tile.focused { transform: none; box-shadow: 0 0 0 3px var(--focus); }
 [data-design]:not([data-design="classic"]) .side-btn { border-radius: 6px; font-size: 16px; padding: 16px; min-height: 52px; }
-[data-design]:not([data-design="classic"]) .side-btn.focused { background: #16392f; border-color: var(--focus); box-shadow: 0 0 0 3px var(--focus); }
+[data-design]:not([data-design="classic"]) .side-btn.focused { background: #3a1219; border-color: var(--focus); box-shadow: 0 0 0 3px var(--focus); }
 [data-design]:not([data-design="classic"]) .desktop-license-trigger { display: none; }
 [data-design]:not([data-design="classic"]) .home-version { position: static; align-self: flex-end; font-size: 13px; }
 [data-design]:not([data-design="classic"]) .app-header { padding: 16px 24px; gap: 12px; border-bottom: 1px solid var(--border); }
@@ -65,7 +65,7 @@
 [data-design]:not([data-design="classic"]) .browse-toolbar { padding: 12px 24px; }
 [data-design]:not([data-design="classic"]) .browse-toolbar { flex-direction: row; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 [data-design]:not([data-design="classic"]) .type-tabs { background: transparent; border: 0; border-radius: 0; padding: 0; gap: 4px; }
-[data-design]:not([data-design="classic"]) .type-tab.active { background: var(--accent-bright); color: #10251e; }
+[data-design]:not([data-design="classic"]) .type-tab.active { background: var(--accent-bright); color: #fff; }
 [data-design]:not([data-design="classic"]) .search-toggle { border-radius: 4px; font-size: 14px; min-height: 40px; }
 [data-design]:not([data-design="classic"]) .content-grid { gap: 16px; padding: 20px; }
 [data-design]:not([data-design="classic"]) .content-grid.poster { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
@@ -116,10 +116,10 @@
 [data-design]:not([data-design="classic"]) .player-screen .center-msg.error {
   inset: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: min(560px, calc(100% - 48px)); padding: 24px; gap: 16px;
-  border: 1px solid var(--border); border-radius: 8px; background: #101214f2;
+  border: 1px solid var(--border); border-radius: 8px; background: #100608f2;
   font-size: 24px; overflow-wrap: anywhere;
 }
-[data-design]:not([data-design="classic"]) .loading-overlay { background: #101214ed; }
+[data-design]:not([data-design="classic"]) .loading-overlay { background: #100608ed; }
 [data-design]:not([data-design="classic"]) .loading-text { font-size: 22px; letter-spacing: 0; }
 @media (max-width: 900px) {
   [data-design="studio"] .home-screen { grid-template-columns: 180px minmax(0, 1fr); padding: 20px; gap: 16px; }

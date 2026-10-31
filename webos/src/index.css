@@ -1,18 +1,16 @@
 @import "./fonts/cairo.css";
 
 :root {
-  --bg: #0b0f14;
-  --bg-2: #0d1620;
-  --surface: #131a22;
-  --surface-2: #1c2530;
-  --border: #243040;
-  --accent: #0f766e;
-  --accent-bright: #14b8a6;
-  --text: #e6edf3;
-  --text-dim: #8aa0b2;
-  --focus: #14b8a6;
-  --purple: #6d28d9;
-  --purple-bright: #a855f7;
+  --bg: #100608;
+  --bg-2: #160a0e;
+  --surface: #1d1115;
+  --surface-2: #2a1a1f;
+  --border: #3a2429;
+  --accent: #a30d20;
+  --accent-bright: #e01b32;
+  --text: #f5ecee;
+  --text-dim: #c3a6ac;
+  --focus: #ff4053;
   --danger: #f87171;
   --ok: #34d399;
   --radius: 16px;
@@ -81,7 +79,7 @@ body {
 .btn.primary {
   background: linear-gradient(135deg, var(--accent-bright), var(--accent));
   border-color: transparent;
-  color: #03110f;
+  color: #fff;
 }
 
 .btn.ghost {
@@ -99,7 +97,7 @@ body {
 
 .btn.focused {
   background: var(--accent-bright);
-  color: #03110f;
+  color: #fff;
   border-color: transparent;
 }
 
@@ -112,7 +110,7 @@ body {
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: radial-gradient(120% 120% at 100% 0%, #10212b 0%, var(--bg) 55%);
+  background: radial-gradient(120% 120% at 100% 0%, #2a0a12 0%, var(--bg) 55%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,7 +144,7 @@ body {
   width: clamp(48px, 4.5vw, 80px);
   aspect-ratio: 1;
   flex-shrink: 0;
-  filter: drop-shadow(0 8px 20px rgba(20, 184, 166, 0.3));
+  filter: drop-shadow(0 8px 20px rgba(224, 27, 50, 0.35));
 }
 
 .brand-name {
@@ -279,13 +277,13 @@ body {
 }
 
 .field input::placeholder {
-  color: #50627a;
+  color: #8a6b71;
 }
 
 .field input.focused,
 .field input:focus {
   border-color: var(--focus);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
+  box-shadow: 0 0 0 3px rgba(224, 27, 50, 0.2);
 }
 
 /* Actions */
@@ -378,8 +376,8 @@ body {
   font-weight: 700;
   letter-spacing: 0.5px;
   color: var(--accent-bright);
-  background: rgba(20, 184, 166, 0.12);
-  border: 1px solid rgba(20, 184, 166, 0.3);
+  background: rgba(224, 27, 50, 0.12);
+  border: 1px solid rgba(224, 27, 50, 0.3);
   padding: 0.35em 0.6em;
   border-radius: 8px;
 }
@@ -465,7 +463,7 @@ body {
 
 .back-btn.focused {
   background: var(--accent-bright);
-  color: #03110f;
+  color: #fff;
   border-color: transparent;
 }
 
@@ -496,7 +494,7 @@ body {
 
 .lang-toggle.focused {
   background: var(--accent-bright);
-  color: #03110f;
+  color: #fff;
   border-color: transparent;
 }
 
@@ -545,7 +543,7 @@ body {
 
 .type-tab.active {
   background: linear-gradient(135deg, var(--accent-bright), var(--accent));
-  color: #03110f;
+  color: #fff;
 }
 
 .type-tab.focused {
@@ -554,7 +552,7 @@ body {
 }
 
 .type-tab.active.focused {
-  color: #03110f;
+  color: #fff;
 }
 
 /* Poster cards (movies / series) */
@@ -653,7 +651,7 @@ body {
 
 .search-toggle.focused {
   background: var(--accent-bright);
-  color: #03110f;
+  color: #fff;
   border-color: transparent;
 }
 
@@ -675,13 +673,13 @@ body {
 
 .search-icon-btn.focused {
   background: var(--accent-bright);
-  color: #03110f;
+  color: #fff;
   border-color: transparent;
 }
 
 .search-box.focused {
   border-color: var(--focus);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
+  box-shadow: 0 0 0 3px rgba(224, 27, 50, 0.2);
 }
 
 .search-box svg {
@@ -700,7 +698,7 @@ body {
 }
 
 .search-box input::placeholder {
-  color: #50627a;
+  color: #8a6b71;
 }
 
 .search-box input::-webkit-search-cancel-button {
@@ -735,9 +733,9 @@ body {
 }
 
 .sort-pill.active {
-  background: rgba(20, 184, 166, 0.16);
+  background: rgba(224, 27, 50, 0.18);
   border-color: var(--accent-bright);
-  color: var(--accent-bright);
+  color: var(--focus);
 }
 
 .sort-pill.focused {
@@ -814,13 +812,13 @@ body {
 .category-item.active {
   color: var(--text);
   font-weight: 600;
-  background: rgba(20, 184, 166, 0.1);
+  background: rgba(224, 27, 50, 0.12);
   border-inline-start-color: var(--accent-bright);
 }
 
 .category-item.active .cat-count {
-  background: rgba(20, 184, 166, 0.22);
-  color: var(--accent-bright);
+  background: rgba(224, 27, 50, 0.25);
+  color: var(--focus);
 }
 
 .category-item.focused {
@@ -1060,7 +1058,7 @@ body {
   border-radius: 999px;
   font-size: clamp(12px, 0.9vw, 17px);
   font-weight: 600;
-  background: rgba(11, 15, 20, 0.72);
+  background: rgba(16, 6, 8, 0.72);
   border: 1px solid var(--border);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
@@ -1098,7 +1096,11 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(120% 90% at 50% -10%, #1a1030 0%, #07060d 60%);
+  background:
+    radial-gradient(110% 85% at 85% -15%, rgba(224, 27, 50, 0.3), rgba(224, 27, 50, 0) 62%),
+    radial-gradient(90% 70% at 8% -15%, rgba(224, 27, 50, 0.2), rgba(224, 27, 50, 0) 60%),
+    radial-gradient(140% 120% at 50% 125%, rgba(122, 10, 26, 0.16), rgba(122, 10, 26, 0) 60%),
+    #100608;
   padding: clamp(20px, 3vw, 48px);
   position: relative;
   overflow: hidden;
@@ -1122,13 +1124,13 @@ body {
 .home-logo {
   width: 1.1em;
   height: 1.1em;
-  filter: drop-shadow(0 6px 18px rgba(168, 85, 247, 0.45));
+  filter: drop-shadow(0 6px 18px rgba(224, 27, 50, 0.45));
 }
 
 .home-title {
   font-weight: 800;
   letter-spacing: 0.5px;
-  background: linear-gradient(120deg, #fff, var(--purple-bright));
+  background: linear-gradient(120deg, #fff, var(--accent-bright));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1163,12 +1165,12 @@ body {
   justify-content: space-between;
   padding: clamp(16px, 1.8vw, 30px);
   border-radius: clamp(16px, 1.4vw, 24px);
-  background: linear-gradient(150deg, #7c3aed, #5b21b6);
+  background: linear-gradient(150deg, #e01b32, #8f0e1f);
   color: #fff;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(91, 33, 182, 0.3);
+  box-shadow: 0 10px 30px rgba(143, 14, 31, 0.35);
 }
 
 .home-tile .tile-icon {
@@ -1187,7 +1189,7 @@ body {
 .tile-live {
   grid-column: 1;
   grid-row: 1 / span 2;
-  background: linear-gradient(150deg, #8b5cf6, #6d28d9);
+  background: linear-gradient(150deg, #ff4053, #a30d20);
 }
 
 .tile-live .tile-icon {
@@ -1200,7 +1202,7 @@ body {
 }
 
 .tile-muted {
-  background: linear-gradient(150deg, #4c1d95, #2e1065);
+  background: linear-gradient(150deg, #5e0a17, #2e050c);
   opacity: 0.85;
 }
 
@@ -1217,7 +1219,7 @@ body {
 
 .home-tile.focused {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 0 0 3px var(--purple-bright), 0 16px 40px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 0 0 3px var(--accent-bright), 0 16px 40px rgba(224, 27, 50, 0.5);
   z-index: 2;
 }
 
@@ -1253,9 +1255,9 @@ body {
 }
 
 .side-btn.focused {
-  background: rgba(168, 85, 247, 0.18);
-  border-color: var(--purple-bright);
-  box-shadow: 0 0 0 3px var(--purple-bright);
+  background: rgba(224, 27, 50, 0.18);
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px var(--accent-bright);
 }
 
 .home-version {
@@ -2058,7 +2060,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: clamp(18px, 2vw, 32px);
-  background: radial-gradient(120% 90% at 50% 40%, rgba(26, 16, 48, 0.92) 0%, rgba(7, 6, 13, 0.96) 70%);
+  background: radial-gradient(120% 90% at 50% 40%, rgba(46, 13, 20, 0.92) 0%, rgba(11, 4, 6, 0.96) 70%);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   animation: overlay-fade 0.2s ease;
@@ -2075,7 +2077,7 @@ body {
 .loading-logo {
   width: 58%;
   height: 58%;
-  filter: drop-shadow(0 8px 22px rgba(168, 85, 247, 0.5));
+  filter: drop-shadow(0 8px 22px rgba(224, 27, 50, 0.5));
   animation: logo-pulse 1.6s ease-in-out infinite;
 }
 
@@ -2083,9 +2085,9 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: clamp(4px, 0.5vw, 7px) solid rgba(168, 85, 247, 0.18);
-  border-top-color: var(--purple-bright);
-  border-right-color: var(--purple-bright);
+  border: clamp(4px, 0.5vw, 7px) solid rgba(224, 27, 50, 0.18);
+  border-top-color: var(--accent-bright);
+  border-right-color: var(--accent-bright);
   animation: ring-spin 0.9s linear infinite;
 }
 
@@ -2105,7 +2107,7 @@ body {
   width: clamp(8px, 0.7vw, 12px);
   height: clamp(8px, 0.7vw, 12px);
   border-radius: 50%;
-  background: var(--purple-bright);
+  background: var(--accent-bright);
   animation: dot-bounce 1.2s ease-in-out infinite;
 }
 
