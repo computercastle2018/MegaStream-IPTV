@@ -35,11 +35,14 @@
         <textarea id="notification-message" name="Message" maxlength="2000" required>@Model.Form.Message</textarea>
         <label for="notification-expiration">انتهاء الصلاحية UTC (الافتراضي 30 يوماً)</label>
         <input id="notification-expiration" name="ExpiresAt" type="datetime-local" value="@Model.Form.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm")" />
-        <button type="submit">إرسال الإشعار</button>
+        <button type="submit"><partial name="_Icon" model='"send"' />إرسال الإشعار</button>
     </form>
 </section>
 <section class="panel">
+    <h2>تصفية الإشعارات</h2>
     <form asp-action="Notifications" method="get">
+        <div class="filters">
+        <div>
         <label for="audience-filter">الجمهور</label>
         <select id="audience-filter" name="audience">
             <option value="">كل الجماهير</option>
@@ -47,16 +50,20 @@
             <option value="DEVICE" selected="@(Model.Audience == "DEVICE")">جهاز محدد</option>
             <option value="CUSTOMER_LICENSE" selected="@(Model.Audience == "CUSTOMER_LICENSE")">عميل (ترخيص)</option>
         </select>
+        </div>
+        <div>
         <label for="state-filter">الحالة</label>
         <select id="state-filter" name="state">
             <option value="active" selected="@(Model.State == "active")">غير مؤرشف</option>
             <option value="archived" selected="@(Model.State == "archived")">مؤرشف</option>
             <option value="all" selected="@(Model.State == "all")">الكل</option>
         </select>
-        <button type="submit">تصفية</button>
+        </div>
+        <div class="actions"><button type="submit">تصفية</button></div>
+        </div>
     </form>
 </section>
-<section class="panel table-wrap">
+<section class="panel table-wrap table-wrap--scroll">
     <table><thead><tr><th>العنوان</th><th>الرسالة</th><th>المستلم</th><th>أُرسل UTC</th><th>ينتهي UTC</th><th>أُرشف UTC</th><th>الإجراء</th></tr></thead><tbody>
     @foreach (var notification in Model.Notifications)
     {

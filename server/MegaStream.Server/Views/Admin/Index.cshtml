@@ -1,3 +1,9 @@
 @model DashboardViewModel
 @{ ViewData["Title"] = "نظرة عامة"; }
-<section class="stats"><article><strong>@Model.LicenseCount</strong><span>التراخيص</span></article><article><strong>@Model.DeviceCount</strong><span>الأجهزة المسجلة</span></article><article><strong>@Model.OnlineDeviceCount</strong><span>متصل خلال @Model.OnlineWindowMinutes دقيقة</span></article><article><strong>@Model.IncidentCount</strong><span>الحوادث المسجلة</span></article></section><section class="panel"><h2>آخر الحوادث</h2><partial name="_DiagnosticsTable" model="Model.RecentIncidents" /></section>
+<section class="stats">
+    <article class="tone-accent"><span class="stat-icon-wrap"><partial name="_Icon" model='"key"' /></span><div><strong>@Model.LicenseCount</strong><span>التراخيص</span></div></article>
+    <article><span class="stat-icon-wrap"><partial name="_Icon" model='"devices"' /></span><div><strong>@Model.DeviceCount</strong><span>الأجهزة المسجلة</span></div></article>
+    <article class="tone-ok"><span class="stat-icon-wrap"><partial name="_Icon" model='"activity"' /></span><div><strong>@Model.OnlineDeviceCount</strong><span>متصل خلال @Model.OnlineWindowMinutes دقيقة</span></div></article>
+    <article class="tone-warn"><span class="stat-icon-wrap"><partial name="_Icon" model='"bell"' /></span><div><strong>@Model.IncidentCount</strong><span>الحوادث المسجلة</span></div></article>
+</section>
+<section class="panel"><h2>آخر الحوادث</h2><partial name="_DiagnosticsTable" model="Model.RecentIncidents" /></section>

@@ -6,7 +6,9 @@
 }
 @if (Model.Metadata is { } metadata)
 {
-    <dl><dt>الاسم</dt><dd>@metadata.DisplayName</dd><dt>النوع</dt><dd><bdi>@metadata.Type</bdi></dd><dt>الحالة</dt><dd>@(metadata.Status == "active" ? "نشط" : "ملغى")</dd><dt>المراجعة</dt><dd>@metadata.Revision</dd><dt>الإعدادات</dt><dd>@(metadata.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</dd></dl>
+    <section class="panel">
+    <h2>الاشتراك الحالي</h2>
+    <dl><dt>الاسم</dt><dd>@metadata.DisplayName</dd><dt>النوع</dt><dd><bdi>@metadata.Type</bdi></dd><dt>الحالة</dt><dd><span class="badge @(metadata.Status == "active" ? "success" : "danger")">@(metadata.Status == "active" ? "نشط" : "ملغى")</span></dd><dt>المراجعة</dt><dd>@metadata.Revision</dd><dt>الإعدادات</dt><dd>@(metadata.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</dd></dl>
     @if (metadata.Status == "active" && !metadata.DeletedAt.HasValue)
     {
         var access = new MegaStream.Server.RemoteProviders.Http.ProviderAccess($"/admin/providers/{metadata.Id}", metadata.Type != "STALKER_PORTAL");
@@ -22,9 +24,12 @@
             <p>صالح لمدة 24 ساعة، حتى <time datetime="@generated.ExpiresAt.ToString("O")" dir="ltr">@generated.ExpiresAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</time>. يُدخل في التطبيق على جهاز مرخّص، وليس رمز تفعيل الترخيص.</p>
         }
     }
+    </section>
 }
 @section Scripts { <script src="~/js/provider-credentials.js" asp-append-version="true" defer></script> }
-<p>يستبدل الحفظ الإعدادات كاملة. تبدأ حقول الإعدادات فارغة؛ ترك الأسرار فارغة لا يحتفظ بالقيم السابقة. لا تضع بيانات الدخول أو روابط المزود في الاسم المعروض.</p>
+<section class="panel">
+<h2>الإعدادات الكاملة</h2>
+<p class="notice">يستبدل الحفظ الإعدادات كاملة. تبدأ حقول الإعدادات فارغة؛ ترك الأسرار فارغة لا يحتفظ بالقيم السابقة. لا تضع بيانات الدخول أو روابط المزود في الاسم المعروض.</p>
 <form method="post" action="@(Model.ProfileId.HasValue ? $"/admin/providers/{Model.ProfileId}" : "/admin/providers/create")" autocomplete="off">
     @Html.AntiForgeryToken()
     <label>اسم العرض الآمن <input name="displayName" maxlength="128" required /></label>
@@ -83,10 +88,14 @@
     </fieldset>
     <button type="submit">حفظ الإعدادات كاملة</button>
 </form>
+</section>
 @if (Model.ProfileId.HasValue)
 {
+    <section class="panel">
+    <h2>إلغاء الاشتراك</h2>
     <form method="post" action="/admin/providers/@Model.ProfileId/revoke">
         @Html.AntiForgeryToken()
-        <button type="submit">إلغاء الاشتراك وجميع تعييناته</button>
+        <button class="danger" type="submit">إلغاء الاشتراك وجميع تعييناته</button>
     </form>
+    </section>
 }

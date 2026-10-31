@@ -9,66 +9,99 @@
         "DiagnosticDetails" => "Diagnostics",
         _ => action
     } : controller;
+    var sectionIcon = section switch
+    {
+        "Devices" => "devices",
+        "Licenses" => "licenses",
+        "Codes" => "codes",
+        "Notifications" => "notifications",
+        "Diagnostics" => "diagnostics",
+        "ProvidersAdmin" => "providers",
+        "UpdatesAdmin" => "updates",
+        "TestMedia" => "play",
+        "Account" => "lock",
+        _ => "dashboard"
+    };
+    var userName = User.Identity?.Name;
+    var userInitial = !string.IsNullOrWhiteSpace(userName) ? userName.Trim()[0].ToString().ToUpperInvariant() : "M";
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#087f70" />
+    <meta name="theme-color" content="#100608" />
     <title>@ViewData["Title"] — MegaStream</title>
-    <link rel="icon" type="image/png" href="~/images/megastream.png" />
+    <link rel="icon" type="image/svg+xml" href="~/icons/favicon.svg" />
+    <link rel="alternate icon" type="image/png" href="~/images/megastream.png" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
-    <script>try{var d=document.documentElement,t=localStorage.getItem("ms-theme");if(t==="light"||t==="dark")d.dataset.theme=t;var a=localStorage.getItem("ms-accent");if(a==="blue"||a==="violet")d.dataset.accent=a;}catch(e){}</script>
 </head>
 <body class="@(authenticated ? "admin-shell" : "account-shell")">
     <a class="skip" href="#main">تخطي إلى المحتوى</a>
     <header class="sidebar">
         <a class="brand" asp-controller="Admin" asp-action="Index">
-            <img src="~/images/megastream.png" alt="" width="40" height="40" />
+            <svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+                <defs>
+                    <linearGradient id="msMarkBg" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#2a0a12" /><stop offset=".45" stop-color="#5c0f1e" /><stop offset="1" stop-color="#1c060c" />
+                    </linearGradient>
+                    <linearGradient id="msMarkAccent" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#ff5a6e" /><stop offset=".5" stop-color="#e8192f" /><stop offset="1" stop-color="#a30d20" />
+                    </linearGradient>
+                </defs>
+                <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#msMarkBg)" />
+                <path d="M112 360 L112 200 Q112 174 134 162 Q156 150 174 170 L246 246 L318 170 Q336 150 358 162 Q380 174 380 200 L380 360 L308 360 L308 280 L246 336 L184 280 L184 360 Z" fill="url(#msMarkAccent)" />
+                <path d="M230 190 L334 250 Q344 256 334 262 L230 322 Q220 328 220 316 L220 196 Q220 184 230 190 Z" fill="#ffffff" />
+            </svg>
             <span><b dir="ltr">MegaStream</b><small>لوحة الإدارة</small></span>
         </a>
         @if (authenticated)
         {
             <nav aria-label="القائمة الرئيسية">
-                <a asp-controller="Admin" asp-action="Index" aria-current="@(section == "Index" ? "page" : null)"><i class="nav-icon home" aria-hidden="true"></i>الرئيسية</a>
-                <a asp-controller="Admin" asp-action="Licenses" aria-current="@(section == "Licenses" ? "page" : null)"><i class="nav-icon license" aria-hidden="true"></i>التراخيص</a>
-                <a asp-controller="Admin" asp-action="Devices" aria-current="@(section == "Devices" ? "page" : null)"><i class="nav-icon device" aria-hidden="true"></i>الأجهزة</a>
-                <a asp-controller="Admin" asp-action="Codes" aria-current="@(section == "Codes" ? "page" : null)"><i class="nav-icon code-icon" aria-hidden="true"></i>رموز التفعيل</a>
-                <a asp-controller="Admin" asp-action="Diagnostics" aria-current="@(section == "Diagnostics" ? "page" : null)"><i class="nav-icon diagnostic" aria-hidden="true"></i>التشخيص</a>
-                <a href="@Url.Content("~/admin/updates")" aria-current="@(section == "UpdatesAdmin" ? "page" : null)"><i class="nav-icon update" aria-hidden="true"></i>التحديثات</a>
-                <a href="@Url.Content("~/admin/providers")" aria-current="@(section == "ProvidersAdmin" ? "page" : null)"><i class="nav-icon provider" aria-hidden="true"></i>الاشتراكات</a>
-                <a asp-controller="Admin" asp-action="Notifications" aria-current="@(section == "Notifications" ? "page" : null)"><i class="nav-icon notification" aria-hidden="true"></i>الإشعارات</a>
+                <div class="nav-group">
+                    <a asp-controller="Admin" asp-action="Index" aria-current="@(section == "Index" ? "page" : null)"><partial name="_Icon" model='"dashboard"' />الرئيسية</a>
+                </div>
+                <div class="nav-group">
+                    <p class="nav-label" aria-hidden="true">الإدارة</p>
+                    <a asp-controller="Admin" asp-action="Devices" aria-current="@(section == "Devices" ? "page" : null)"><partial name="_Icon" model='"devices"' />الأجهزة</a>
+                    <a asp-controller="Admin" asp-action="Licenses" aria-current="@(section == "Licenses" ? "page" : null)"><partial name="_Icon" model='"licenses"' />التراخيص</a>
+                    <a asp-controller="Admin" asp-action="Codes" aria-current="@(section == "Codes" ? "page" : null)"><partial name="_Icon" model='"codes"' />رموز التفعيل</a>
+                </div>
+                <div class="nav-group">
+                    <p class="nav-label" aria-hidden="true">المراقبة</p>
+                    <a asp-controller="Admin" asp-action="Notifications" aria-current="@(section == "Notifications" ? "page" : null)"><partial name="_Icon" model='"notifications"' />الإشعارات</a>
+                    <a asp-controller="Admin" asp-action="Diagnostics" aria-current="@(section == "Diagnostics" ? "page" : null)"><partial name="_Icon" model='"diagnostics"' />التشخيص</a>
+                </div>
+                <div class="nav-group">
+                    <p class="nav-label" aria-hidden="true">النظام</p>
+                    <a href="@Url.Content("~/admin/providers")" aria-current="@(section == "ProvidersAdmin" ? "page" : null)"><partial name="_Icon" model='"providers"' />الاشتراكات</a>
+                    <a href="@Url.Content("~/admin/updates")" aria-current="@(section == "UpdatesAdmin" ? "page" : null)"><partial name="_Icon" model='"updates"' />التحديثات</a>
+                </div>
             </nav>
-            <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
-                <button class="secondary" type="submit"><i class="nav-icon exit" aria-hidden="true"></i>تسجيل الخروج</button>
-            </form>
+            <div class="sidebar-foot">
+                <div class="account-card">
+                    <span class="account-avatar" aria-hidden="true">@userInitial</span>
+                    <span class="account-meta"><b>@(userName ?? "مسؤول")</b><small>مسؤول النظام</small></span>
+                </div>
+                <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
+                    <button class="secondary" type="submit"><partial name="_Icon" model='"logout"' />تسجيل الخروج</button>
+                </form>
+            </div>
         }
     </header>
     <div class="workspace">
         <div class="topbar">
             <span>لوحة التحكم <span class="breadcrumb-divider" aria-hidden="true">/</span> @ViewData["Title"]</span>
             <div class="topbar-tools">
-                <div class="accent-switch" role="group" aria-label="اللون الرئيسي">
-                    <button type="button" data-accent-choice="green" title="أخضر" aria-label="أخضر"></button>
-                    <button type="button" data-accent-choice="blue" title="أزرق" aria-label="أزرق"></button>
-                    <button type="button" data-accent-choice="violet" title="بنفسجي" aria-label="بنفسجي"></button>
-                </div>
-                <div class="theme-switch" role="group" aria-label="سمة اللوحة">
-                    <button type="button" data-theme-choice="auto">تلقائي</button>
-                    <button type="button" data-theme-choice="light">فاتح</button>
-                    <button type="button" data-theme-choice="dark">داكن</button>
-                </div>
                 <span class="timezone"><bdi>UTC</bdi><span>التوقيت العالمي</span></span>
             </div>
         </div>
         <main id="main" tabindex="-1">
-            <h1>@ViewData["Title"]</h1>
+            <h1><partial name="_Icon" model="sectionIcon" />@ViewData["Title"]</h1>
             @RenderBody()
         </main>
         <footer><bdi>MegaStream</bdi></footer>
     </div>
-    <script src="~/js/admin-theme.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

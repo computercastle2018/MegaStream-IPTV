@@ -19,12 +19,12 @@
         <p><label>بصمة SHA-256 المتوقعة لشهادة التوقيع (اختياري) <input name="SigningCertificateSha256" /></label></p>
         <p><label><input type="checkbox" name="Mandatory" value="true" style="width:auto" /> تحديث إلزامي</label></p>
         <p><label>ملاحظات <textarea name="Notes"></textarea></label></p>
-        <button type="submit">رفع مسودة</button>
+        <button type="submit"><partial name="~/Views/Shared/_Icon.cshtml" model='"upload"' />رفع مسودة</button>
     </form>
 </section>
 <section class="panel">
     <h2>الإصدارات</h2>
-    <div class="table-wrap">
+    <div class="table-wrap table-wrap--scroll">
     <table>
         <thead><tr><th>الإصدار</th><th>الحزمة / القناة</th><th>المتطلبات</th><th>سلامة الملف</th><th>الحالة / الإجراءات</th></tr></thead>
         <tbody>
@@ -36,10 +36,10 @@
                 <td>إصدار SDK: @release.MinSdk<br />إلزامي: @(release.Mandatory ? "نعم" : "لا")</td>
                 <td>@release.SizeBytes بايت<br />بصمة SHA-256: <code dir="ltr" style="overflow-wrap:anywhere">@release.Sha256</code><br />بصمة الشهادة: <code dir="ltr" style="overflow-wrap:anywhere">@release.SigningCertificateSha256</code></td>
                 <td>
-                    <bdi>@release.Status</bdi>
+                    <span class="badge @(release.Status == "Published" ? "success" : "pending")"><bdi>@release.Status</bdi></span>
                     <form method="post" action="@Url.Content($"~/admin/updates/releases/{release.Id}/publish")">
                         @Html.AntiForgeryToken()
-                        <button type="submit">نشر الإصدار</button>
+                        <button type="submit"><partial name="~/Views/Shared/_Icon.cshtml" model='"check"' />نشر الإصدار</button>
                     </form>
                     <a href="@Url.Content($"~/admin/updates/releases/{release.Id}/outdated")">الأجهزة التي تحتاج إلى تحديث (JSON)</a>
                 </td>
@@ -70,6 +70,6 @@
             </select>
         </label></p>
         <p class="notice">اختيار التثبيت المُدار طلب صريح، وليس إثباتًا لامتلاك صلاحية مالك الجهاز. يتطلب التثبيت العادي على Android موافقة المستخدم.</p>
-        <button type="submit">إضافة التحديث إلى قائمة الانتظار</button>
+        <button type="submit"><partial name="~/Views/Shared/_Icon.cshtml" model='"send"' />إضافة التحديث إلى قائمة الانتظار</button>
     </form>
 </section>

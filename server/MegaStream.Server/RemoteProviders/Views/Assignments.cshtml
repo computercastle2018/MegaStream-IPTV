@@ -1,7 +1,8 @@
 @model MegaStream.Server.RemoteProviders.Http.ProviderAssignments
 @{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewData["Title"] = "اشتراكات التثبيت"; }
-<p>معرّف التثبيت: <code dir="ltr">@Model.InstallationId</code></p>
+<section class="panel">
 <h2>اشتراكات الجهاز المحلية</h2>
+<p>معرّف التثبيت: <code dir="ltr">@Model.InstallationId</code></p>
 @if (Model.LocalSubscriptionsReportedAt is { } reportedAt)
 {
     <p>آخر تقرير محفوظ: <bdi>@reportedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</bdi>. مهلة حداثة التقرير: @Model.ReportFreshnessMinutes دقيقة.</p>
@@ -16,7 +17,7 @@ else
 </form>
 @if (Model.ImportDisabledReason is { } reason) { <p role="status">@reason</p> }
 <h3>آخر الاتصالات المحلية المبلّغة</h3>
-<div class="table-wrap">
+<div class="table-wrap table-wrap--scroll">
 <table id="local-subscription-reports">
     <thead><tr><th>اسم الاتصال على الجهاز</th><th>نوع الخدمة</th><th>الحالة المبلّغة</th><th>بيانات الدخول</th><th>آخر تقرير UTC</th></tr></thead>
     <tbody>
@@ -28,7 +29,7 @@ else
     }
     </tbody>
 </table>
-@if (Model.LocalSubscriptions.Count == 0) { <p class="empty">لا توجد اتصالات محلية حديثة متاحة من جهاز متصل ومرخّص.</p> }
+@if (Model.LocalSubscriptions.Count == 0) { <p class="empty"><partial name="~/Views/Shared/_Icon.cshtml" model='"inbox"' />لا توجد اتصالات محلية حديثة متاحة من جهاز متصل ومرخّص.</p> }
 </div>
 @if (Model.ImportError is { } error)
 {
@@ -46,6 +47,9 @@ else
         <p>لا توجد اشتراكات محلية في آخر تقرير.</p>
     }
 }
+</section>
+<section class="panel">
+<h2>تعيين اشتراك من المكتبة</h2>
 <form method="post" action="/admin/providers/installations/@Model.InstallationId/assign">
     @Html.AntiForgeryToken()
     <label>الاشتراك<select name="profileId" required>
@@ -58,12 +62,14 @@ else
     <label>التفعيل<select name="enabled"><option value="true">نعم</option><option value="false">لا</option></select></label>
     <button type="submit">تعيين الاشتراك / تحديث التعيين</button>
 </form>
+</section>
+<section class="panel">
 <h2>تعيينات المكتبة البعيدة</h2>
-<div class="table-wrap">
+<div class="table-wrap table-wrap--scroll">
 <table><thead><tr><th>التعيين / الاشتراك</th><th>السياسة</th><th>مفعّل</th><th>المراجعة</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>
 @foreach (var assignment in Model.Assignments)
 {
-    <tr><td><code dir="ltr">@assignment.Id</code><br /><code dir="ltr">@assignment.ProfileId</code></td><td><bdi>@assignment.Policy</bdi></td><td>@(assignment.Enabled ? "نعم" : "لا")</td><td>@assignment.Revision</td><td>@(assignment.RevokedAt.HasValue ? "ملغى" : "مُعيّن")</td><td>
+    <tr><td><code dir="ltr">@assignment.Id</code><br /><code dir="ltr">@assignment.ProfileId</code></td><td><bdi>@assignment.Policy</bdi></td><td>@(assignment.Enabled ? "نعم" : "لا")</td><td>@assignment.Revision</td><td><span class="badge @(assignment.RevokedAt.HasValue ? "danger" : "success")">@(assignment.RevokedAt.HasValue ? "ملغى" : "مُعيّن")</span></td><td>
     @if (!assignment.RevokedAt.HasValue)
     {
         <form method="post" action="/admin/providers/assignments/@assignment.Id/revoke">@Html.AntiForgeryToken()<button type="submit">إلغاء التعيين</button></form>
@@ -72,10 +78,12 @@ else
 }
 </tbody></table>
 </div>
+</section>
+<section class="panel">
 <details class="subscription-information"><summary>إظهار / إخفاء معلومات اشتراكات الجهاز</summary>
 <h2>تقارير تعيينات المكتبة البعيدة</h2>
 <p>الصلاحية والحد الأقصى للاتصالات بيانات يُبلغ عنها المزود ولا تُعد موثوقة أو بديلاً لحدود ترخيص MegaStream.</p>
-<div class="table-wrap">
+<div class="table-wrap table-wrap--scroll">
 <table><thead><tr><th>التعيين</th><th>مراجعة الاشتراك</th><th>الحالة</th><th>رمز الخطأ الآمن</th><th>وقت التقرير (UTC)</th><th>صلاحية المزود (UTC)</th><th>حد اتصالات المزود</th></tr></thead><tbody>
 @foreach (var report in Model.Reports)
 {
@@ -84,3 +92,4 @@ else
 </tbody></table>
 </div>
 </details>
+</section>

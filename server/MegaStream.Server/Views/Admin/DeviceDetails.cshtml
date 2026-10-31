@@ -104,7 +104,7 @@
             <button type="submit">إرسال أمر تحديث لهذا الجهاز</button>
         </form>
     }
-    else { <p class="empty">لا يوجد إصدار أحدث منشور ومتوافق بحسب آخر بلاغ.</p> }
+    else { <p class="empty"><partial name="_Icon" model='"inbox"' />لا يوجد إصدار أحدث منشور ومتوافق بحسب آخر بلاغ.</p> }
     <p class="notice">إرسال الأمر لا يعني تثبيت الإصدار. يظل الإصدار الفعلي حسب بلاغ الجهاز؛ قد يتطلب التثبيت موافقة المستخدم.</p>
     <details id="device-update-commands" class="device-table-card">
         <summary>أوامر التحديث <span class="badge">@Model.UpdateCommands.Count</span></summary>
@@ -190,11 +190,11 @@
         }
         </tbody></table></div>
         </details>
-        @if (Model.LocalSubscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات محفوظة بحسب آخر بلاغ.</p> }
+        @if (Model.LocalSubscriptions.Count == 0) { <p class="empty"><partial name="_Icon" model='"inbox"' />لا توجد اشتراكات محفوظة بحسب آخر بلاغ.</p> }
     }
     else
     {
-        <p class="empty">لم تصل بيانات الاشتراكات من الجهاز بعد.</p>
+        <p class="empty"><partial name="_Icon" model='"inbox"' />لم تصل بيانات الاشتراكات من الجهاز بعد.</p>
     }
 </section>
 <section id="device-policy" class="panel">
@@ -226,7 +226,7 @@
         <tr><td>@audit.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td><td>@audit.ActorId</td><td>@AdminDisplay.KioskState(audit.OldKioskMode)</td><td>@AdminDisplay.KioskState(audit.NewKioskMode)</td><td>@(audit.OldAllowLocalExit ? "مسموح" : "غير مسموح")</td><td>@(audit.NewAllowLocalExit ? "مسموح" : "غير مسموح")</td></tr>
     }
     </tbody></table></div>
-    @if (Model.PolicyAudit.Count == 0) { <p class="empty">لا توجد تغييرات مسجلة.</p> }
+    @if (Model.PolicyAudit.Count == 0) { <p class="empty"><partial name="_Icon" model='"inbox"' />لا توجد تغييرات مسجلة.</p> }
 </details>
     <details id="device-sessions" class="device-table-card">
         <summary>الجلسات الأخيرة <span class="badge">@Model.Sessions.Count</span></summary>
