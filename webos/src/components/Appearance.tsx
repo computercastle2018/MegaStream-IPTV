@@ -13,7 +13,9 @@ const AppearanceContext = createContext({ design: "classic" as Design, remote: n
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [local, setLocal] = useState<Design>(() => {
     const value = localStorage.getItem("MegaStream.design");
-    return valid(value) ? value : "classic";
+    // Fresh installs default to the modern crimson dashboard; an explicit
+    // "classic" choice is always honoured.
+    return valid(value) ? value : "modern";
   });
   const [remote, updateRemote] = useState<Design | null>(null);
   const [saving, setSaving] = useState(false);

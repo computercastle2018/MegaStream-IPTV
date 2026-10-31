@@ -101,12 +101,12 @@ export default function ProviderSetupScreen({ providers, onChange, onConnect, on
               <svg viewBox="0 0 48 48" width="100%" height="100%">
                 <defs>
                   <linearGradient id="svg-grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#14b8a6" />
-                    <stop offset="1" stopColor="#0f766e" />
+                    <stop offset="0" stopColor="#e01b32" />
+                    <stop offset="1" stopColor="#a30d20" />
                   </linearGradient>
                 </defs>
                 <rect x="3" y="3" width="42" height="42" rx="12" fill="url(#svg-grad)" />
-                <path d="M20 17l11 7-11 7z" fill="#03110f" />
+                <path d="M20 17l11 7-11 7z" fill="#fff" />
               </svg>
             </div>
             <div className="brand-name">MegaStream</div>
@@ -242,8 +242,8 @@ export default function ProviderSetupScreen({ providers, onChange, onConnect, on
 function Check() {
   return (
     <svg className="feat-check" viewBox="0 0 20 20" width="1em" height="1em" aria-hidden="true">
-      <circle cx="10" cy="10" r="10" fill="rgba(20,184,166,0.18)" />
-      <path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="#14b8a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="10" cy="10" r="10" fill="rgba(224,27,50,0.18)" />
+      <path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="#e01b32" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

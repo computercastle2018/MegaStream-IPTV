@@ -1,25 +1,25 @@
-.desktop-license-screen, .desktop-license-modal { position: fixed; inset: 0; display: grid; place-items: center; overflow: auto; padding: 24px; background: #090d12; z-index: 100; }
+.desktop-license-screen, .desktop-license-modal { position: fixed; inset: 0; display: grid; place-items: center; overflow: auto; padding: 24px; background: #0d0507; z-index: 100; }
 .desktop-license-modal { background: rgba(0, 0, 0, 0.8); }
-.desktop-license { width: min(620px, 100%); padding: 28px; background: #151d27; border: 1px solid #394553; border-radius: 8px; display: flex; flex-direction: column; gap: 20px; font-size: 16px; }
+.desktop-license { width: min(620px, 100%); padding: 28px; background: #1d1115; border: 1px solid #3a2429; border-radius: 8px; display: flex; flex-direction: column; gap: 20px; font-size: 16px; }
 .desktop-license header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .desktop-license h1 { font-size: 22px; flex: 1; }
-.desktop-license .license-command { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 42px; padding: 8px 14px; border-radius: 6px; border: 1px solid #526172; background: #253142; color: #fff; cursor: pointer; font: inherit; }
+.desktop-license .license-command { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 42px; padding: 8px 14px; border-radius: 6px; border: 1px solid #4a2e34; background: #2a1a1f; color: #fff; cursor: pointer; font: inherit; }
 .desktop-license .license-command[aria-disabled="true"] { opacity: 0.5; cursor: wait; }
-.desktop-license .license-command.focused, .desktop-license .license-command:focus-visible, .desktop-license input:focus-visible, .desktop-license-trigger.focused { outline: 2px solid #34d399; outline-offset: 3px; }
-.desktop-license .license-sync { background: #087f6b; }
-.license-state { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-block: 1px solid #394553; padding-block: 16px; color: #fbbf24; }
+.desktop-license .license-command.focused, .desktop-license .license-command:focus-visible, .desktop-license input:focus-visible, .desktop-license-trigger.focused { outline: 2px solid #ff4053; outline-offset: 3px; }
+.desktop-license .license-sync { background: #a30d20; }
+.license-state { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-block: 1px solid #3a2429; padding-block: 16px; color: #fbbf24; }
 .license-state.licensed { color: #34d399; }
-.license-state span { color: #bac7d4; }
+.license-state span { color: #c3a6ac; }
 .desktop-license dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; }
-.desktop-license dt { color: #aebdca; }
+.desktop-license dt { color: #c3a6ac; }
 .desktop-license dd { text-align: end; overflow-wrap: anywhere; }
 .desktop-license form label { display: block; margin-bottom: 8px; }
-.activation-code { text-align: center; font-size: 28px; color: #34d399; }
+.activation-code { text-align: center; font-size: 28px; color: #ff4053; }
 .desktop-license p[role="alert"] { color: #fca5a5; }
-.desktop-license .license-subscription-load { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; min-height: 42px; padding: 8px 14px; border: 1px solid #526172; border-radius: 6px; background: #087f6b; color: #fff; cursor: pointer; }
-.desktop-license .license-subscription-load.focused { outline: 2px solid #34d399; outline-offset: 3px; }
+.desktop-license .license-subscription-load { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; min-height: 42px; padding: 8px 14px; border: 1px solid #4a2e34; border-radius: 6px; background: #a30d20; color: #fff; cursor: pointer; }
+.desktop-license .license-subscription-load.focused { outline: 2px solid #ff4053; outline-offset: 3px; }
 .desktop-license .license-subscription-load[aria-disabled="true"] { opacity: 0.5; cursor: wait; }
-.desktop-license-trigger { position: fixed; top: 12px; inset-inline-end: 12px; width: 40px; height: 40px; display: grid; place-items: center; background: #182430; border: 1px solid #546373; border-radius: 6px; color: #34d399; cursor: pointer; z-index: 90; }
+.desktop-license-trigger { position: fixed; top: 12px; inset-inline-end: 12px; width: 40px; height: 40px; display: grid; place-items: center; background: #1d1115; border: 1px solid #3a2429; border-radius: 6px; color: #ff4053; cursor: pointer; z-index: 90; }
 .desktop-details-hidden .auth-screen { display: none; }
 body:has(.desktop-player):has(.desktop-license-trigger) .conn-status { display: none; }
 body:has(.desktop-player .player-top.hidden) .desktop-license-trigger { opacity: 0; pointer-events: none; }
