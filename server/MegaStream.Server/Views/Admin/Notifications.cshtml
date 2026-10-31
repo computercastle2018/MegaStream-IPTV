@@ -1,14 +1,32 @@
 @model NotificationsViewModel
-@{ ViewData["Title"] = "الإشعارات"; }
+@{
+    ViewData["Title"] = "الإشعارات";
+    var sendAudience = Model.Form.Audience ?? (Model.Form.TargetInstallationId.HasValue ? "DEVICE" : Model.Form.TargetLicenseId.HasValue ? "CUSTOMER_LICENSE" : "ALL");
+}
 <div asp-validation-summary="All" class="validation" role="alert"></div>
+@if (TempData["NotificationResult"] is string result) { <p role="status">@result</p> }
 <section class="panel">
     <form asp-action="SendNotification" method="post">
-        <label for="notification-target">المستلم</label>
+        <label for="notification-audience">الجمهور</label>
+        <select id="notification-audience" name="Audience">
+            <option value="ALL" selected="@(sendAudience == "ALL")">الجميع</option>
+            <option value="DEVICE" selected="@(sendAudience == "DEVICE")">جهاز محدد</option>
+            <option value="CUSTOMER_LICENSE" selected="@(sendAudience == "CUSTOMER_LICENSE")">عميل (ترخيص)</option>
+        </select>
+        <label for="notification-target">الجهاز</label>
         <select id="notification-target" name="TargetInstallationId">
-            <option value="">جميع الأجهزة</option>
+            <option value="">بدون جهاز محدد</option>
             @foreach (var device in Model.Devices)
             {
                 <option value="@device.Id" selected="@(Model.Form.TargetInstallationId == device.Id)">@device.DeviceModel (@device.Id)</option>
+            }
+        </select>
+        <label for="notification-license">ترخيص العميل</label>
+        <select id="notification-license" name="TargetLicenseId">
+            <option value="">بدون ترخيص محدد</option>
+            @foreach (var license in Model.Licenses)
+            {
+                <option value="@license.Id" selected="@(Model.Form.TargetLicenseId == license.Id)">@license.Label (@license.Id)</option>
             }
         </select>
         <label for="notification-title">العنوان</label>
@@ -20,11 +38,42 @@
         <button type="submit">إرسال الإشعار</button>
     </form>
 </section>
+<section class="panel">
+    <form asp-action="Notifications" method="get">
+        <label for="audience-filter">الجمهور</label>
+        <select id="audience-filter" name="audience">
+            <option value="">كل الجماهير</option>
+            <option value="ALL" selected="@(Model.Audience == "ALL")">الجميع</option>
+            <option value="DEVICE" selected="@(Model.Audience == "DEVICE")">جهاز محدد</option>
+            <option value="CUSTOMER_LICENSE" selected="@(Model.Audience == "CUSTOMER_LICENSE")">عميل (ترخيص)</option>
+        </select>
+        <label for="state-filter">الحالة</label>
+        <select id="state-filter" name="state">
+            <option value="active" selected="@(Model.State == "active")">غير مؤرشف</option>
+            <option value="archived" selected="@(Model.State == "archived")">مؤرشف</option>
+            <option value="all" selected="@(Model.State == "all")">الكل</option>
+        </select>
+        <button type="submit">تصفية</button>
+    </form>
+</section>
 <section class="panel table-wrap">
-    <table><thead><tr><th>العنوان</th><th>الرسالة</th><th>المستلم</th><th>أُرسل UTC</th><th>ينتهي UTC</th></tr></thead><tbody>
+    <table><thead><tr><th>العنوان</th><th>الرسالة</th><th>المستلم</th><th>أُرسل UTC</th><th>ينتهي UTC</th><th>أُرشف UTC</th><th>الإجراء</th></tr></thead><tbody>
     @foreach (var notification in Model.Notifications)
     {
-        <tr><td>@notification.Title</td><td>@notification.Message</td><td>@(notification.TargetInstallationId?.ToString() ?? "جميع الأجهزة")</td><td>@notification.CreatedAt.ToString("u")</td><td>@notification.ExpiresAt?.ToString("u")</td></tr>
+        <tr><td>@notification.Title</td><td>@notification.Message</td><td>@(notification.TargetInstallationId is {} deviceId ? $"جهاز: {deviceId}" : notification.TargetLicenseId is {} licenseId ? $"ترخيص: {licenseId}" : "الجميع")</td><td>@notification.CreatedAt.ToString("u")</td><td>@notification.ExpiresAt?.ToString("u")</td><td>@notification.ArchivedAt?.ToString("u")</td>
+            <td><form asp-action="@(notification.ArchivedAt.HasValue ? "RestoreNotification" : "ArchiveNotification")" method="post">
+                <input type="hidden" name="id" value="@notification.Id" />
+                <button type="submit">@(notification.ArchivedAt.HasValue ? "استعادة" : "أرشفة")</button>
+            </form></td>
+        </tr>
     }
     </tbody></table>
+</section>
+<section class="panel">
+    <form asp-action="ArchiveNotificationsBefore" method="post">
+        <label for="archive-cutoff">أرشفة كل الإشعارات المنشأة قبل UTC</label>
+        <input id="archive-cutoff" name="CutoffUtc" value="2026-10-29T21:00:00Z" required />
+        <label><input type="checkbox" name="Confirm" value="true" required /> أؤكد أرشفة جميع الجماهير قبل هذا الحد، دون حذف</label>
+        <button type="submit">أرشفة الأقدم</button>
+    </form>
 </section>

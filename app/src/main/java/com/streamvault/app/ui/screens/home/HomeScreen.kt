@@ -88,6 +88,8 @@ import com.MegaStream.app.R
 import com.MegaStream.app.ui.components.shell.mediaCardShape
 import com.MegaStream.app.ui.model.LiveTvChannelMode
 import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.model.CategoryGenre
+import com.MegaStream.app.ui.model.matchesGenre
 import com.MegaStream.app.ui.screens.multiview.MultiViewViewModel
 import com.MegaStream.app.ui.screens.multiview.MultiViewPlannerDialog
 import com.MegaStream.app.navigation.Routes
@@ -388,12 +390,13 @@ fun HomeScreen(
                 val channelSearchFocusRequester = remember { FocusRequester() }
                 val categoryFocusRequesters = remember { mutableMapOf<Long, FocusRequester>() }
                 val channelFocusRequesters = remember { mutableMapOf<Long, FocusRequester>() }
-                val visibleCategories = remember(uiState.categories, uiState.categorySearchQuery) {
+                val visibleCategories = remember(uiState.categories, uiState.categorySearchQuery, uiState.categoryGenre) {
                     uiState.categories
                         .asSequence()
                         .filter {
-                            uiState.categorySearchQuery.isEmpty() ||
-                                it.name.contains(uiState.categorySearchQuery, ignoreCase = true)
+                            it.matchesGenre(uiState.categoryGenre) &&
+                                (uiState.categorySearchQuery.isEmpty() ||
+                                    it.name.contains(uiState.categorySearchQuery, ignoreCase = true))
                         }
                         .toList()
                 }
@@ -483,6 +486,7 @@ fun HomeScreen(
                 }
 
                 val displayedCategory = uiState.selectedCategory?.takeIf { !isCategoryLocked(it) }
+                val awaitingGenreCategory = uiState.categoryGenre != null && uiState.selectedCategory == null && visibleCategories.isNotEmpty()
                 val hasBlockedCategorySearch =
                     uiState.categorySearchQuery.isNotBlank() &&
                         visibleCategories.isNotEmpty() &&
@@ -668,6 +672,23 @@ fun HomeScreen(
                                     )
                                 }
                             }
+                            val availableGenres = remember(uiState.categories) {
+                                uiState.categories.filter { !it.isVirtual && it.id != ChannelRepository.ALL_CHANNELS_ID }
+                                    .map { CategoryGenre.fromName(it.name) }.toSet()
+                            }
+                            SelectionChipRow(
+                                title = stringResource(R.string.category_genre_title),
+                                chips = listOf(SelectionChip("all", stringResource(R.string.category_genre_all))) +
+                                    CategoryGenre.entries.filter { it in availableGenres }.map {
+                                        SelectionChip(it.name, stringResource(it.labelResId))
+                                    },
+                                selectedKey = uiState.categoryGenre?.name ?: "all",
+                                onChipSelected = { key ->
+                                    viewModel.setCategoryGenre(CategoryGenre.entries.firstOrNull { it.name == key })
+                                },
+                                contentPadding = PaddingValues(horizontal = 0.dp),
+                                modifier = Modifier.padding(bottom = 10.dp)
+                            )
                             SearchInput(
                                 value = uiState.categorySearchQuery,
                                 onValueChange = {
@@ -687,7 +708,11 @@ fun HomeScreen(
                             }
                             if (shouldShowQuickFiltersControl) {
                                 val activeSavedFilter = uiState.activeCategoryFilter
+                                val activeGenre = uiState.categoryGenre
                                 val filterSubtitle = when {
+                                    uiState.categorySearchQuery.isBlank() && activeGenre != null -> {
+                                        stringResource(activeGenre.labelResId)
+                                    }
                                     uiState.categorySearchQuery.isBlank() -> {
                                         stringResource(R.string.home_quick_filters_showing_all)
                                     }
@@ -939,7 +964,7 @@ fun HomeScreen(
                                     text = displayedCategory?.name ?: if (hasBlockedCategorySearch) {
                                         stringResource(R.string.home_locked_short)
                                     } else {
-                                        stringResource(R.string.home_all_channels)
+                                        stringResource(uiState.categoryGenre?.labelResId ?: R.string.home_all_channels)
                                     },
                                     style = if (isDenseMode) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                                     color = OnBackground,
@@ -1065,15 +1090,17 @@ fun HomeScreen(
                                         )
                                     } else {
                                         Text(
-                                            text = stringResource(R.string.home_no_channels_found),
+                                            text = stringResource(if (awaitingGenreCategory) R.string.home_select_genre_group else R.string.home_no_channels_found),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = OnBackground
                                         )
-                                        Text(
-                                            text = stringResource(R.string.home_no_channels_found_subtitle),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = OnSurfaceDim
-                                        )
+                                        if (!awaitingGenreCategory) {
+                                            Text(
+                                                text = stringResource(R.string.home_no_channels_found_subtitle),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = OnSurfaceDim
+                                            )
+                                        }
                                         val selectedCategory = uiState.selectedCategory
                                         if (selectedCategory?.isVirtual == true && selectedCategory.id == VirtualCategoryIds.FAVORITES) {
                                             Text(

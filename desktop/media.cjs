@@ -47,8 +47,8 @@ const { spawnSync } = require('node:child_process');
       env: { ...process.env, TEST_PLAYLIST_URL: `http://127.0.0.1:${server.address().port}/playlist.m3u` } });
     const page = await application.firstWindow();
     await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].hide());
-    await page.locator('#desktop-license-key').fill('TEST-LICENSE');
-    await page.locator('.license-key-row button').click();
+    await page.getByLabel('License key', { exact: true }).fill('TEST-LICENSE');
+    await page.getByRole('button', { name: 'Activate', exact: true }).click();
     await page.locator('.home-screen').waitFor();
     for (const name of files) {
       await page.locator('.home-tile').nth(name.endsWith('.mp4') ? 1 : 0).click();

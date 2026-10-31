@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('megastreamDesktop', {
     sync: () => ipcRenderer.invoke('desktop-control', 'sync'),
     activate: key => ipcRenderer.invoke('desktop-control', 'activate', key),
     requestCode: () => ipcRenderer.invoke('desktop-control', 'code'),
+    redeemSubscription: code => ipcRenderer.invoke('desktop-control', 'redeem-subscription', code),
+    setAppearance: uiStyle => ipcRenderer.invoke('desktop-control', 'appearance', uiStyle),
     subscribe: callback => {
       const listener = (_event, state) => callback(state);
       ipcRenderer.on('desktop-control-state', listener);

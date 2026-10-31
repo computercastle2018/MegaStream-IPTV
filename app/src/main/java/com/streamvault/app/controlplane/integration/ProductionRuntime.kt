@@ -44,8 +44,7 @@ class ProductionRuntime @Inject internal constructor(
     private val mutableSnapshot = MutableStateFlow(RuntimeSnapshot())
     val snapshot: StateFlow<RuntimeSnapshot> = mutableSnapshot.asStateFlow()
     val updateCapability = RuntimeCapability(RuntimeCapabilityStatus.CONFIGURED)
-    val providerCapability = RuntimeCapability(RuntimeCapabilityStatus.NOT_CONFIGURED,
-        RuntimeCapabilityBlocker.PROVIDER_ATOMIC_ASSIGNMENT_ADAPTER_MISSING)
+    val providerCapability = RuntimeCapability(RuntimeCapabilityStatus.CONFIGURED)
     private var startJob: Job? = null
     @Volatile private var controller: RuntimeController? = null
     @Volatile private var exitRequested = false

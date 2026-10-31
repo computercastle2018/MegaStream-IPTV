@@ -10,6 +10,8 @@ import com.MegaStream.app.plugins.MegaStreamPluginManager
 import com.MegaStream.app.tvinput.TvInputChannelSyncManager
 import com.MegaStream.app.ui.screens.multiview.MultiViewManager
 import com.MegaStream.app.ui.model.applyProviderCategoryDisplayPreferences
+import com.MegaStream.app.ui.model.CategoryGenre
+import com.MegaStream.app.ui.model.matchesGenre
 import com.MegaStream.app.ui.model.orderedByRequestedRawIds
 import com.MegaStream.app.ui.model.guideLookupKey
 import com.MegaStream.app.ui.model.LiveTvChannelMode
@@ -649,6 +651,9 @@ class HomeViewModel @Inject constructor(
     }
 
     fun selectCategory(category: Category) {
+        if (!category.matchesGenre(_uiState.value.categoryGenre)) {
+            _uiState.update { it.copy(categoryGenre = null) }
+        }
         if (_uiState.value.selectedCategory?.id == category.id) return
         if (!_uiState.value.isCombinedLiveSource) {
             _uiState.value.provider?.id?.let { providerId ->
@@ -855,6 +860,16 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun setCategoryGenre(genre: CategoryGenre?) {
+        if (_uiState.value.isChannelReorderMode) return
+        _uiState.update { it.copy(categoryGenre = genre) }
+        if (_uiState.value.selectedCategory?.matchesGenre(genre) == false) {
+            loadChannelsJob?.cancel()
+            clearVisibleChannelsForFilteredCategories()
+            _uiState.update { it.copy(selectedCategory = null) }
         }
     }
 
@@ -1937,6 +1952,7 @@ data class HomeUiState(
     val isCategoriesLoading: Boolean = true,
     val isSyncing: Boolean = false,
     val categorySearchQuery: String = "",
+    val categoryGenre: CategoryGenre? = null,
     val savedCategoryFilters: List<String> = emptyList(),
     val activeCategoryFilter: String? = null,
     val liveTvQuickFilterVisibilityMode: LiveTvQuickFilterVisibilityMode = LiveTvQuickFilterVisibilityMode.ALWAYS_VISIBLE,

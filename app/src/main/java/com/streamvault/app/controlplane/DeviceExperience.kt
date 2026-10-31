@@ -1,6 +1,7 @@
 package com.MegaStream.app.controlplane
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.MegaStream.app.ui.model.AppUiStyle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,6 +16,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import com.MegaStream.domain.model.isSupportedAdminPlaybackQuality
 import com.MegaStream.player.tracks.ManagedPlaybackQualityPreferences
 
@@ -48,17 +51,34 @@ data class DeviceExperience(
 @Serializable
 data class DeviceMacReport(val macAddress: String?)
 
+@Serializable
+data class DeviceAppearanceRequest(val uiStyle: String, val expectedUiStyle: String?) {
+    init {
+        require(AppUiStyle.entries.any { it.storageValue == uiStyle })
+        require(expectedUiStyle == null || AppUiStyle.entries.any { it.storageValue == expectedUiStyle })
+    }
+}
+
 @Singleton
-class DeviceExperienceRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
+class DeviceExperienceRepository internal constructor(
+    private val preferences: SharedPreferences,
     private val credentials: Provider<InstallationCredentials>,
+    private val client: ControlPlaneClient,
+    private val deviceMac: () -> String?,
 ) {
-    private val preferences = context.getSharedPreferences(ManagedPlaybackQualityPreferences.FILE_NAME, Context.MODE_PRIVATE)
-    private val client = ControlPlaneClient()
+    @Inject constructor(@ApplicationContext context: Context, credentials: Provider<InstallationCredentials>) : this(
+        context.getSharedPreferences(ManagedPlaybackQualityPreferences.FILE_NAME, Context.MODE_PRIVATE),
+        credentials, ControlPlaneClient(),
+        { com.MegaStream.app.ui.screens.settings.readDeviceMacAddressForReport(context)?.address },
+    )
+
+    private var pendingAppearance = preferences.getString("pending-appearance", null)?.let {
+        runCatching { Json.decodeFromString<DeviceAppearanceRequest>(it) }.getOrNull()
+    }
     private val lane = Mutex()
     private val mutableState = MutableStateFlow(DeviceExperience(
         allowSubscriptionDetails = preferences.getBoolean("details", false),
-        uiStyle = preferences.getString("ui-style", null)?.takeIf { stored ->
+        uiStyle = pendingAppearance?.uiStyle ?: preferences.getString("ui-style", null)?.takeIf { stored ->
             AppUiStyle.entries.any { it.storageValue == stored }
         },
         playbackQuality = ManagedPlaybackQualityPreferences.readQuality(preferences)
@@ -71,9 +91,33 @@ class DeviceExperienceRepository @Inject constructor(
     fun openInbox() { mutableInboxOpen.value = true }
     fun closeInbox() { mutableInboxOpen.value = false }
 
+    suspend fun queueAppUiStyle(style: AppUiStyle): Boolean = withContext(Dispatchers.IO) {
+        lane.withLock {
+            val previous = pendingAppearance
+            val pending = DeviceAppearanceRequest(style.storageValue,
+                if (previous != null) previous.expectedUiStyle else state.value.uiStyle)
+            if (!preferences.edit().putString("pending-appearance", Json.encodeToString(pending)).commit())
+                return@withLock false
+            pendingAppearance = pending
+            mutableState.value = state.value.copy(uiStyle = pending.uiStyle)
+            true
+        }
+    }
+
     suspend fun refresh(): Boolean = withContext(Dispatchers.IO) {
         lane.withLock {
             val credential = try { credentials.get().credential } catch (_: IllegalStateException) { return@withLock false }
+            pendingAppearance?.let { pending ->
+                val result = client.setAppearance(credential, pending)
+                if (result is ControlPlaneResult.Success ||
+                    result is ControlPlaneResult.Failure && result.error.status == 409) {
+                    val edit = preferences.edit().remove("pending-appearance")
+                    if (result is ControlPlaneResult.Success) edit.putString("ui-style", pending.uiStyle)
+                    if (!edit.commit()) return@withLock false
+                    pendingAppearance = null
+                    mutableState.value = state.value.copy(uiStyle = preferences.getString("ui-style", null))
+                }
+            }
             when (val result = client.deviceExperience(credential)) {
                 is ControlPlaneResult.Failure -> false
                 is ControlPlaneResult.Success -> {
@@ -82,8 +126,8 @@ class DeviceExperienceRepository @Inject constructor(
                         .putString("ui-style", result.value.uiStyle)
                         .putString(ManagedPlaybackQualityPreferences.QUALITY_KEY, result.value.playbackQuality)
                         .commit()) return@withLock false
-                    mutableState.value = result.value
-                    com.MegaStream.app.ui.screens.settings.readDeviceMacAddressForReport(context)?.address?.let { mac ->
+                    mutableState.value = result.value.copy(uiStyle = pendingAppearance?.uiStyle ?: result.value.uiStyle)
+                    deviceMac()?.let { mac ->
                         if (mac != result.value.macAddress) client.reportDeviceMac(credential, DeviceMacReport(mac))
                     }
                     true

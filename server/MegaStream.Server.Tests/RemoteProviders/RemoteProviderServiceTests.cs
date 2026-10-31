@@ -240,6 +240,7 @@ public sealed class RemoteProviderServiceTests
         private readonly ServiceProvider provider;
         public AppDbContext Db { get; }
         public IRemoteProviderService Service { get; }
+        public LocalSubscriptionCredentialsStore LocalCredentials => provider.GetRequiredService<LocalSubscriptionCredentialsStore>();
         public Session(RemoteProviderDatabase store, byte[]? key = null)
         {
             Db = store.NewContext();
@@ -250,6 +251,10 @@ public sealed class RemoteProviderServiceTests
             }).Build();
             var services = new ServiceCollection();
             services.AddSingleton(Db);
+            services.AddSingleton(new SecretHasher(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DEVICE_SECRET_PEPPER"] = Convert.ToBase64String(Enumerable.Repeat((byte)73, 32).ToArray())
+            }).Build(), new TestEnvironment()));
             services.AddLogging();
             services.AddRemoteProviders(config);
             provider = services.BuildServiceProvider();

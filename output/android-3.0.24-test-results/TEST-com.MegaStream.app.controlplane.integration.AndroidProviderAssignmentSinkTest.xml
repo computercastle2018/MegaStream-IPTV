@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.MegaStream.app.controlplane.integration.AndroidProviderAssignmentSinkTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-30T06:25:38" hostname="mega-MacBook" time="0.968">
+  <properties/>
+  <testcase name="failedCatalogSyncRetainsRowMappingForRetryAndTombstoneDeletesOnlyMappedRow" classname="com.MegaStream.app.controlplane.integration.AndroidProviderAssignmentSinkTest" time="0.96"/>
+  <testcase name="savesThroughSecureRepositoryRefreshesAndDoesNotDuplicateOnNextHeartbeat" classname="com.MegaStream.app.controlplane.integration.AndroidProviderAssignmentSinkTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

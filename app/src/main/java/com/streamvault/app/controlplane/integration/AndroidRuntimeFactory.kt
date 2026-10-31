@@ -22,7 +22,6 @@ import com.MegaStream.app.controlplane.runtime.InstallationScopedAppEntitlement
 import com.MegaStream.app.controlplane.runtime.RuntimeCoordinator
 import com.MegaStream.app.controlplane.runtime.RuntimeDiagnosticsUploader
 import com.MegaStream.app.controlplane.runtime.RuntimeMetadata
-import com.MegaStream.app.controlplane.runtime.RuntimeProviderAssignmentSink
 import com.MegaStream.app.diagnostics.runtime.AndroidSessionRecoveryFactory
 import com.MegaStream.app.update.AppUpdateInstaller
 import com.MegaStream.app.update.RemoteUpdateCommandAndroidVersionObserver
@@ -56,6 +55,7 @@ internal class AndroidRuntimeFactory @Inject constructor(
     private val entitlement: Provider<LocalAppEntitlement>,
     private val providers: Provider<com.MegaStream.domain.repository.ProviderRepository>,
     private val updateInstaller: Provider<AppUpdateInstaller>,
+    private val providerAssignments: AndroidProviderAssignmentSink,
 ) {
     /** Resolve all blocking providers and construct all durable stores on the IO dispatcher. */
     fun create(scope: CoroutineScope): RuntimeController {
@@ -83,9 +83,7 @@ internal class AndroidRuntimeFactory @Inject constructor(
             identity, ControlPlaneRuntimeClientAdapter(client), stores, stores,
             InstallationScopedAppEntitlement(identity.installationId, localEntitlement),
             updates,
-            RuntimeProviderAssignmentSink { _, _ ->
-                throw RuntimeCapabilityUnavailable(RuntimeCapabilityBlocker.PROVIDER_ATOMIC_ASSIGNMENT_ADAPTER_MISSING)
-            },
+            providerAssignments,
         )
         val uploader = RuntimeDiagnosticsUploader(outbox, quarantine, DiagnosticsTransport(client::diagnostics), identity)
         return RuntimeController(
@@ -93,7 +91,8 @@ internal class AndroidRuntimeFactory @Inject constructor(
                 uploadLocalSubscriptions = {
                     if (LocalSubscriptionsUploader(providers.get(), client, identity).upload() is ControlPlaneResult.Failure)
                         java.util.logging.Logger.getLogger("MegaStream").warning("Local subscription report rejected; retrying on next heartbeat")
-                }, refreshUpdates = updates::refresh),
+                }, refreshUpdates = updates::refresh,
+                refreshProviders = { coordinator.refreshProviderAssignments(0) }),
             ProductionRuntimeDiagnostics(collector, recorder, uploader, quarantine,
                 BuildConfig.VERSION_CODE.toLong(), BuildConfig.VERSION_NAME),
             scope, Dispatchers.IO, SystemClock::elapsedRealtime,

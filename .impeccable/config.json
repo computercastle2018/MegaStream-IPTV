@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "server/MegaStream.Server/wwwroot/css/admin.css"
+        ],
+        "createdAt": "2026-10-30T06:31:48.339Z",
+        "reason": "pre-existing callout/alert accent bar on .notice/.validation/.error — standard inline-message convention, not a card side-tab"
+      }
+    ]
+  }
+}

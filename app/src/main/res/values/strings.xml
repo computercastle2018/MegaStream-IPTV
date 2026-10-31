@@ -1,5 +1,15 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="category_genre_title">Category</string>
+    <string name="home_select_genre_group">Select a group</string>
+    <string name="category_genre_all">All categories</string>
+    <string name="category_genre_news">News</string>
+    <string name="category_genre_sports">Sports</string>
+    <string name="category_genre_kids">Kids</string>
+    <string name="category_genre_documentary">Documentaries</string>
+    <string name="category_genre_religion">Religion</string>
+    <string name="category_genre_music">Music</string>
+    <string name="category_genre_other">Other</string>
     <string name="app_name">MegaStream</string>
 
     
@@ -1631,4 +1641,11 @@
     <string name="license_nav_cancel">إلغاء والعودة</string>
     <string name="license_nav_continue">متابعة التشغيل بعد التحقق</string>
     <string name="license_nav_open">تفعيل ترخيص MegaStream</string>
+    <string name="provider_code_label">Provider subscription code</string>
+    <string name="provider_code_fetch">Fetch subscription</string>
+    <string name="provider_code_fetching">Fetching subscription…</string>
+    <string name="provider_code_invalid">Enter a valid provider subscription code (up to 64 characters).</string>
+    <string name="provider_code_unlicensed">An active app license is required to fetch a subscription.</string>
+    <string name="provider_code_failed">Could not fetch the subscription. Check your connection and try again.</string>
+    <string name="provider_code_sync_failed">Code accepted. Subscription sync is incomplete. Try fetching again.</string>
 </resources>

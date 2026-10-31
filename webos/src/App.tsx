@@ -10,6 +10,7 @@ import HomeScreen from "./screens/HomeScreen";
 import ContentScreen, { initialBrowseState, type BrowseState } from "./screens/ContentScreen";
 import EpisodesScreen from "./screens/EpisodesScreen";
 import PlayerScreen from "./screens/PlayerScreen";
+import { supportedTypes } from "./services/content";
 
 type Route = "setup" | "home" | "browse" | "episodes" | "player";
 
@@ -40,6 +41,31 @@ export default function App() {
   useEffect(() => {
     if ((route === "browse" || route === "home") && !activeProvider) setRoute("setup");
   }, [route, activeProvider]);
+
+  useEffect(() => {
+    if (!window.megastreamWebos || window.megastreamDesktop || !activeProvider) return;
+    const shortcut = (event: KeyboardEvent) => {
+      const editable = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+      const target = event.target instanceof Element ? event.target : null;
+      if (event.defaultPrevented || event.repeat || event.isComposing || target?.closest(editable) ||
+          document.activeElement?.closest(editable) || document.querySelector('dialog[open], [role="dialog"]')) return;
+      const code = event.keyCode;
+      if (![403, 404, 405, 406, 36].includes(code)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (code === 36) { setRoute("home"); return; }
+      const type = code === 403 ? "live" : code === 404 ? "movie" : code === 405 ? "series" : contentType;
+      if (!supportedTypes(activeProvider).includes(type)) return;
+      if (code === 406) {
+        const key = `${activeProvider.id}:${type}`;
+        setBrowseViews(previous => ({ ...previous, [key]: { ...(previous[key] ?? initialBrowseState), searchOpen: true, selectedId: null } }));
+      }
+      setContentType(type);
+      setRoute("browse");
+    };
+    window.addEventListener("keydown", shortcut, true);
+    return () => window.removeEventListener("keydown", shortcut, true);
+  }, [activeProvider, contentType]);
 
   const handleProvidersChanged = (next: Provider[]) => {
     setProviders(next);

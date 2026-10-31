@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Provider, ProviderType } from "../types";
 import { FocusButton, FocusInput, LanguageToggle } from "../components/Focusable";
-import { addProvider, newId, removeProvider } from "../services/storage";
+import { addProvider, loadProviders, newId, removeProvider } from "../services/storage";
 import { authenticate } from "../services/xtreamClient";
 import { onBack } from "../remote/keys";
 import { useLang } from "../i18n/LanguageContext";
@@ -15,8 +15,10 @@ interface Props {
 }
 
 export default function ProviderSetupScreen({ providers, onChange, onConnect, onDone, canGoBack }: Props) {
-  const { t } = useLang();
-  const [type, setType] = useState<ProviderType>("xtream");
+  const { t, lang } = useLang();
+  const api = window.megastreamDesktop?.control ?? window.megastreamWebos?.control;
+  const [type, setType] = useState<ProviderType | "code">("xtream");
+  const [providerCode, setProviderCode] = useState("");
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [server, setServer] = useState("");
@@ -41,7 +43,19 @@ export default function ProviderSetupScreen({ providers, onChange, onConnect, on
   const handleAdd = async () => {
     setStatus(null);
     try {
-      if (type === "m3u") {
+      if (type === "code") {
+        if (!api?.redeemSubscription || !providerCode.trim() || providerCode.length > 64) {
+          setStatus({ msg: lang === "ar" ? "أدخل كود الاشتراك" : "Enter a subscription code", error: true });
+          return;
+        }
+        setBusy(true);
+        await api.redeemSubscription(providerCode);
+        const next = loadProviders();
+        onChange(next);
+        setProviderCode("");
+        const added = next.find(item => !providers.some(previous => previous.id === item.id));
+        if (added) onConnect(added.id);
+      } else if (type === "m3u") {
         if (!url.trim()) return setStatus({ msg: t("setup.errPlaylistUrl"), error: true });
         const provider: Provider = {
           id: newId(),
@@ -71,7 +85,8 @@ export default function ProviderSetupScreen({ providers, onChange, onConnect, on
         reset();
       }
     } catch (e) {
-      setStatus({ msg: e instanceof Error ? e.message : t("setup.errAddFailed"), error: true });
+      setStatus({ msg: type === "code" ? (lang === "ar" ? "تعذر جلب الاشتراك. تحقق من الكود والترخيص والاتصال." : "Unable to load subscription. Check the code, license and connection.")
+        : e instanceof Error ? e.message : t("setup.errAddFailed"), error: true });
     } finally {
       setBusy(false);
     }
@@ -133,9 +148,14 @@ export default function ProviderSetupScreen({ providers, onChange, onConnect, on
             >
               {t("setup.tabM3u")}
             </FocusButton>
+            {api?.redeemSubscription && <FocusButton className={`seg-option ${type === "code" ? "active" : ""}`} onEnter={() => setType("code")}>
+              {lang === "ar" ? "كود التفعيل" : "Activation code"}
+            </FocusButton>}
           </div>
 
           <div className="form-fields">
+            {type === "code" ? <FocusInput label={lang === "ar" ? "كود إضافة المزود" : "Provider activation code"}
+              value={providerCode} onChange={setProviderCode} maxLength={64} autoComplete="off" /> : <>
             <FocusInput
               label={t("setup.displayName")}
               value={name}
@@ -164,11 +184,12 @@ export default function ProviderSetupScreen({ providers, onChange, onConnect, on
                 </div>
               </>
             )}
+            </>}
           </div>
 
           <div className="form-actions">
             <FocusButton className="btn primary block" onEnter={busy ? () => {} : handleAdd}>
-              {busy ? t("setup.connecting") : t("setup.add")}
+              {busy ? t("setup.connecting") : type === "code" ? (lang === "ar" ? "جلب الاشتراك" : "Load subscription") : t("setup.add")}
             </FocusButton>
             {canGoBack && (
               <FocusButton className="btn ghost" onEnter={onDone}>

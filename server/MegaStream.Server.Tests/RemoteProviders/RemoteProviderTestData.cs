@@ -1,9 +1,18 @@
 using MegaStream.Server.RemoteProviders.Core;
+using MegaStream.Server.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MegaStream.Server.Tests.RemoteProviders;
 
 internal static class RemoteProviderTestData
 {
+    public static async Task LicenseAsync(IServiceProvider services, Guid installationId)
+    {
+        var admin = services.GetRequiredService<IAdminService>();
+        var license = await admin.CreateLicenseAsync("Provider test", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddYears(1), 1);
+        await admin.AssignInstallationLicenseAsync(installationId, license.License.Id);
+    }
+
     public static ReplaceRemoteProviderProfile Profile(string type = RemoteProviderValues.XtreamCodes)
     {
         var config = new RemoteProviderConfiguration

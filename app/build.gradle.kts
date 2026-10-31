@@ -115,8 +115,8 @@ android {
         applicationId = "com.megastream.app"
         minSdk = 27
         targetSdk = 36
-        versionCode = 48
-        versionName = "3.0.15"
+        versionCode = 58
+        versionName = "3.0.25"
         resValue("string", "app_display_name", "MegaStream $versionName")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OFFICIAL_APPLICATION_ID", "\"com.megastream.app\"")
@@ -213,11 +213,16 @@ android {
     }
 }
 
-// Environment takes precedence, including explicitly empty values (which must fail).
+// Lease pin lookup order: environment variable → gradle property (-P / gradle.properties)
+// → local.properties (gitignored developer overrides, same file that carries sdk.dir).
+// Environment still takes precedence, including explicitly empty values (which must fail).
 // A partial pin set never falls back to the debug fixture.
 val leasePinNames = listOf("MEGASTREAM_LEASE_KID", "MEGASTREAM_LEASE_X", "MEGASTREAM_LEASE_Y")
 val configuredLeasePins = leasePinNames.map { name ->
-    providers.environmentVariable(name).orElse(providers.gradleProperty(name)).orNull
+    providers.environmentVariable(name)
+        .orElse(providers.gradleProperty(name))
+        .orElse(providers.provider { localProperties.getProperty(name) })
+        .orNull
 }
 if (configuredLeasePins.any { it != null }) {
     LeasePins.validate(

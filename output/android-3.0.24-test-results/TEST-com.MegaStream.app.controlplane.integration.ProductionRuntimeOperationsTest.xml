@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.MegaStream.app.controlplane.integration.ProductionRuntimeOperationsTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-30T06:25:39" hostname="mega-MacBook" time="0.17">
+  <properties/>
+  <testcase name="failedRegistrationReplaysFrozenPayloadAndKeyThroughRealCoordinatorAfterRestart" classname="com.MegaStream.app.controlplane.integration.ProductionRuntimeOperationsTest" time="0.051"/>
+  <testcase name="successfulHeartbeatUploadsInventoryAndInventoryFailureDoesNotChangeEntitlement" classname="com.MegaStream.app.controlplane.integration.ProductionRuntimeOperationsTest" time="0.051"/>
+  <testcase name="successfulRegistrationDoesNotSendAgainFromFreshInstance" classname="com.MegaStream.app.controlplane.integration.ProductionRuntimeOperationsTest" time="0.026"/>
+  <testcase name="heartbeatUsesLiveMetadataRatherThanFrozenRegistrationPayload" classname="com.MegaStream.app.controlplane.integration.ProductionRuntimeOperationsTest" time="0.042"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 30, 2026 9:25:39 AM com.MegaStream.app.controlplane.integration.ProductionRuntimeOperations heartbeat
+WARNING: Local subscription report failed; retrying on next heartbeat
+Oct 30, 2026 9:25:39 AM com.MegaStream.app.controlplane.integration.ProductionRuntimeOperations heartbeat
+WARNING: Local subscription report failed; retrying on next heartbeat
+]]></system-err>
+</testsuite>

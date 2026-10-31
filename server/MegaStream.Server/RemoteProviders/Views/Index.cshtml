@@ -1,6 +1,7 @@
 @model MegaStream.Server.RemoteProviders.Http.ProviderIndex
 @{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewData["Title"] = "الاشتراكات"; }
 <p><a class="button" href="/admin/providers/create?type=XTREAM_CODES">إضافة Xtream Codes</a> <a class="button secondary" href="/admin/providers/create?type=M3U">إضافة M3U</a> <a class="button secondary" href="/admin/providers/create?type=STALKER_PORTAL">إضافة Stalker</a></p>
+<p><a class="button secondary" href="/admin/test-media">فيديو اختبار من السيرفر</a></p>
 <h2>الاشتراكات المحفوظة</h2>
 <div class="table-wrap">
 <table>
@@ -8,7 +9,9 @@
 <tbody>
 @foreach (var profile in Model.Profiles)
 {
-    <tr><td>@profile.DisplayName</td><td><bdi>@profile.Type</bdi></td><td>@(profile.Status == "active" ? "نشط" : "ملغى")</td><td>@profile.Revision</td><td>@(profile.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</td><td><a href="/admin/providers/@profile.Id">التفاصيل / استبدال الإعدادات</a>
+    <tr><td>@profile.DisplayName</td><td><bdi>@profile.Type</bdi></td><td>@(profile.Status == "active" ? "نشط" : "ملغى")
+        @if (profile.SourceStatus is { } sourceStatus) { <br /><span>حالة المصدر: @(profile.SourceEnabled == false ? "غير مفعّل" : sourceStatus switch { "active" => "مفعّل", "expired" => "منتهي", "partial" => "مفعّل جزئياً", "error" => "خطأ", "disabled" => "متوقف", _ => "غير معروف" })</span> }
+    </td><td>@profile.Revision</td><td>@(profile.DeletedAt.HasValue ? "محذوفة" : "محفوظة — مخفية")</td><td><a href="/admin/providers/@profile.Id">التفاصيل / استبدال الإعدادات</a>
         @if (profile.Status == "active" && !profile.DeletedAt.HasValue)
         {
             var access = new MegaStream.Server.RemoteProviders.Http.ProviderAccess($"/admin/providers/{profile.Id}", profile.Type != "STALKER_PORTAL");
@@ -36,16 +39,17 @@
     </form>
 }
 else { <p class="empty">لا توجد أجهزة مسجلة متاحة.</p> }
-<h2>الاشتراكات النشطة على الأجهزة المتصلة</h2>
+<h2>آخر اشتراكات الأجهزة المتصلة والمرخّصة</h2>
 <p class="muted">أحدث 500 جهاز نشط كحد أقصى. اتصال الجهاز وآخر بلاغ للاشتراكات خلال @Model.OnlineWindowMinutes دقيقة. حالة الاشتراك وصلاحيته حسب بلاغ الجهاز، وليستا بديلاً عن ترخيص MegaStream.</p>
 @if (Model.HasInvalidReports) { <p class="validation" role="alert">تعذر عرض بعض بلاغات الاشتراكات لعدم صلاحية بياناتها.</p> }
 <div class="table-wrap">
-<table><thead><tr><th>الاشتراك</th><th>نوع الخدمة</th><th>الجهاز</th><th>ترخيص MegaStream</th><th>آخر بلاغ UTC</th><th>الصلاحية UTC</th><th>المعلومات</th></tr></thead><tbody>
+<table><thead><tr><th>الاشتراك</th><th>نوع الخدمة</th><th>الحالة المبلّغة</th><th>الجهاز</th><th>ترخيص MegaStream</th><th>آخر بلاغ UTC</th><th>الصلاحية UTC</th><th>المعلومات</th></tr></thead><tbody>
 @foreach (var subscription in Model.Subscriptions)
 {
     <tr>
         <td>@subscription.Name</td>
         <td><bdi>@(subscription.Type switch { "xtream_codes" => "Xtream", "m3u" => "M3U", _ => "Stalker" })</bdi></td>
+        <td>@subscription.State</td>
         <td><a href="/Admin/DeviceDetails?id=@subscription.InstallationId">@subscription.DeviceModel</a></td>
         <td>@if (subscription.LicenseId is { } licenseId) { <a href="/Admin/LicenseDetails?id=@licenseId">@subscription.LicenseLabel</a> } else { <span>غير مرخص</span> }</td>
         <td><bdi>@subscription.ReportedAt.ToString("yyyy-MM-dd HH:mm:ss")</bdi></td>
@@ -64,6 +68,6 @@ else { <p class="empty">لا توجد أجهزة مسجلة متاحة.</p> }
     </tr>
 }
 </tbody></table>
-@if (Model.Subscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات نشطة مبلغ عنها على أجهزة متصلة.</p> }
+@if (Model.Subscriptions.Count == 0) { <p class="empty">لا توجد اشتراكات حديثة مبلغ عنها على أجهزة متصلة ومرخّصة.</p> }
 </div>
 @section Scripts { <script src="~/js/provider-credentials.js" asp-append-version="true" defer></script> }

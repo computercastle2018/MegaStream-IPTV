@@ -32,21 +32,21 @@ internal fun StudioSettingsTemplates(
     onStyleSelected: (AppUiStyle) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        if (managed) Text(stringResource(R.string.settings_template_managed),
+        if (managed) Text(stringResource(R.string.settings_template_sync),
             style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             if (maxWidth >= 560.dp) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     AppUiStyle.entries.forEach { style ->
-                        AppUiStyleOption(style, style == selectedStyle, !managed,
-                            onClick = { if (!managed) onStyleSelected(style) }, modifier = Modifier.weight(1f))
+                        AppUiStyleOption(style, style == selectedStyle, true,
+                            onClick = { onStyleSelected(style) }, modifier = Modifier.weight(1f))
                     }
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     AppUiStyle.entries.forEach { style ->
-                        AppUiStyleOption(style, style == selectedStyle, !managed,
-                            onClick = { if (!managed) onStyleSelected(style) })
+                        AppUiStyleOption(style, style == selectedStyle, true,
+                            onClick = { onStyleSelected(style) })
                     }
                 }
             }

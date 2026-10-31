@@ -1,6 +1,51 @@
 @model MegaStream.Server.RemoteProviders.Http.ProviderAssignments
 @{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewData["Title"] = "اشتراكات التثبيت"; }
 <p>معرّف التثبيت: <code dir="ltr">@Model.InstallationId</code></p>
+<h2>اشتراكات الجهاز المحلية</h2>
+@if (Model.LocalSubscriptionsReportedAt is { } reportedAt)
+{
+    <p>آخر تقرير محفوظ: <bdi>@reportedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</bdi>. مهلة حداثة التقرير: @Model.ReportFreshnessMinutes دقيقة.</p>
+}
+else
+{
+    <p>لم يصل تقرير اشتراكات محلية من هذا الجهاز بعد.</p>
+}
+<form method="post" action="/admin/providers/installations/@Model.InstallationId/import-local-subscriptions">
+    @Html.AntiForgeryToken()
+    <button type="submit" disabled="@(Model.ImportDisabledReason is not null)">حفظ اشتراكات الجهاز في المكتبة</button>
+</form>
+@if (Model.ImportDisabledReason is { } reason) { <p role="status">@reason</p> }
+<h3>آخر الاتصالات المحلية المبلّغة</h3>
+<div class="table-wrap">
+<table id="local-subscription-reports">
+    <thead><tr><th>اسم الاتصال على الجهاز</th><th>نوع الخدمة</th><th>الحالة المبلّغة</th><th>بيانات الدخول</th><th>آخر تقرير UTC</th></tr></thead>
+    <tbody>
+    @foreach (var local in Model.LocalSubscriptions)
+    {
+        <tr><td>@local.Name</td><td><bdi>@(local.Type switch { "xtream_codes" => "Xtream", "m3u" => "M3U", _ => "Stalker" })</bdi></td>
+            <td>@local.State</td><td>@(local.HasCredentials ? "متاحة للاستيراد بشكل مشفّر" : "غير متاحة في التقرير")</td>
+            <td><bdi>@local.ReportedAt.ToString("yyyy-MM-dd HH:mm:ss")</bdi></td></tr>
+    }
+    </tbody>
+</table>
+@if (Model.LocalSubscriptions.Count == 0) { <p class="empty">لا توجد اتصالات محلية حديثة متاحة من جهاز متصل ومرخّص.</p> }
+</div>
+@if (Model.ImportError is { } error)
+{
+    <p class="error" role="alert">@error</p>
+}
+@if (Model.ImportResult is { } imported)
+{
+    <p role="status">حُفظ @imported.Created اشتراك من تقرير <bdi>@imported.ReportedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</bdi>. حُدّث: @imported.Updated. محفوظ سابقًا دون تغيير: @imported.AlreadySaved.</p>
+    @if (imported.Unavailable > 0)
+    {
+        <p class="error" role="alert">لم يُحفظ @imported.Unavailable اشتراك لعدم توفر بيانات دخول صالحة أو نوع مدعوم في التقرير.</p>
+    }
+    @if (imported.Created + imported.Updated + imported.AlreadySaved + imported.Unavailable == 0)
+    {
+        <p>لا توجد اشتراكات محلية في آخر تقرير.</p>
+    }
+}
 <form method="post" action="/admin/providers/installations/@Model.InstallationId/assign">
     @Html.AntiForgeryToken()
     <label>الاشتراك<select name="profileId" required>
@@ -13,7 +58,7 @@
     <label>التفعيل<select name="enabled"><option value="true">نعم</option><option value="false">لا</option></select></label>
     <button type="submit">تعيين الاشتراك / تحديث التعيين</button>
 </form>
-<h2>التعيينات</h2>
+<h2>تعيينات المكتبة البعيدة</h2>
 <div class="table-wrap">
 <table><thead><tr><th>التعيين / الاشتراك</th><th>السياسة</th><th>مفعّل</th><th>المراجعة</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>
 @foreach (var assignment in Model.Assignments)
@@ -28,7 +73,7 @@
 </tbody></table>
 </div>
 <details class="subscription-information"><summary>إظهار / إخفاء معلومات اشتراكات الجهاز</summary>
-<h2>تقارير الجهاز</h2>
+<h2>تقارير تعيينات المكتبة البعيدة</h2>
 <p>الصلاحية والحد الأقصى للاتصالات بيانات يُبلغ عنها المزود ولا تُعد موثوقة أو بديلاً لحدود ترخيص MegaStream.</p>
 <div class="table-wrap">
 <table><thead><tr><th>التعيين</th><th>مراجعة الاشتراك</th><th>الحالة</th><th>رمز الخطأ الآمن</th><th>وقت التقرير (UTC)</th><th>صلاحية المزود (UTC)</th><th>حد اتصالات المزود</th></tr></thead><tbody>

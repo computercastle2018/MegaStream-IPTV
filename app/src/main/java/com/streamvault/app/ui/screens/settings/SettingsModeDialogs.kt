@@ -45,25 +45,23 @@ internal fun AppUiStyleDialog(
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     PremiumDialog(
         title = stringResource(R.string.settings_app_ui_style),
-        subtitle = if (managed) stringResource(R.string.settings_template_managed)
-            else if (studio) null else stringResource(R.string.settings_app_ui_style_subtitle),
+        subtitle = stringResource(R.string.settings_template_sync),
         onDismissRequest = onDismiss,
         widthFraction = 0.52f,
         content = {
             if (studio) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     AppUiStyle.entries.forEach { style ->
-                        AppUiStyleOption(style, style == effectiveStyle, !managed,
+                        AppUiStyleOption(style, style == effectiveStyle, true,
                             modifier = Modifier.weight(1f),
-                            onClick = { if (!managed) onStyleSelected(style) })
+                            onClick = { onStyleSelected(style) })
                     }
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     AppUiStyle.entries.forEach { style ->
                         TvClickableSurface(
-                            onClick = { if (!managed) onStyleSelected(style) },
-                            enabled = !managed,
+                            onClick = { onStyleSelected(style) },
                             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                             colors = ClickableSurfaceDefaults.colors(
                                 containerColor = if (style == effectiveStyle) Primary.copy(alpha = 0.18f) else SurfaceElevated,

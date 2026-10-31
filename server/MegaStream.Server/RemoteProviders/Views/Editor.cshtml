@@ -11,6 +11,16 @@
     {
         var access = new MegaStream.Server.RemoteProviders.Http.ProviderAccess($"/admin/providers/{metadata.Id}", metadata.Type != "STALKER_PORTAL");
         <partial name="~/RemoteProviders/Views/_ProviderAccess.cshtml" model="access" />
+        <form method="post" action="/admin/providers/@metadata.Id/redemption-codes" autocomplete="off">
+            @Html.AntiForgeryToken()
+            <button type="submit">إنشاء رمز استرداد الاشتراك</button>
+        </form>
+        @if (Model.GeneratedCode is { } generated)
+        {
+            <p>رمز الاشتراك للاستخدام مرة واحدة، ويُعرض الآن فقط:</p>
+            <p><strong id="provider-redemption-code" dir="ltr">@generated.Code</strong></p>
+            <p>صالح لمدة 24 ساعة، حتى <time datetime="@generated.ExpiresAt.ToString("O")" dir="ltr">@generated.ExpiresAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</time>. يُدخل في التطبيق على جهاز مرخّص، وليس رمز تفعيل الترخيص.</p>
+        }
     }
 }
 @section Scripts { <script src="~/js/provider-credentials.js" asp-append-version="true" defer></script> }

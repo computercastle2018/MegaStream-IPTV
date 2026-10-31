@@ -4,8 +4,30 @@ import com.MegaStream.app.ui.model.AppUiStyle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class DeviceExperienceTest {
+    @Test
+    fun appearanceRequiresExplicitExpectedStyleAndOnlyAcceptsKnownTemplates() {
+        assertEquals("{\"uiStyle\":\"studio\",\"expectedUiStyle\":null}",
+            Json.encodeToString(DeviceAppearanceRequest("studio", null)))
+        for (style in AppUiStyle.entries) {
+            for (expected in listOf(null, "classic", "modern", "studio")) {
+                val request = DeviceAppearanceRequest(style.storageValue, expected)
+                assertEquals(request, Json.decodeFromString<DeviceAppearanceRequest>(Json.encodeToString(request)))
+            }
+        }
+        for (payload in listOf(
+            """{"uiStyle":"classic"}""",
+            """{"uiStyle":"unknown","expectedUiStyle":null}""",
+            """{"uiStyle":"studio","expectedUiStyle":"unknown"}""",
+            """{"uiStyle":"studio","expectedUiStyle":null,"extra":true}""",
+        )) {
+            assertThrows(IllegalArgumentException::class.java) { Json.decodeFromString<DeviceAppearanceRequest>(payload) }
+        }
+    }
+
     @Test
     fun remoteStyleWinsAndClearingRestoresEachLocalChoice() {
         for (local in AppUiStyle.entries) {

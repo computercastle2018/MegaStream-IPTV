@@ -29,6 +29,8 @@ else {
         if (action === 'sync') return await control.sync();
         if (action === 'activate') return await control.activate(value);
         if (action === 'code') return await control.requestCode();
+        if (action === 'redeem-subscription') return await control.redeemSubscription(value);
+        if (action === 'appearance') return await control.setAppearance(value);
         throw new Error('Invalid action');
       } catch { throw new Error('Unable to complete license request'); }
     });
