@@ -1524,4 +1524,39 @@
     <string name="provider_code_unlicensed">يلزم ترخيص تطبيق ساري لجلب الاشتراك.</string>
     <string name="provider_code_failed">تعذّر جلب الاشتراك. تحقق من الاتصال وحاول مجددًا.</string>
     <string name="provider_code_sync_failed">تم قبول الكود ولم تكتمل مزامنة الاشتراك. اضغط جلب الاشتراك للمحاولة مجددًا.</string>
+
+    <!-- Crimson dashboard (reference redesign) -->
+    <string name="dashboard_daily_tip">نصيحة اليوم: اضغط OK مطولاً على أي عنصر لحفظه</string>
+    <string name="dashboard_status_active_days">فعال · %1$s</string>
+    <string name="dashboard_watch_now">شاهد الآن</string>
+    <string name="dashboard_tile_guide">دليل البرامج</string>
+    <string name="dashboard_tile_guide_subtitle">اضغط لعرض الجدول</string>
+    <string name="dashboard_tile_matches">المباريات</string>
+    <string name="dashboard_tile_matches_subtitle">2 – 1</string>
+    <string name="dashboard_tile_favorites">المفضلة</string>
+    <string name="dashboard_tile_continue">متابعة</string>
+    <string name="dashboard_tile_continue_empty">لا يوجد بعد</string>
+    <string name="dashboard_tile_kids">أطفال</string>
+    <string name="dashboard_tile_kids_subtitle">عالم آمن للصغار</string>
+    <string name="dashboard_quick_search">البحث</string>
+    <string name="dashboard_quick_search_subtitle">كل المحتوى</string>
+    <string name="dashboard_quick_guide">الدليل</string>
+    <string name="dashboard_quick_guide_subtitle">جدول البرامج</string>
+    <string name="dashboard_quick_most_watched">الأكثر مشاهدة</string>
+    <string name="dashboard_quick_your_history">سجلك</string>
+    <string name="dashboard_quick_top_movies">توب أفلام</string>
+    <string name="dashboard_quick_top_series">توب مسلسلات</string>
+    <string name="dashboard_quick_top_rated">الأعلى تقييماً</string>
+    <plurals name="dashboard_days_remaining">
+        <item quantity="one">%1$d يوم</item>
+        <item quantity="other">%1$d يوم</item>
+    </plurals>
+    <plurals name="dashboard_movie_count_label">
+        <item quantity="one">فيلم</item>
+        <item quantity="other">أفلام</item>
+    </plurals>
+    <plurals name="dashboard_series_count_label">
+        <item quantity="one">مسلسل</item>
+        <item quantity="other">مسلسلات</item>
+    </plurals>
 </resources>

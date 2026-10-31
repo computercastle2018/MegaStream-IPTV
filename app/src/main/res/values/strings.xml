@@ -1648,4 +1648,39 @@
     <string name="provider_code_unlicensed">An active app license is required to fetch a subscription.</string>
     <string name="provider_code_failed">Could not fetch the subscription. Check your connection and try again.</string>
     <string name="provider_code_sync_failed">Code accepted. Subscription sync is incomplete. Try fetching again.</string>
+
+    <!-- Crimson dashboard (reference redesign) -->
+    <string name="dashboard_daily_tip">Tip of the day: long-press OK on any item to save it</string>
+    <string name="dashboard_status_active_days">Active · %1$s</string>
+    <string name="dashboard_watch_now">Watch now</string>
+    <string name="dashboard_tile_guide">Program Guide</string>
+    <string name="dashboard_tile_guide_subtitle">Tap to view the schedule</string>
+    <string name="dashboard_tile_matches">Matches</string>
+    <string name="dashboard_tile_matches_subtitle">2 – 1</string>
+    <string name="dashboard_tile_favorites">Favorites</string>
+    <string name="dashboard_tile_continue">Continue</string>
+    <string name="dashboard_tile_continue_empty">Nothing yet</string>
+    <string name="dashboard_tile_kids">Kids</string>
+    <string name="dashboard_tile_kids_subtitle">A safe world for the little ones</string>
+    <string name="dashboard_quick_search">Search</string>
+    <string name="dashboard_quick_search_subtitle">All content</string>
+    <string name="dashboard_quick_guide">Guide</string>
+    <string name="dashboard_quick_guide_subtitle">Program schedule</string>
+    <string name="dashboard_quick_most_watched">Most Watched</string>
+    <string name="dashboard_quick_your_history">Your history</string>
+    <string name="dashboard_quick_top_movies">Top Movies</string>
+    <string name="dashboard_quick_top_series">Top Series</string>
+    <string name="dashboard_quick_top_rated">Highest rated</string>
+    <plurals name="dashboard_days_remaining">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <plurals name="dashboard_movie_count_label">
+        <item quantity="one">movie</item>
+        <item quantity="other">movies</item>
+    </plurals>
+    <plurals name="dashboard_series_count_label">
+        <item quantity="one">series</item>
+        <item quantity="other">series</item>
+    </plurals>
 </resources>

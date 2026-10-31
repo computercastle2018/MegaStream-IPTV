@@ -82,6 +82,7 @@ class DashboardViewModel @Inject constructor(
         const val MOVIE_SHELF_LIMIT = 12
         const val SERIES_SHELF_LIMIT = 12
         const val HOME_SHORTCUT_LIMIT = 4
+        const val HERO_CHANNEL_TILE_COUNT = 16
     }
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -179,15 +180,20 @@ class DashboardViewModel @Inject constructor(
                 .filter { !shouldHideVodFromHome(it, level) }
                 .take(SERIES_SHELF_LIMIT)
         }
-        val contentShelves = combine(
+        val favoriteShelf = combine(
             observeFavoriteChannels(liveProviderIds).onStart { emit(emptyList()) },
+            observeLiveFavoriteTotal(liveProviderIds).onStart { emit(0) }
+        ) { favoriteChannels, favoriteChannelTotal -> favoriteChannels to favoriteChannelTotal }
+        val contentShelves = combine(
+            favoriteShelf,
             observeRecentChannels(liveProviderIds).onStart { emit(emptyList()) },
             observeContinueWatching(liveProviderIds.toSet()).onStart { emit(ContinueWatchingShelf()) },
             movieShelf.onStart { emit(emptyList()) },
             seriesShelf.onStart { emit(emptyList()) }
-        ) { favoriteChannels, recentChannels, continueWatchingShelf, recentMovies, recentSeries ->
+        ) { favoriteShelfData, recentChannels, continueWatchingShelf, recentMovies, recentSeries ->
             DashboardContentShelves(
-                favoriteChannels = favoriteChannels,
+                favoriteChannels = favoriteShelfData.first,
+                favoriteChannelTotal = favoriteShelfData.second,
                 recentChannels = recentChannels,
                 continueWatching = continueWatchingShelf.items,
                 continueWatchingDegraded = continueWatchingShelf.isDegraded,
@@ -222,6 +228,10 @@ class DashboardViewModel @Inject constructor(
             DashboardUiState(
                 provider = provider,
                 favoriteChannels = snapshot.shelves.favoriteChannels,
+                favoriteChannelTotal = snapshot.shelves.favoriteChannelTotal,
+                heroChannels = (snapshot.shelves.favoriteChannels + snapshot.shelves.recentChannels)
+                    .distinctBy { it.id }
+                    .take(HERO_CHANNEL_TILE_COUNT),
                 recentChannels = snapshot.shelves.recentChannels,
                 continueWatching = snapshot.shelves.continueWatching,
                 continueWatchingDegraded = snapshot.shelves.continueWatchingDegraded,
@@ -274,6 +284,11 @@ class DashboardViewModel @Inject constructor(
                     .take(FAVORITE_CHANNEL_LIMIT)
             }
             .flatMapLatest(::loadChannelsByOrderedIds)
+
+    /** Untruncated live-favorites count backing the dashboard favorites tile. */
+    private fun observeLiveFavoriteTotal(providerIds: List<Long>): Flow<Int> =
+        if (providerIds.isEmpty()) flowOf(0)
+        else observeLiveFavorites(providerIds).map { favorites -> favorites.size }.distinctUntilChanged()
 
     private fun observeRecentChannels(providerIds: List<Long>): Flow<List<Channel>> =
         combine(
@@ -591,6 +606,7 @@ private data class ContinueWatchingShelf(
 
 private data class DashboardContentShelves(
     val favoriteChannels: List<Channel>,
+    val favoriteChannelTotal: Int = 0,
     val recentChannels: List<Channel>,
     val continueWatching: List<PlaybackHistory>,
     val continueWatchingDegraded: Boolean = false,
@@ -610,6 +626,8 @@ private data class DashboardSnapshot(
 data class DashboardUiState(
     val provider: Provider? = null,
     val favoriteChannels: List<Channel> = emptyList(),
+    val favoriteChannelTotal: Int = 0,
+    val heroChannels: List<Channel> = emptyList(),
     val recentChannels: List<Channel> = emptyList(),
     val continueWatching: List<PlaybackHistory> = emptyList(),
     val continueWatchingDegraded: Boolean = false,
