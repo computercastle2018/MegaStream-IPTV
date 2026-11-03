@@ -72,6 +72,7 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
     [episodes, season, query, order]);
 
   const toPlayable = (ep: Episode): Playable => ({
+    progressKey: JSON.stringify([provider.id, "series", series.seriesId, ep.id]),
     name: `${series.name} · S${ep.season}E${ep.episode}${ep.title ? ` — ${ep.title}` : ""}`,
     groupTitle: series.name,
     streamUrl: ep.streamUrl,

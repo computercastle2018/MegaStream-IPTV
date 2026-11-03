@@ -112,7 +112,7 @@ class ControlPlane {
         appSessionId: this.sessionId, sequence: this.sequence++, mode: 'foreground', appVersionCode: 56,
         packageName, channel: 'stable', appVersionName: this.version, managedDevice: false
       });
-      this.state = { ...this.state, state: result.decision.state, online: true, error: null,
+      this.state = { ...this.state, state: result.decision.state, online: true, error: null, providersChanged: false,
         startsAt: result.decision.startsAt, endsAt: result.decision.endsAt };
       if (result.decision.state === 'allowed') {
         const keys = await this.request('public/signing-key', undefined, true);
@@ -122,8 +122,8 @@ class ControlPlane {
       } else this.store.set('desktop.lease', null);
       if (result.decision.state !== 'installation_disabled') {
         await this.syncExperience();
-        this.state.providersChanged = await this.applyAssignments(await this.request('providers/assignments'));
         if (result.decision.state === 'allowed') {
+          this.state.providersChanged = await this.applyAssignments(await this.request('providers/assignments'));
           try {
             const { localSubscriptionReport } = await import('./subscription-report.mjs');
             await this.request('devices/subscriptions', await localSubscriptionReport(JSON.parse(this.store.get('MegaStream.providers') || '[]')));

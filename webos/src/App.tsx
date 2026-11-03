@@ -92,6 +92,7 @@ export default function App() {
     }
     if (!item.streamUrl) return;
     setPlayable({
+      progressKey: item.kind === "movie" && activeProvider ? JSON.stringify([activeProvider.id, "movie", item.id]) : undefined,
       name: item.name,
       number: item.number,
       groupTitle: item.groupTitle,

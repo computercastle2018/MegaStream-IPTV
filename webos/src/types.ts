@@ -53,6 +53,8 @@ export interface Episode {
 
 /** The minimal shape the player needs. */
 export interface Playable {
+  /** Stable provider/content identity for desktop on-demand progress, never a stream URL. */
+  progressKey?: string;
   name: string;
   number?: number;
   groupTitle: string;

@@ -154,3 +154,26 @@ for (const mode of ['save', 'read', 'admin', 'offline']) {
     if (mode === 'admin') assert.equal(control.state.error, 'appearance_conflict');
   });
 }
+
+for (const decision of ['unlicensed', 'expired', 'revoked']) {
+  test(`${decision} devices remain connected without requesting licensed subscription endpoints`, async () => {
+    const data = new Map();
+    const store = { get: key => data.get(key) ?? null, set: (key, value) => value === null ? data.delete(key) : data.set(key, value) };
+    const calls = [];
+    const control = new ControlPlane(store, '3.0.29', () => {}, async url => {
+      const route = new URL(url).pathname.split('/api/v1/')[1]; calls.push(route);
+      if (route === 'providers/assignments') return new Response('{}', { status: 403 });
+      const result = route === 'devices/heartbeat' ? { decision: { state: decision } }
+        : route === 'devices/experience' ? { uiStyle: 'modern', allowSubscriptionDetails: false, notifications: [] } : {};
+      return new Response(JSON.stringify(result));
+    });
+    await control.sync();
+    assert.equal(control.state.state, decision);
+    assert.equal(control.state.online, true);
+    assert.equal(control.state.uiStyle, 'modern');
+    assert.equal(control.state.error, null);
+    assert.equal(calls.includes('providers/assignments'), false);
+    assert.equal(calls.includes('devices/subscriptions'), false);
+    assert.equal(store.get('desktop.lease'), null, 'Denied devices must not receive playback entitlement');
+  });
+}

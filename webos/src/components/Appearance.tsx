@@ -3,6 +3,7 @@ import { FocusContext, getCurrentFocusKey, setFocus, useFocusable } from "@norig
 import { Columns3, LayoutGrid, Rows3, X } from "lucide-react";
 import { useLang } from "../i18n/LanguageContext";
 import { FocusButton } from "./Focusable";
+import { playbackProgressEnabled, setPlaybackProgressEnabled } from "../services/playbackProgress";
 import "./Appearance.css";
 
 type Design = "classic" | "modern" | "studio";
@@ -41,6 +42,8 @@ export function AppearanceDialog({ onClose, onAccount }: { onClose: () => void; 
   const { design, remote, saving, select } = useAppearance();
   const { lang } = useLang();
   const ar = lang === "ar";
+  const [saveProgress, setSaveProgress] = useState(playbackProgressEnabled);
+  const [progressError, setProgressError] = useState(false);
   const managed = !!remote && !(window.megastreamDesktop?.control ?? window.megastreamWebos?.control)?.setAppearance;
   const { ref, focusKey } = useFocusable<HTMLDialogElement>({ isFocusBoundary: true });
   useEffect(() => {
@@ -79,6 +82,16 @@ export function AppearanceDialog({ onClose, onAccount }: { onClose: () => void; 
         <span className={`design-preview preview-${id}`} aria-hidden="true"><Icon size={36} /><span /><span /><span /></span>
       </DesignOption>)}</div>
     </fieldset>
+    {window.megastreamDesktop && <label className="playback-setting">
+      <input type="checkbox" checked={saveProgress} onChange={event => {
+        const enabled = event.target.checked;
+        const saved = setPlaybackProgressEnabled(enabled);
+        setProgressError(!saved);
+        if (saved) setSaveProgress(enabled);
+      }} />
+      {ar ? "حفظ موضع التوقف للأفلام والحلقات" : "Remember movie and episode playback position"}
+    </label>}
+    {progressError && <p role="alert">{ar ? "تعذر حفظ الإعداد على هذا الجهاز" : "Unable to save this setting on this device"}</p>}
     <FocusButton className="appearance-account" onEnter={() => { onClose(); onAccount(); }}>{ar ? "الاشتراك والترخيص" : "Subscription & license"}</FocusButton>
   </dialog></FocusContext.Provider>;
 }

@@ -5,6 +5,9 @@ const { assetPath, validateStorage } = require('./security.cjs');
 const { encryptedStore } = require('./encrypted-store.cjs');
 const { ControlPlane } = require('./control-plane.cjs');
 
+// Avoid blank startup windows on Windows drivers that fail GPU composition.
+if (process.platform === 'win32') app.disableHardwareAcceleration();
+
 // A standard, non-secure scheme permits user-provided HTTP IPTV servers without disabling webSecurity.
 protocol.registerSchemesAsPrivileged([{ scheme: 'megastream', privileges: { standard: true, supportFetchAPI: true, stream: true, corsEnabled: true } }]);
 let window;
@@ -14,6 +17,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => showWindow?.());
   app.whenReady().then(() => {
+    if (process.platform === 'win32') app.setAppUserModelId('uk.megastation.megastream.desktop');
     const store = encryptedStore(path.join(app.getPath('userData'), 'providers.encrypted'), safeStorage);
     let minimizeToTray = store.get('desktop.minimizeToTray') === true;
     let dockHideTimer;
@@ -57,7 +61,9 @@ else {
       } catch { event.returnValue = { error: 'Unable to access encrypted subscription storage' }; }
     });
     const createWindow = () => {
-      window = new BrowserWindow({ width: 1280, height: 800, minWidth: 820, minHeight: 600, backgroundColor: '#0b0f14', title: 'MegaStream', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
+      window = new BrowserWindow({ width: 1280, height: 800, minWidth: 820, minHeight: 600, backgroundColor: '#0b0f14', title: 'MegaStream',
+        ...(process.platform === 'win32' ? { icon: path.join(__dirname, 'ui', 'icon.png') } : {}),
+        webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
       window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
       window.webContents.on('will-navigate', (event, url) => { if (!url.startsWith('megastream://app/')) event.preventDefault(); });
       window.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
