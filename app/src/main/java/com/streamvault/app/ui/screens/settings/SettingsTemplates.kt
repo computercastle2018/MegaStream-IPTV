@@ -32,21 +32,21 @@ internal fun StudioSettingsTemplates(
     onStyleSelected: (AppUiStyle) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        if (managed) Text(stringResource(R.string.settings_template_managed),
+        if (managed) Text(stringResource(R.string.settings_template_sync),
             style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             if (maxWidth >= 560.dp) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     AppUiStyle.entries.forEach { style ->
-                        AppUiStyleOption(style, style == selectedStyle, !managed,
-                            onClick = { if (!managed) onStyleSelected(style) }, modifier = Modifier.weight(1f))
+                        AppUiStyleOption(style, style == selectedStyle, true,
+                            onClick = { onStyleSelected(style) }, modifier = Modifier.weight(1f))
                     }
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     AppUiStyle.entries.forEach { style ->
-                        AppUiStyleOption(style, style == selectedStyle, !managed,
-                            onClick = { if (!managed) onStyleSelected(style) })
+                        AppUiStyleOption(style, style == selectedStyle, true,
+                            onClick = { onStyleSelected(style) })
                     }
                 }
             }
@@ -91,20 +91,31 @@ internal fun AppUiStyleOption(
 @Composable
 internal fun AppUiStyleMiniPreview(style: AppUiStyle, modifier: Modifier = Modifier) {
     val canvas = when (style) {
-        AppUiStyle.CLASSIC -> Color(0xFF07111B)
-        AppUiStyle.MODERN -> Color(0xFF111822)
-        AppUiStyle.STUDIO -> Color(0xFF101414)
+        AppUiStyle.CLASSIC -> Color(0xFF100608)
+        AppUiStyle.MODERN -> Color(0xFF1D1115)
+        AppUiStyle.STUDIO -> Color(0xFF100608)
+        AppUiStyle.TV_PRO -> Color(0xFF101318)
     }
     val accent = when (style) {
-        AppUiStyle.CLASSIC -> Color(0xFF69A8FF)
-        AppUiStyle.MODERN -> Color(0xFF64D2FF)
-        AppUiStyle.STUDIO -> Color(0xFF69DCB1)
+        AppUiStyle.CLASSIC -> Color(0xFFE01B32)
+        AppUiStyle.MODERN -> Color(0xFFE01B32)
+        AppUiStyle.STUDIO -> Color(0xFFFF4053)
+        AppUiStyle.TV_PRO -> Color(0xFF56CFD7)
     }
     val tile = Color.White.copy(alpha = 0.15f)
     Box(modifier.fillMaxWidth().aspectRatio(16f / 9f)
         .testTag("template_preview_${style.storageValue}")
         .background(canvas, RoundedCornerShape(4.dp)).padding(8.dp)) {
         when (style) {
+            AppUiStyle.TV_PRO -> Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    repeat(5) { Box(Modifier.fillMaxWidth().weight(1f).background(if (it == 1) accent else tile)) }
+                }
+                Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    repeat(5) { Box(Modifier.fillMaxWidth().weight(1f).background(tile)) }
+                }
+                Box(Modifier.weight(2f).fillMaxHeight().background(tile))
+            }
             AppUiStyle.CLASSIC -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     repeat(5) { Box(Modifier.weight(1f).height(7.dp).background(if (it == 0) accent else tile)) }

@@ -33,6 +33,7 @@ public sealed class ProviderCredentialsTests
             var devices = scope.ServiceProvider.GetRequiredService<DeviceService>();
             var device = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "47", "TV", "14"));
             id = device.InstallationId; bearer = device.BearerToken;
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, id);
             otherId = (await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "47", "Other", "14"))).InstallationId;
         }
         var configuration = RemoteProviderTestData.Profile(type).Configuration;
@@ -157,6 +158,7 @@ public sealed class ProviderCredentialsTests
         {
             var device = await scope.ServiceProvider.GetRequiredService<DeviceService>().RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "47", "Kings Pro", "14"));
             localDevice = device.InstallationId;
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, localDevice);
             client.DefaultRequestHeaders.Authorization = new("Bearer", device.BearerToken);
         }
         using var uploaded = await client.PostAsJsonAsync("/api/v1/devices/subscriptions", new LocalSubscriptionsRequest

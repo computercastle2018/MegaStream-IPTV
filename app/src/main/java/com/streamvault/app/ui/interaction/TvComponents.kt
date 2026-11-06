@@ -6,7 +6,13 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.tv.material3.Border
 import androidx.tv.material3.Button
@@ -150,20 +156,33 @@ fun TvIconButton(
 private fun Modifier.activateOnRemoteKey(
     enabled: Boolean,
     onClick: () -> Unit
-): Modifier = onPreviewKeyEvent { event ->
-    if (!enabled) return@onPreviewKeyEvent false
-    val nativeEvent = event.nativeKeyEvent
-    val isActivationKey = when (nativeEvent.keyCode) {
-        KeyEvent.KEYCODE_DPAD_CENTER,
-        KeyEvent.KEYCODE_ENTER,
-        KeyEvent.KEYCODE_NUMPAD_ENTER,
-        KeyEvent.KEYCODE_SPACE,
-        KeyEvent.KEYCODE_BUTTON_A -> true
-        else -> false
-    }
-    if (!isActivationKey) return@onPreviewKeyEvent false
-    if (nativeEvent.action == KeyEvent.ACTION_UP) {
-        onClick()
-    }
-    nativeEvent.action == KeyEvent.ACTION_DOWN || nativeEvent.action == KeyEvent.ACTION_UP
+): Modifier = composed {
+    var pressedKey by remember(enabled) { mutableStateOf<Int?>(null) }
+    onFocusChanged { if (!it.isFocused) pressedKey = null }
+        .onPreviewKeyEvent { event ->
+            if (!enabled) return@onPreviewKeyEvent false
+            val nativeEvent = event.nativeKeyEvent
+            when (nativeEvent.keyCode) {
+                KeyEvent.KEYCODE_DPAD_CENTER,
+                KeyEvent.KEYCODE_ENTER,
+                KeyEvent.KEYCODE_NUMPAD_ENTER,
+                KeyEvent.KEYCODE_SPACE,
+                KeyEvent.KEYCODE_BUTTON_A -> Unit
+                else -> return@onPreviewKeyEvent false
+            }
+            when (nativeEvent.action) {
+                KeyEvent.ACTION_DOWN -> {
+                    if (nativeEvent.repeatCount == 0) pressedKey = nativeEvent.keyCode
+                    true
+                }
+                KeyEvent.ACTION_UP -> {
+                    // A newly focused button must not activate on another control's key release.
+                    val activate = pressedKey == nativeEvent.keyCode && !nativeEvent.isCanceled
+                    pressedKey = null
+                    if (activate) onClick()
+                    true
+                }
+                else -> false
+            }
+        }
 }

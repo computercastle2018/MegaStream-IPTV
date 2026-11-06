@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.test.ExperimentalTestApi::class)
+
 package com.MegaStream.app.ui.notifications
 
 import androidx.compose.runtime.CompositionLocalProvider
@@ -7,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.LayoutDirection
@@ -59,7 +62,8 @@ class DeviceNotificationsDialogTest {
             .performKeyInput { pressKey(Key.DirectionDown) }
         composeRule.onNodeWithTag("notification_popup_content").assertIsFocused()
             .performKeyInput { pressKey(Key.DirectionUp) }
-        composeRule.onNodeWithContentDescription(closeDescription).assertIsFocused().performClick()
+        composeRule.onNodeWithContentDescription(closeDescription).assertIsFocused()
+            .performKeyInput { pressKey(Key.DirectionCenter) }
         composeRule.onNodeWithTag("notification_popup").assertDoesNotExist()
         composeRule.runOnIdle { assertEquals(1, dismissals) }
     }
@@ -85,14 +89,17 @@ class DeviceNotificationsDialogTest {
             }
         }
         composeRule.mainClock.advanceTimeBy(600)
-        composeRule.onNodeWithTag("notification_preview_${first.id}").performClick()
+        composeRule.onNodeWithTag("notification_preview_${first.id}")
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .performKeyInput { pressKey(Key.DirectionCenter) }
         composeRule.onNodeWithTag("notification_message_detail").assertIsFocused()
         composeRule.runOnIdle { refreshing = true }
         composeRule.runOnIdle { notices = listOf(incoming, first); refreshing = false }
         composeRule.onNodeWithTag("notification_message_detail")
             .assert(hasAnyDescendant(hasText(first.message)))
         composeRule.onNodeWithTag("notification_message_detail").performKeyInput { pressKey(Key.DirectionUp) }
-        composeRule.onNodeWithContentDescription(context.getString(R.string.device_notifications_close)).assertIsFocused().performClick()
+        composeRule.onNodeWithContentDescription(context.getString(R.string.device_notifications_close)).assertIsFocused()
+            .performKeyInput { pressKey(Key.DirectionCenter) }
         composeRule.onNodeWithTag("notification_message_detail").assertDoesNotExist()
         composeRule.runOnIdle { assertEquals(1, dismissals) }
     }

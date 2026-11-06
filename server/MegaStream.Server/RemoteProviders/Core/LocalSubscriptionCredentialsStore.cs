@@ -55,15 +55,19 @@ public sealed class LocalSubscriptionCredentialsStore(AppDbContext db, ProviderP
     private static StoredSubscriptionSnapshot Decode(string json)
     {
         using var document = JsonDocument.Parse(json);
-        return document.RootElement.ValueKind == JsonValueKind.Array
-            ? new() { Subscriptions = JsonSerializer.Deserialize<List<LocalSubscription?>>(json) ?? throw new JsonException() }
+        var snapshot = document.RootElement.ValueKind == JsonValueKind.Array
+            ? new StoredSubscriptionSnapshot { Subscriptions = JsonSerializer.Deserialize<List<LocalSubscription?>>(json) ?? throw new JsonException() }
             : JsonSerializer.Deserialize<StoredSubscriptionSnapshot>(json) ?? throw new JsonException();
+        if (snapshot.Subscriptions is null || snapshot.Credentials is null || snapshot.Credentials.Any(x => x is null) ||
+            snapshot.Credentials.Select(x => x.LocalId).Distinct().Count() != snapshot.Credentials.Count)
+            throw new JsonException();
+        return snapshot;
     }
 
     private static Guid Binding(Guid installationId, long localId) =>
         new(SHA256.HashData(Encoding.UTF8.GetBytes($"local-subscription|{installationId:D}|{localId}"))[..16]);
 
-    private static string ProviderType(string type) => type switch
+    internal static string ProviderType(string type) => type switch
     {
         "xtream_codes" => RemoteProviderValues.XtreamCodes, "m3u" => RemoteProviderValues.M3u,
         "stalker_portal" => RemoteProviderValues.StalkerPortal, _ => throw Unavailable()

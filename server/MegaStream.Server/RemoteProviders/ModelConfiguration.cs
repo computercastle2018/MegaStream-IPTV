@@ -8,6 +8,13 @@ public static class ModelConfiguration
 {
     public static void Configure(ModelBuilder b)
     {
+        b.Entity<ProviderRedemptionCode>(e =>
+        {
+            e.ToTable("ProviderRedemptionCodes"); e.HasKey(x => x.CodeHash);
+            e.Property(x => x.CodeHash).HasMaxLength(64).IsRequired();
+            e.HasOne<RemoteProviderProfile>().WithMany().HasForeignKey(x => x.ProfileId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Installation>().WithMany().HasForeignKey(x => x.RedeemedInstallationId).OnDelete(DeleteBehavior.Restrict);
+        });
         b.Entity<RemoteProviderRevisionSequence>(e =>
         {
             e.ToTable("RemoteProviderRevisionSequence");
@@ -25,6 +32,10 @@ public static class ModelConfiguration
             e.Property(x => x.EncryptedPayload).HasMaxLength(32768).IsRequired();
             e.Property(x => x.Revision).IsConcurrencyToken();
             e.HasIndex(x => x.Revision);
+            e.HasIndex(x => new { x.SourceInstallationId, x.SourceLocalId }).IsUnique();
+            e.Property(x => x.SourceContentHash).HasMaxLength(64);
+            e.Property(x => x.SourceStatus).HasMaxLength(32);
+            e.HasOne<Installation>().WithMany().HasForeignKey(x => x.SourceInstallationId).OnDelete(DeleteBehavior.Restrict);
         });
         b.Entity<RemoteProviderAssignment>(e =>
         {

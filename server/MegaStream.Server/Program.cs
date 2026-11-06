@@ -87,12 +87,17 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 });
 builder.Services.AddUpdateManagement(builder.Configuration);
 builder.Services.AddV1Protocol();
+builder.Services.AddCors(options=>options.AddPolicy("WebosV1",policy=>policy
+    .WithOrigins("null").WithMethods("GET","POST")
+    .WithHeaders("Content-Type","Authorization","Idempotency-Key")));
 builder.Services.AddRemoteProviders(builder.Configuration);
 builder.Services.AddHttpsRedirection(options=>options.HttpsPort=443);
 builder.Services.AddScoped<IAdminService,AdminService>();builder.Services.AddScoped<AdminService>();builder.Services.AddScoped<DeviceService>();
 builder.Services.AddSingleton<LeaseSigner>();builder.Services.AddSingleton<SecretHasher>();builder.Services.AddHostedService<RetentionService>();
 builder.Services.AddRateLimiter(options=>{
     options.RejectionStatusCode=429;
+    options.AddPolicy("provider-redemption",context=>RateLimitPartition.GetFixedWindowLimiter(RateLimitIdentity(context),
+        _=>new FixedWindowRateLimiterOptions {PermitLimit=6,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
     options.GlobalLimiter=PartitionedRateLimiter.Create<HttpContext,string>(context=>context.Request.Path.StartsWithSegments("/health")
         ? RateLimitPartition.GetNoLimiter("health")
         : RateLimitPartition.GetFixedWindowLimiter(RateLimitIdentity(context),
@@ -137,6 +142,8 @@ app.UseStatusCodePages(async context=>{
 });
 app.UseStaticFiles();
 app.UseRouting();
+// Packaged webOS file:// clients have an opaque origin; never enable this for cookie/admin routes.
+app.UseWhen(context=>context.Request.Path.StartsWithSegments("/api/v1"),branch=>branch.UseCors("WebosV1"));
 app.UseAuthentication();
 app.Use(async (context, next) =>
 {

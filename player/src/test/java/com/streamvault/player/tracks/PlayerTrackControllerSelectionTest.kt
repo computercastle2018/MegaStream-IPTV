@@ -5,6 +5,15 @@ import com.MegaStream.player.PLAYER_TRACK_AUTO_ID
 import org.junit.Test
 
 class PlayerTrackControllerSelectionTest {
+    @Test fun `fixed mode selects one rendition while adaptive mode retains lower renditions`() {
+        val heights = listOf(360, 480, 720, 1080, 2160)
+        assertThat(qualityTrackIndices(heights, 1080, null, false)).containsExactly(3)
+        assertThat(qualityTrackIndices(heights, 1080, null, true)).containsExactly(0, 1, 2, 3)
+        assertThat(qualityTrackIndices(heights, 2160, 720, false)).containsExactly(2)
+        assertThat(qualityTrackIndices(listOf(720), 480, 1080, true)).containsExactly(0)
+        assertThat(qualityTrackIndices(listOf(2160, -1), 1080, 1080, false)).isEmpty()
+        assertThat(qualityTrackIndices(listOf(Int.MIN_VALUE, 480), 1080, null, false)).containsExactly(1)
+    }
 
     @Test
     fun `stale selected video track falls back to auto when multiple tracks remain`() {

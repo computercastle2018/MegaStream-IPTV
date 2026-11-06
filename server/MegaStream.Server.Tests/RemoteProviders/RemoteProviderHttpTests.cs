@@ -22,7 +22,7 @@ public sealed class RemoteProviderHttpTests
     [Theory]
     [InlineData(2, false)]
     [InlineData(10, true)]
-    public async Task Index_lists_only_active_reports_from_connected_active_devices_using_shared_online_window(int window, bool includesOlder)
+    public async Task Index_lists_current_reports_from_connected_licensed_devices_using_shared_online_window(int window, bool includesOlder)
     {
         using var app = new TestApplication();
         using var client = Client(app);
@@ -41,6 +41,8 @@ public sealed class RemoteProviderHttpTests
             var admin = scope.ServiceProvider.GetRequiredService<IAdminService>();
             licenseId = (await admin.CreateLicenseAsync("Linked license", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(1), 1)).License.Id;
             await admin.AssignInstallationLicenseAsync(connected.InstallationId, licenseId);
+            foreach (var device in new[] { older, offline, revoked, stale })
+                await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, device.InstallationId);
         }
         var expiry = DateTimeOffset.UtcNow.AddDays(1).ToUnixTimeMilliseconds();
         using var reporter = Client(app);
@@ -83,7 +85,8 @@ public sealed class RemoteProviderHttpTests
         Assert.Contains("Connected sports", html);
         Assert.Contains("No expiry", html);
         Assert.Equal(includesOlder, html.Contains("Older subscription"));
-        foreach (var excluded in new[] { "Disabled report", "Expired report", "Partial report", "Error report", "Offline subscription", "Revoked subscription", "Stale subscription", "provider.invalid", "private-user", "private-password" })
+        foreach (var included in new[] { "Disabled report", "Expired report", "Partial report", "Error report" }) Assert.Contains(included, html);
+        foreach (var excluded in new[] { "Offline subscription", "Revoked subscription", "Stale subscription", "provider.invalid", "private-user", "private-password" })
             Assert.DoesNotContain(excluded, html);
         Assert.Contains($"/Admin/DeviceDetails?id={connected.InstallationId}", html);
         Assert.Contains($"/Admin/LicenseDetails?id={licenseId}", html);
@@ -129,6 +132,7 @@ public sealed class RemoteProviderHttpTests
         {
             var devices = scope.ServiceProvider.GetRequiredService<DeviceService>();
             var registered = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "TV", "14"));
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, registered.InstallationId);
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var device = await db.Installations.SingleAsync(x => x.Id == registered.InstallationId);
             device.LocalSubscriptionsJson = json;
@@ -158,6 +162,8 @@ public sealed class RemoteProviderHttpTests
             var devices = scope.ServiceProvider.GetRequiredService<DeviceService>();
             owner = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Selected TV", "14"));
             other = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "Other TV", "14"));
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, owner.InstallationId);
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, other.InstallationId);
         }
         var html = await client.GetStringAsync("/admin/providers/create?type=XTREAM_CODES");
         Assert.Contains($"value=\"{owner.InstallationId:D}\"", html);
@@ -278,6 +284,8 @@ public sealed class RemoteProviderHttpTests
             var devices = scope.ServiceProvider.GetRequiredService<DeviceService>();
             owner = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "TV", "14"));
             other = await devices.RegisterAsync(new(Guid.NewGuid().ToString("D"), "android", "1.0", "TV", "14"));
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, owner.InstallationId);
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, other.InstallationId);
             var providers = scope.ServiceProvider.GetRequiredService<IRemoteProviderService>();
             profile = await providers.CreateProfileAsync(RemoteProviderTestData.Profile());
             assignment = await providers.AssignAsync(profile.Id, owner.InstallationId, new());
@@ -323,6 +331,7 @@ public sealed class RemoteProviderHttpTests
         {
             device = await scope.ServiceProvider.GetRequiredService<DeviceService>().RegisterAsync(
                 new(Guid.NewGuid().ToString("D"), "android", "1.0", "TV", "14"));
+            await RemoteProviderTestData.LicenseAsync(scope.ServiceProvider, device.InstallationId);
             var service = scope.ServiceProvider.GetRequiredService<IRemoteProviderService>();
             profile = await service.CreateProfileAsync(input);
             assignment = await service.AssignAsync(profile.Id, device.InstallationId, new() { Policy = "auto_enabled" });
@@ -386,10 +395,10 @@ public sealed class RemoteProviderHttpTests
         Assert.False(tombstone.TryGetProperty("configuration", out _));
     }
 
-    private static HttpClient Client(TestApplication app) => app.CreateClient(new WebApplicationFactoryClientOptions
+    internal static HttpClient Client(TestApplication app) => app.CreateClient(new WebApplicationFactoryClientOptions
     { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
 
-    private static async Task LoginAsync(TestApplication app, HttpClient client)
+    internal static async Task LoginAsync(TestApplication app, HttpClient client)
     {
         using (var scope = app.Services.CreateScope())
         {
@@ -407,7 +416,7 @@ public sealed class RemoteProviderHttpTests
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
     }
 
-    private static string Token(string html)
+    internal static string Token(string html)
     {
         var input = Regex.Match(html, "<input[^>]*name=\"__RequestVerificationToken\"[^>]*>").Value;
         var token = WebUtility.HtmlDecode(Regex.Match(input, "value=\"([^\"]+)\"").Groups[1].Value);

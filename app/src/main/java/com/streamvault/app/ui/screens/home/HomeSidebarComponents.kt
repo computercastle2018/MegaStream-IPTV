@@ -37,10 +37,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Border
 import androidx.tv.material3.ButtonDefaults
@@ -64,6 +66,8 @@ import com.MegaStream.app.ui.theme.PrimaryLight
 import com.MegaStream.app.ui.theme.SurfaceElevated
 import com.MegaStream.app.ui.theme.SurfaceHighlight
 import com.MegaStream.app.ui.time.LocalAppTimeFormat
+import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.theme.LocalAppUiStyle
 import com.MegaStream.app.ui.time.createTimeFormat
 import com.MegaStream.domain.model.Category
 import com.MegaStream.domain.model.Channel
@@ -127,14 +131,15 @@ internal fun LivePreviewPane(
     errorMessage: String?,
     modifier: Modifier = Modifier
 ) {
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
     val renderSurfaceType by (playerEngine?.renderSurfaceType)?.collectAsStateWithLifecycle(
         initialValue = PlayerRenderSurfaceType.SURFACE_VIEW
     ) ?: remember { mutableStateOf(PlayerRenderSurfaceType.SURFACE_VIEW) }
 
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        colors = SurfaceDefaults.colors(containerColor = SurfaceElevated.copy(alpha = 0.72f))
+        shape = RoundedCornerShape(if (tvPro) 4.dp else 18.dp),
+        colors = SurfaceDefaults.colors(containerColor = if (tvPro) MaterialTheme.colorScheme.surface else SurfaceElevated.copy(alpha = 0.72f))
     ) {
         Column(
             modifier = Modifier
@@ -152,7 +157,7 @@ internal fun LivePreviewPane(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
-                    .background(Color.Black, RoundedCornerShape(16.dp)),
+                    .background(Color.Black, RoundedCornerShape(if (tvPro) 2.dp else 16.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (channel != null && playerEngine != null && errorMessage == null) {
@@ -272,11 +277,15 @@ internal fun CategoryItem(
     focusRequester: FocusRequester,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
-    onJumpToSearch: () -> Boolean,
     onJumpToContent: () -> Boolean,
     onFocused: () -> Unit
 ) {
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
+    val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(if (tvPro) 2.dp else 10.dp)
     var isFocused by remember { mutableStateOf(false) }
+    val contentKey = if (LocalLayoutDirection.current == LayoutDirection.Rtl)
+        android.view.KeyEvent.KEYCODE_DPAD_LEFT else android.view.KeyEvent.KEYCODE_DPAD_RIGHT
 
     TvClickableSurface(
         onClick = onClick,
@@ -290,30 +299,25 @@ internal fun CategoryItem(
                 if (it.isFocused) onFocused()
             }
             .onPreviewKeyEvent { event ->
-                if (event.nativeKeyEvent.action == android.view.KeyEvent.ACTION_DOWN) {
-                    when (event.nativeKeyEvent.keyCode) {
-                        android.view.KeyEvent.KEYCODE_DPAD_LEFT -> onJumpToSearch()
-                        android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> onJumpToContent()
-                        else -> false
-                    }
-                } else false
+                event.nativeKeyEvent.action == android.view.KeyEvent.ACTION_DOWN &&
+                    event.nativeKeyEvent.keyCode == contentKey && onJumpToContent()
             },
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
+        shape = ClickableSurfaceDefaults.shape(shape),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (isSelected) Primary.copy(alpha = 0.15f) else Color.Transparent,
-            focusedContainerColor = SurfaceHighlight.copy(alpha = 0.82f),
+            containerColor = if (tvPro && isSelected) colors.secondary else if (isSelected) Primary.copy(alpha = 0.15f) else Color.Transparent,
+            focusedContainerColor = if (tvPro) colors.primary else SurfaceHighlight.copy(alpha = 0.82f),
             contentColor = if (isSelected) Primary else OnSurface
         ),
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(
                 border = BorderStroke(2.dp, Primary.copy(alpha = 0.85f)),
-                shape = RoundedCornerShape(10.dp)
+                shape = shape
             )
         )
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = if (tvPro) 8.dp else 12.dp, vertical = if (tvPro) 8.dp else 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -328,14 +332,14 @@ internal fun CategoryItem(
                 isFocused = isFocused,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
-                color = if (isFocused) OnBackground else if (isSelected) Primary else OnSurface,
+                color = if (tvPro && isFocused) colors.onPrimary else if (tvPro && isSelected) colors.onSecondary else if (isFocused) OnBackground else if (isSelected) Primary else OnSurface,
                 modifier = Modifier.weight(1f)
             )
 
             Text(
                 text = category.count.toString(),
                 style = MaterialTheme.typography.labelMedium,
-                color = if (isFocused) OnBackground else OnSurfaceDim,
+                color = if (tvPro && isFocused) colors.onPrimary else if (tvPro && isSelected) colors.onSecondary else if (isFocused) OnBackground else OnSurfaceDim,
                 modifier = Modifier.padding(start = 10.dp)
             )
 

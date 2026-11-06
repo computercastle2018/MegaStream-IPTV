@@ -86,6 +86,7 @@ interface PlayerEngine {
     fun setPreferredAudioLanguage(languageTag: String?)
     fun setSubtitleStyle(style: PlayerSubtitleStyle)
     fun setNetworkQualityPreferences(wifiMaxHeight: Int?, ethernetMaxHeight: Int?)
+    fun setAdaptiveVideoQualityEnabled(enabled: Boolean) {}
     fun setAdminMaxVideoHeight(maxHeight: Int?) {}
     fun selectAudioTrack(trackId: String)
     fun selectVideoTrack(trackId: String)

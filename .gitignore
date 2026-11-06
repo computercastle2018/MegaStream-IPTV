@@ -54,6 +54,7 @@ __pycache__/
 *.pyc
 
 # Local scratch outputs
+/output/
 capture.txt
 out.txt
 localization_audit.txt
@@ -72,3 +73,5 @@ releases/*.apk
 
 # Claude / agent session-local config — never commit
 .claude/
+output/MegaStream-3.0.23-before-3.0.24.app/
+output/MegaStream-profile-before-3.0.24/

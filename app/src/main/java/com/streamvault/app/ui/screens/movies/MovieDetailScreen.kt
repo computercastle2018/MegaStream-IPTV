@@ -68,7 +68,7 @@ import com.MegaStream.domain.model.Movie
 import com.MegaStream.app.ui.interaction.TvClickableSurface
 import com.MegaStream.app.ui.interaction.TvButton
 import com.MegaStream.app.ui.interaction.TvIconButton
-import com.MegaStream.app.ui.screens.vod.StudioDetailLayout
+import com.MegaStream.app.ui.screens.vod.CatalogDetailLayout
 import com.MegaStream.app.ui.components.MovieCard
 import androidx.compose.material.icons.filled.PlayArrow
 
@@ -148,13 +148,13 @@ private fun MovieDetailContent(
         )
     }
 
-    if (LocalAppUiStyle.current == AppUiStyle.STUDIO) {
+    if (LocalAppUiStyle.current == AppUiStyle.STUDIO || LocalAppUiStyle.current == AppUiStyle.TV_PRO) {
         val visibleRelated = relatedContent.filter {
             it.categoryId == movie.categoryId && !it.isAdult && !it.isUserProtected
         }
-        StudioDetailLayout(
+        CatalogDetailLayout(
             title = movie.name,
-            imageUrl = movie.backdropUrl ?: movie.posterUrl,
+            imageUrl = if (LocalAppUiStyle.current == AppUiStyle.TV_PRO) movie.posterUrl else movie.backdropUrl ?: movie.posterUrl,
             metadata = listOf(movie.year.orEmpty(), movie.duration.orEmpty(), movie.genre.orEmpty()),
             onBack = onBack,
             actions = {

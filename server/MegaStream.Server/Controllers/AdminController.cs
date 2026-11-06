@@ -182,14 +182,28 @@ public sealed class AdminController(AppDbContext db, IAdminService admin, IConfi
         return RedirectToAction(nameof(DeviceDetails), new { id = form.Id });
     }
     [HttpGet]
-    public async Task<IActionResult> Notifications(Guid? targetInstallationId, CancellationToken ct)
+    public async Task<IActionResult> Notifications(Guid? targetInstallationId, CancellationToken ct,
+        string? audience = null, string state = "active", Guid? targetLicenseId = null)
     {
-        if (!ModelState.IsValid) return BadRequest();
-        return View(await NotificationsModel(new AdminNotificationForm { TargetInstallationId = targetInstallationId }, ct));
+        if (!ModelState.IsValid || (audience is not null && audience is not ("ALL" or "DEVICE" or "CUSTOMER_LICENSE")) ||
+            state is not ("active" or "archived" or "all")) return BadRequest();
+        return View(await NotificationsModel(new AdminNotificationForm { TargetInstallationId = targetInstallationId,
+            TargetLicenseId = targetLicenseId, Audience = targetInstallationId.HasValue ? "DEVICE" : targetLicenseId.HasValue ? "CUSTOMER_LICENSE" : "ALL" }, ct, audience, state));
     }
-    private async Task<NotificationsViewModel> NotificationsModel(AdminNotificationForm form, CancellationToken ct) => new(form,
-        await db.Installations.AsNoTracking().Where(x => x.Status == InstallationStatus.Active).OrderBy(x => x.DeviceModel).ToListAsync(ct),
-        await db.AdminNotifications.AsNoTracking().OrderByDescending(x => x.CreatedAt).Take(100).ToListAsync(ct));
+    private async Task<NotificationsViewModel> NotificationsModel(AdminNotificationForm form, CancellationToken ct,
+        string? audience = null, string state = "active")
+    {
+        var notifications = db.AdminNotifications.AsNoTracking();
+        if (audience == "ALL") notifications = notifications.Where(x => x.TargetInstallationId == null && x.TargetLicenseId == null);
+        if (audience == "DEVICE") notifications = notifications.Where(x => x.TargetInstallationId != null);
+        if (audience == "CUSTOMER_LICENSE") notifications = notifications.Where(x => x.TargetLicenseId != null);
+        if (state == "active") notifications = notifications.Where(x => x.ArchivedAt == null);
+        if (state == "archived") notifications = notifications.Where(x => x.ArchivedAt != null);
+        return new(form,
+            await db.Installations.AsNoTracking().Where(x => x.Status == InstallationStatus.Active).OrderBy(x => x.DeviceModel).ToListAsync(ct),
+            await notifications.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).Take(100).ToListAsync(ct))
+        { Licenses = await db.Licenses.AsNoTracking().OrderBy(x => x.Label).ToListAsync(ct), Audience = audience, State = state };
+    }
     [HttpPost]
     public async Task<IActionResult> SendNotification(AdminNotificationForm form, CancellationToken ct)
     {
@@ -200,16 +214,51 @@ public sealed class AdminController(AppDbContext db, IAdminService admin, IConfi
         if (form.TargetInstallationId is { } target &&
             !await db.Installations.AnyAsync(x => x.Id == target && x.Status == InstallationStatus.Active, ct))
             ModelState.AddModelError(nameof(form.TargetInstallationId), "اختر جهازاً نشطاً");
+        if (form.TargetLicenseId is { } license && !await db.Licenses.AnyAsync(x => x.Id == license, ct))
+            ModelState.AddModelError(nameof(form.TargetLicenseId), "اختر ترخيص عميل موجوداً");
         if (!ModelState.IsValid)
         {
             Response.StatusCode = 400;
             return View("Notifications", await NotificationsModel(form, ct));
         }
-        db.AdminNotifications.Add(new AdminNotification { TargetInstallationId = form.TargetInstallationId,
+        db.AdminNotifications.Add(new AdminNotification { TargetInstallationId = form.TargetInstallationId, TargetLicenseId = form.TargetLicenseId,
             Title = title, Message = message,
             ExpiresAt = form.ExpiresAt.HasValue ? DateTime.SpecifyKind(form.ExpiresAt.Value, DateTimeKind.Utc) : DateTime.UtcNow.AddDays(30) });
         await db.SaveChangesAsync(ct);
         return RedirectToAction(nameof(Notifications));
+    }
+    [HttpPost]
+    public async Task<IActionResult> ArchiveNotification(Guid id, CancellationToken ct)
+    {
+        if (!ModelState.IsValid || id == Guid.Empty) return BadRequest();
+        var notification = await db.AdminNotifications.SingleOrDefaultAsync(x => x.Id == id, ct);
+        if (notification is null) return NotFound();
+        notification.ArchivedAt ??= DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return RedirectToAction(nameof(Notifications));
+    }
+    [HttpPost]
+    public async Task<IActionResult> RestoreNotification(Guid id, CancellationToken ct)
+    {
+        if (!ModelState.IsValid || id == Guid.Empty) return BadRequest();
+        var notification = await db.AdminNotifications.SingleOrDefaultAsync(x => x.Id == id, ct);
+        if (notification is null) return NotFound();
+        notification.ArchivedAt = null;
+        await db.SaveChangesAsync(ct);
+        return RedirectToAction(nameof(Notifications), new { state = "archived" });
+    }
+    [HttpPost]
+    public async Task<IActionResult> ArchiveNotificationsBefore(ArchiveNotificationsForm form, CancellationToken ct)
+    {
+        if (!ModelState.IsValid || !form.Confirm || !DateTime.TryParseExact(form.CutoffUtc,
+            "yyyy-MM-dd'T'HH:mm:ss'Z'", System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out var cutoff) ||
+            cutoff > DateTime.UtcNow) return BadRequest();
+        var now = DateTime.UtcNow;
+        var count = await db.AdminNotifications.Where(x => x.ArchivedAt == null && x.CreatedAt < cutoff)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.ArchivedAt, now), ct);
+        TempData["NotificationResult"] = $"تمت أرشفة {count} إشعاراً";
+        return RedirectToAction(nameof(Notifications), new { state = "archived" });
     }
     [HttpPost]
     public async Task<IActionResult> AssignDeviceLicense(AssignDeviceLicenseForm form, CancellationToken ct)

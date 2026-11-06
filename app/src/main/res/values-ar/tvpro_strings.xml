@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_app_ui_style_tvpro">TV Pro</string>
+    <string name="settings_app_ui_style_tvpro_desc">مجموعات وقوائم مدمجة ومشغّل سينمائي</string>
+</resources>

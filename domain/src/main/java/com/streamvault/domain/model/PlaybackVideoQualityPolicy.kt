@@ -1,6 +1,7 @@
 package com.MegaStream.domain.model
 
 const val DEFAULT_PLAYBACK_MAX_VIDEO_HEIGHT = 1080
+val PLAYBACK_VIDEO_HEIGHTS = listOf(360, 480, 720, 1080, 1440, 2160)
 
 fun isSupportedAdminVideoHeight(height: Int): Boolean = height in setOf(480, 720, 1080, 2160)
 
@@ -12,7 +13,7 @@ data class PlaybackVideoQualityPolicy(val adminMaxVideoHeight: Int? = null) {
     }
 
     fun maxVideoHeight(localMaxHeight: Int?, constrainedPlayback: Boolean): Int? {
-        val height = adminMaxVideoHeight ?: localMaxHeight
+        val height = listOfNotNull(adminMaxVideoHeight, localMaxHeight).minOrNull()
         return if (constrainedPlayback) minOf(720, height ?: 720) else height
     }
 

@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -53,10 +54,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -95,7 +98,8 @@ import com.MegaStream.app.ui.interaction.TvIconButton
 
 private data class PlayerActionSpec(
     val label: String,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
+    @androidx.annotation.DrawableRes val iconRes: Int? = null
 )
 
 @Composable
@@ -157,6 +161,7 @@ fun PlayerControlsOverlay(
     onSeekPreviewPositionChanged: (Long?) -> Unit = {},
     clockLabelOverride: String? = null,
     onUserInteraction: () -> Unit = {},
+    topBarActions: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
@@ -187,6 +192,7 @@ fun PlayerControlsOverlay(
                 contentType = contentType,
                 clockLabelOverride = clockLabelOverride,
                 onClose = onClose,
+                topBarActions = topBarActions,
                 modifier = Modifier.align(Alignment.TopCenter)
             )
 
@@ -412,8 +418,37 @@ private fun PlayerTopBar(
     contentType: String,
     clockLabelOverride: String?,
     onClose: () -> Unit,
+    topBarActions: (@Composable () -> Unit)?,
     modifier: Modifier = Modifier
 ) {
+    if (LocalAppUiStyle.current == AppUiStyle.TV_PRO) {
+        Row(
+            modifier = modifier.fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent)))
+                .padding(horizontal = 24.dp, vertical = 8.dp)
+                .testTag("tvpro-player-topbar"),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TvIconButton(onClick = onClose) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.return_to_home))
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(horizontal = 16.dp)
+            )
+            if (topBarActions != null) {
+                topBarActions()
+            } else {
+                com.MegaStream.app.ui.components.shell.AppTopBarLanguageAction()
+                com.MegaStream.app.ui.notifications.DeviceNotificationsAction()
+            }
+        }
+        return
+    }
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
@@ -596,8 +631,9 @@ private fun PlayerBottomBar(
     modifier: Modifier = Modifier
 ) {
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
     val isVod = contentType != "LIVE" || isCatchUpPlayback
-    val bottomBarWidthFraction = if (isVod && !studio) 0.78f else 1f
+    val bottomBarWidthFraction = if (isVod && !studio && !tvPro) 0.78f else 1f
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -607,8 +643,8 @@ private fun PlayerBottomBar(
                 )
             )
             .padding(
-                horizontal = if (studio) 0.dp else if (isVod) 14.dp else 32.dp,
-                vertical = if (studio) 0.dp else if (isVod) 10.dp else 24.dp
+                horizontal = if (tvPro) 24.dp else if (studio) 0.dp else if (isVod) 14.dp else 32.dp,
+                vertical = if (tvPro) 12.dp else if (studio) 0.dp else if (isVod) 10.dp else 24.dp
             )
     ) {
         Surface(
@@ -620,9 +656,9 @@ private fun PlayerBottomBar(
             } else {
                 Modifier.fillMaxWidth()
             },
-            shape = RoundedCornerShape(if (studio) 0.dp else if (isVod) 20.dp else 28.dp),
-            colors = SurfaceDefaults.colors(containerColor = if (studio) MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
-                else Color(0xFF0C1624).copy(alpha = 0.92f))
+            shape = RoundedCornerShape(if (tvPro || studio) 0.dp else if (isVod) 20.dp else 28.dp),
+            colors = SurfaceDefaults.colors(containerColor = if (tvPro) Color.Transparent else if (studio) MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
+                else Color(0xFF160A0E).copy(alpha = 0.92f))
         ) {
             Column(
                 modifier = Modifier
@@ -630,7 +666,7 @@ private fun PlayerBottomBar(
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
-                                Primary.copy(alpha = 0.10f),
+                                if (tvPro) Color.Transparent else Primary.copy(alpha = 0.10f),
                                 Color.Transparent
                             )
                         )
@@ -831,18 +867,53 @@ private fun PlayerLiveInfo(
     val secondaryActions = buildList {
         add(PlayerActionSpec(stringResource(R.string.player_aspect_ratio_label, aspectRatioLabel), onToggleAspectRatio))
         if (subtitleTrackCount > 0) {
-            add(PlayerActionSpec(stringResource(R.string.player_subs), onOpenSubtitleTracks))
+            add(PlayerActionSpec(stringResource(R.string.player_subs), onOpenSubtitleTracks, android.R.drawable.ic_menu_sort_alphabetically))
         }
         if (audioTrackCount > 0) {
-            add(PlayerActionSpec(stringResource(R.string.player_audio), onOpenAudioTracks))
+            add(PlayerActionSpec(stringResource(R.string.player_audio), onOpenAudioTracks, android.R.drawable.ic_lock_silent_mode_off))
         }
         if (videoQualityCount > 0) {
-            add(PlayerActionSpec(stringResource(R.string.player_video_quality), onOpenVideoTracks))
+            add(PlayerActionSpec(stringResource(R.string.player_video_quality), onOpenVideoTracks, android.R.drawable.ic_menu_manage))
         }
         if (audioVideoSyncEnabled && !isCastConnected) {
             add(PlayerActionSpec(stringResource(R.string.player_av_sync_short), onOpenAudioVideoSync))
         }
         add(PlayerActionSpec(stringResource(R.string.multiview_nav), onOpenSplitScreen))
+    }
+
+    if (LocalAppUiStyle.current == AppUiStyle.TV_PRO) {
+        Text(
+            text = currentProgram?.title ?: mediaTitle ?: currentChannelName.orEmpty(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        TvProTransport(
+            isPlaying = isPlaying,
+            currentPosition = timeshiftUiState.bufferDepthMs - timeshiftUiState.bufferedBehindLiveMs,
+            duration = if (showTimeshiftControls) timeshiftUiState.bufferDepthMs else 0L,
+            isLive = true,
+            playButtonFocusRequester = playButtonFocusRequester,
+            quickActionsFocusRequester = quickActionsFocusRequester,
+            onTogglePlayPause = onTogglePlayPause,
+            onSeekBackward = onSeekBackward,
+            onSeekForward = onSeekForward,
+            onSeekToPosition = { position ->
+                if (position >= timeshiftUiState.bufferDepthMs - 1_000L) onSeekToLiveEdge()
+                else onSeekToPosition(position)
+            },
+            onSetScrubbingMode = onSetScrubbingMode
+        )
+        PlayerQuickActionRows(
+            primaryActions = secondaryActions,
+            secondaryActions = primaryActions,
+            firstActionFocusRequester = quickActionsFocusRequester,
+            primaryActionsUpFocusRequester = playButtonFocusRequester,
+            singleRow = true,
+            compactButtons = true
+        )
+        return
     }
 
     Row(verticalAlignment = Alignment.Top) {
@@ -1058,16 +1129,16 @@ private fun PlayerVodInfo(
             onToggleMute
         ))
         if (subtitleTrackCount > 0) {
-            add(PlayerActionSpec(stringResource(R.string.player_subs), onOpenSubtitleTracks))
+            add(PlayerActionSpec(stringResource(R.string.player_subs), onOpenSubtitleTracks, android.R.drawable.ic_menu_sort_alphabetically))
         }
         if (videoQualityCount > 0) {
-            add(PlayerActionSpec(stringResource(R.string.player_video_quality), onOpenVideoTracks))
+            add(PlayerActionSpec(stringResource(R.string.player_video_quality), onOpenVideoTracks, android.R.drawable.ic_menu_manage))
         }
         if (showEpisodesAction) {
-            add(PlayerActionSpec(stringResource(R.string.player_episodes), onOpenEpisodes))
+            add(PlayerActionSpec(stringResource(R.string.player_episodes), onOpenEpisodes, android.R.drawable.ic_menu_agenda))
         }
         if (audioTrackCount > 0) {
-            add(PlayerActionSpec(stringResource(R.string.player_audio), onOpenAudioTracks))
+            add(PlayerActionSpec(stringResource(R.string.player_audio), onOpenAudioTracks, android.R.drawable.ic_lock_silent_mode_off))
         }
         add(
             PlayerActionSpec(
@@ -1106,6 +1177,31 @@ private fun PlayerVodInfo(
         ))
         add(PlayerActionSpec(stringResource(R.string.player_picture_in_picture), onEnterPictureInPicture))
         add(PlayerActionSpec(stringResource(R.string.player_aspect_ratio_label, aspectRatioLabel), onToggleAspectRatio))
+    }
+    if (LocalAppUiStyle.current == AppUiStyle.TV_PRO) {
+        TvProTransport(
+            isPlaying = isPlaying,
+            currentPosition = currentPosition,
+            duration = duration,
+            playButtonFocusRequester = playButtonFocusRequester,
+            quickActionsFocusRequester = quickActionsFocusRequester,
+            onTogglePlayPause = onTogglePlayPause,
+            onSeekBackward = onSeekBackward,
+            onSeekForward = onSeekForward,
+            onSeekToPosition = onSeekToPosition,
+            onSetScrubbingMode = onSetScrubbingMode,
+            seekPreview = seekPreview,
+            onSeekPreviewPositionChanged = onSeekPreviewPositionChanged
+        )
+        PlayerQuickActionRows(
+            primaryActions = actions,
+            secondaryActions = emptyList(),
+            firstActionFocusRequester = quickActionsFocusRequester,
+            primaryActionsUpFocusRequester = playButtonFocusRequester,
+            singleRow = true,
+            compactButtons = true
+        )
+        return
     }
     var sliderValue by remember(duration, currentPosition) {
         mutableStateOf(if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0f)
@@ -1335,6 +1431,116 @@ private fun PlayerVodInfo(
 }
 
 @Composable
+private fun TvProTransport(
+    isPlaying: Boolean,
+    currentPosition: Long,
+    duration: Long,
+    playButtonFocusRequester: FocusRequester,
+    quickActionsFocusRequester: FocusRequester,
+    onTogglePlayPause: () -> Unit,
+    onSeekBackward: () -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekToPosition: (Long) -> Unit,
+    onSetScrubbingMode: (Boolean) -> Unit,
+    isLive: Boolean = false,
+    seekPreview: SeekPreviewState = SeekPreviewState(),
+    onSeekPreviewPositionChanged: (Long?) -> Unit = {}
+) {
+    var scrubbingPosition by remember { mutableStateOf<Long?>(null) }
+    val position = (scrubbingPosition ?: currentPosition).coerceIn(0L, duration.coerceAtLeast(0L))
+    val seekFocusRequester = remember { FocusRequester() }
+    val playbackLabel = stringResource(R.string.player_playback_label)
+    Column(Modifier.fillMaxWidth().testTag("tvpro-player-transport")) {
+        AnimatedVisibility(visible = seekPreview.visible) {
+            PlayerSeekPreviewCard(preview = seekPreview, previewHeight = 96.dp, modifier = Modifier.width(168.dp))
+        }
+        if (duration > 0L) {
+            Slider(
+                value = position.toFloat() / duration.toFloat(),
+                onValueChange = { value ->
+                    if (scrubbingPosition == null) onSetScrubbingMode(true)
+                    scrubbingPosition = (value.coerceIn(0f, 1f) * duration).toLong()
+                    onSeekPreviewPositionChanged(scrubbingPosition)
+                },
+                onValueChangeFinished = {
+                    scrubbingPosition?.let(onSeekToPosition)
+                    scrubbingPosition = null
+                    onSetScrubbingMode(false)
+                    onSeekPreviewPositionChanged(null)
+                },
+                modifier = Modifier.fillMaxWidth().focusRequester(seekFocusRequester)
+                    .focusProperties { down = playButtonFocusRequester }
+                    .semantics { contentDescription = playbackLabel }
+                    .testTag("tvpro-player-seek"),
+                colors = SliderDefaults.colors(
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = Color.White.copy(alpha = 0.4f),
+                    thumbColor = MaterialTheme.colorScheme.primary
+                )
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(formatDuration(position), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                Text(
+                    if (isLive) stringResource(R.string.player_live_offset, formatDuration(duration - position)) else formatDuration(duration),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White
+                )
+            }
+        } else if (isLive) {
+            Text(stringResource(R.string.player_live_now), style = MaterialTheme.typography.labelSmall, color = Color.White)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val transportFocus = Modifier.focusProperties {
+                down = quickActionsFocusRequester
+                if (duration > 0L) up = seekFocusRequester
+            }
+            if (duration > 0L) {
+                PlayerTransportButton(
+                    label = "",
+                    contentDescription = stringResource(R.string.player_rewind),
+                    onClick = onSeekBackward,
+                    buttonSize = 44.dp,
+                    modifier = transportFocus,
+                    iconRes = android.R.drawable.ic_media_rew
+                )
+            }
+            TvIconButton(
+                onClick = onTogglePlayPause,
+                colors = androidx.tv.material3.IconButtonDefaults.colors(
+                    containerColor = Color.Black.copy(alpha = 0.5f),
+                    contentColor = Color.White,
+                    focusedContainerColor = MaterialTheme.colorScheme.primary,
+                    focusedContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.size(48.dp).focusRequester(playButtonFocusRequester)
+                    .then(transportFocus).testTag("tvpro-player-play")
+                    .semantics { contentDescription = playbackLabel }
+            ) {
+                Icon(
+                    painter = painterResource(if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play),
+                    contentDescription = stringResource(if (isPlaying) R.string.player_pause else R.string.player_play),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            if (duration > 0L) {
+                PlayerTransportButton(
+                    label = "",
+                    contentDescription = stringResource(R.string.player_forward),
+                    onClick = onSeekForward,
+                    buttonSize = 44.dp,
+                    modifier = transportFocus,
+                    iconRes = android.R.drawable.ic_media_ff
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun PlayerSeekPreviewCard(
     preview: SeekPreviewState,
     previewHeight: androidx.compose.ui.unit.Dp = 118.dp,
@@ -1441,8 +1647,32 @@ private fun PlayerQuickSettingsButton(
     text: String,
     onClick: () -> Unit,
     compact: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    @androidx.annotation.DrawableRes iconRes: Int? = null
 ) {
+    if (LocalAppUiStyle.current == AppUiStyle.TV_PRO && iconRes != null) {
+        TvClickableSurface(
+            onClick = onClick,
+            shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(4.dp)),
+            colors = ClickableSurfaceDefaults.colors(
+                containerColor = Color.Transparent,
+                contentColor = Color.White,
+                focusedContainerColor = MaterialTheme.colorScheme.primary,
+                focusedContentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            modifier = modifier.height(44.dp).widthIn(min = 96.dp, max = 200.dp)
+        ) {
+            Row(
+                modifier = Modifier.height(44.dp).padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(22.dp))
+                Text(text, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        return
+    }
     TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
@@ -1472,7 +1702,8 @@ private fun PlayerTransportButton(
     contentDescription: String,
     onClick: () -> Unit,
     buttonSize: androidx.compose.ui.unit.Dp = 56.dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    @androidx.annotation.DrawableRes iconRes: Int? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
     val latestOnClick by rememberUpdatedState(onClick)
@@ -1531,7 +1762,9 @@ private fun PlayerTransportButton(
             .semantics { this.contentDescription = contentDescription }
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            Text(
+            if (iconRes != null) {
+                Icon(painterResource(iconRes), contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+            } else Text(
                 text = label,
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.White
@@ -1590,6 +1823,7 @@ private fun PlayerQuickActionRows(
                     text = action.label,
                     onClick = action.onClick,
                     compact = compactButtons,
+                    iconRes = action.iconRes,
                     modifier = Modifier
                         .then(
                             if (actionIndex == 0) {
@@ -1623,6 +1857,7 @@ private fun PlayerQuickActionRows(
                         text = action.label,
                         onClick = action.onClick,
                         compact = compactButtons,
+                        iconRes = action.iconRes,
                         modifier = Modifier
                             .then(
                                 if (index == 0 && actionIndex == 0) {

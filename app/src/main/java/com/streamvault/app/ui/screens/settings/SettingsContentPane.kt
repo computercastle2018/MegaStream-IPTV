@@ -211,22 +211,22 @@ internal fun SettingsContentPane(
             )
         } else if (dialogState.selectedCategory == 7) {
             item {
-                if (studio) {
+                if (studio || effectiveStyle == AppUiStyle.TV_PRO) {
                     StudioSettingsTemplates(
                         selectedStyle = effectiveStyle,
                         managed = managed,
-                        onStyleSelected = { if (!managed) viewModel.setAppUiStyle(it) },
+                        onStyleSelected = { viewModel.setAppUiStyle(it) },
                     )
                 } else {
                     val displayedStyle = if (managed) effectiveStyle else uiState.appUiStyle
                     val palette = when (displayedStyle) {
-                        AppUiStyle.CLASSIC -> listOf(Color(0xFF07111B), Color(0xFF69A8FF), Color(0xFF4FD39A))
-                        AppUiStyle.MODERN -> listOf(Color(0xFF111822), Color(0xFF64D2FF), Color(0xFFFFCF6E))
-                        AppUiStyle.STUDIO -> listOf(Color(0xFF191F1E), Color(0xFF69DCB1), Color(0xFFECCB7B))
+                        AppUiStyle.CLASSIC -> listOf(Color(0xFF100608), Color(0xFFE01B32), Color(0xFF4FD39A))
+                        AppUiStyle.MODERN -> listOf(Color(0xFF1D1115), Color(0xFFE01B32), Color(0xFFFFCF6E))
+                        AppUiStyle.STUDIO -> listOf(Color(0xFF1D1115), Color(0xFFFF4053), Color(0xFFECCB7B))
+                        AppUiStyle.TV_PRO -> listOf(Color(0xFF101318), Color(0xFF56CFD7), Color(0xFFFF5268))
                     }
                     TvClickableSurface(
-                        onClick = { if (!managed) dialogState.showAppUiStyleDialog = true },
-                        enabled = !managed,
+                        onClick = { dialogState.showAppUiStyleDialog = true },
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -250,7 +250,7 @@ internal fun SettingsContentPane(
                             Text(stringResource(displayedStyle.labelResId),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface)
-                            Text(stringResource(if (managed) R.string.settings_template_managed else displayedStyle.descriptionResId),
+                            Text(stringResource(R.string.settings_template_sync),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }

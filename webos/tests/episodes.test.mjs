@@ -64,7 +64,7 @@ test("Xtream mapping preserves playback URLs and exposes added/release dates for
   const previousFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({
     episodes: { "1": [
-      { id: 1, episode_num: 3, title: "Older", added: "1704067200", container_extension: "mp4" },
+      { id: 1, episode_num: 3, title: "Older", added: "1704067200", container_extension: "mp4", info: { movie_image: "/episode.jpg" } },
       { id: 2, episode_num: 1, title: "Newer", added: "bad", info: { releasedate: "2025-01-01" } },
       { id: 3, episode_num: 4, title: "Undated", info: { releasedate: "2023-02-29" } },
     ] },
@@ -78,6 +78,7 @@ test("Xtream mapping preserves playback URLs and exposes added/release dates for
     assert.equal(list.find(e => e.id === "1").streamUrl,
       "https://example.invalid/series/test%20user/test/1.mp4");
     assert.equal(list.find(e => e.id === "3").newestAt, undefined);
+    assert.equal(list.find(e => e.id === "1").imageUrl, "https://example.invalid/episode.jpg");
   } finally {
     globalThis.fetch = previousFetch;
   }

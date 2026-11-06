@@ -34,27 +34,26 @@ public sealed class ProvidersAdminController(IRemoteProviderService service, App
             .ThenBy(x => x.Id).Take(500).ToListAsync(ct);
         var subscriptions = new List<ReportedSubscription>();
         var invalidReports = false;
-        foreach (var device in devices.Where(x => x.LastSeenAt >= cutoff && x.LocalSubscriptionsReportedAt >= cutoff && x.LocalSubscriptionsJson != null))
+        foreach (var device in devices.Where(x => x.LastSeenAt >= cutoff && x.LocalSubscriptionsReportedAt >= cutoff && x.LocalSubscriptionsJson != null &&
+            x.License is { Status: LicenseStatus.Active } license && license.ValidFrom <= now && license.ValidUntil > now))
         {
-            try { subscriptions.AddRange(ActiveSubscriptions(device, now)); }
+            try { subscriptions.AddRange(ReportedSubscriptions(device)); }
             catch (JsonException) { invalidReports = true; }
         }
         return View(Views + "Index.cshtml", new ProviderIndex(await service.ListProfilesAsync(ct),
             devices.Select(x => new ProviderDevice(x.Id, Sanitizer.CleanDiagnostic(x.DeviceModel, 128))).ToList(), subscriptions, window, invalidReports));
     }
 
-    private static IReadOnlyList<ReportedSubscription> ActiveSubscriptions(Installation device, DateTime now)
+    private static IReadOnlyList<ReportedSubscription> ReportedSubscriptions(Installation device)
     {
         var snapshot = LocalSubscriptionCredentialsStore.Summaries(device.LocalSubscriptionsJson!);
         var credentialIds = LocalSubscriptionCredentialsStore.CredentialIds(device.LocalSubscriptionsJson!);
         if (snapshot.Count > 100 || snapshot.Any(x => x is null || !Validator.TryValidateObject(x, new ValidationContext(x), null, true)))
             throw new JsonException();
-        return snapshot.Where(x => x!.Enabled && x.Status == "active" &&
-                (!x.ExpiresAt.HasValue || x.ExpiresAt > new DateTimeOffset(now).ToUnixTimeMilliseconds()))
-            .Select(x => new ReportedSubscription(device.Id, Sanitizer.CleanDiagnostic(device.DeviceModel, 128),
+        return snapshot.Select(x => new ReportedSubscription(device.Id, Sanitizer.CleanDiagnostic(device.DeviceModel, 128),
                 device.LicenseId, Sanitizer.CleanDiagnostic(device.License?.Label, 128), device.LocalSubscriptionsReportedAt!.Value,
                 Sanitizer.CleanDiagnostic(x!.Name, 128), x.Type, x.StartedAt, x.ExpiresAt, x.MaxConnections,
-                x.LocalId, credentialIds.Contains(x.LocalId))).ToList();
+                x.LocalId, credentialIds.Contains(x.LocalId), x.DisplayState)).ToList();
     }
 
     [HttpGet("installations")]
@@ -74,6 +73,15 @@ public sealed class ProvidersAdminController(IRemoteProviderService service, App
     {
         var profile = await service.GetProfileAsync(profileId, ct);
         return View(Views + "Editor.cshtml", new ProviderEditor(profile.Id, profile.Type, profile, false));
+    }
+
+    [HttpPost("{profileId:guid}/redemption-codes")]
+    public async Task<IActionResult> CreateRedemptionCode([FromRoute] Guid profileId, CancellationToken ct)
+    {
+        ModelState.Clear();
+        var code = await service.CreateRedemptionCodeAsync(profileId, ct);
+        var profile = await service.GetProfileAsync(profileId, ct);
+        return View(Views + "Editor.cshtml", new ProviderEditor(profile.Id, profile.Type, profile, false) { GeneratedCode = code });
     }
 
     // No posted fields are MVC action parameters: configuration must never enter ModelState.
@@ -153,9 +161,63 @@ public sealed class ProvidersAdminController(IRemoteProviderService service, App
 
     [HttpGet("installations/{installationId:guid}")]
     public async Task<IActionResult> Assignments([FromRoute] Guid installationId, CancellationToken ct) =>
-        View(Views + "Assignments.cshtml", new ProviderAssignments(installationId,
+        View(Views + "Assignments.cshtml", await AssignmentPage(installationId, ct));
+
+    [HttpPost("installations/{installationId:guid}/import-local-subscriptions")]
+    public async Task<IActionResult> ImportLocalSubscriptions([FromRoute] Guid installationId, CancellationToken ct)
+    {
+        ModelState.Clear();
+        ImportLocalSubscriptionsResult? result = null;
+        string? message = null;
+        try
+        {
+            result = await service.ImportLocalSubscriptionsAsync(installationId,
+                DateTime.UtcNow.AddMinutes(-AdminController.OnlineWindowMinutes(configuration)), ct);
+        }
+        catch (DomainException error) when (error.Code is "subscription_report_missing" or "subscription_report_stale" or
+            "subscription_report_invalid" or "installation_disabled" or "invalid_device" or "subscription_device_offline" or
+            "license_required" or "license_unavailable")
+        {
+            Response.StatusCode = error.StatusCode;
+            message = error.Code switch
+            {
+                "subscription_report_missing" => "لم يصل تقرير اشتراكات محلية من هذا الجهاز بعد. افتح التطبيق وانتظر إرسال التقرير.",
+                "subscription_report_stale" => "آخر تقرير قديم ولم يُستورد. افتح التطبيق وانتظر وصول تقرير أحدث ثم أعد المحاولة.",
+                "subscription_report_invalid" => "تعذر قراءة آخر تقرير للاشتراكات. انتظر تقريرًا جديدًا من الجهاز.",
+                "subscription_device_offline" => "الجهاز غير متصل. يلزم جهاز متصل بترخيص نشط وتقرير اشتراكات حديث للحفظ.",
+                "license_required" or "license_unavailable" => "يلزم جهاز متصل بترخيص نشط وتقرير اشتراكات حديث للحفظ؛ الترخيص غير متاح حاليًا.",
+                _ => "الجهاز غير متاح أو ملغى؛ لم تُحفظ اشتراكات."
+            };
+        }
+        return View(Views + "Assignments.cshtml", (await AssignmentPage(installationId, ct)) with { ImportResult = result, ImportError = message });
+    }
+
+    private async Task<ProviderAssignments> AssignmentPage(Guid installationId, CancellationToken ct)
+    {
+        var device = await db.Installations.AsNoTracking().Include(x => x.License).SingleOrDefaultAsync(x => x.Id == installationId, ct);
+        var now = DateTime.UtcNow;
+        var window = AdminController.OnlineWindowMinutes(configuration);
+        var cutoff = now.AddMinutes(-window);
+        var reason = device is null || device.Status != InstallationStatus.Active ? "الجهاز غير متاح أو ملغى."
+            : device.LastSeenAt < cutoff ? "الجهاز غير متصل؛ يلزم جهاز متصل بترخيص نشط وتقرير اشتراكات حديث للحفظ."
+            : device.License is not { Status: LicenseStatus.Active } license || license.ValidFrom > now || license.ValidUntil <= now
+                ? "يلزم ترخيص نشط على الجهاز المتصل لحفظ اشتراكاته."
+            : device.LocalSubscriptionsJson is null || device.LocalSubscriptionsReportedAt is null ? "لم يصل تقرير اشتراكات من الجهاز بعد."
+            : device.LocalSubscriptionsReportedAt < cutoff ? "آخر تقرير قديم؛ انتظر تقريرًا حديثًا من الجهاز المتصل والمرخّص." : null;
+        IReadOnlyList<ReportedSubscription> localSubscriptions = Array.Empty<ReportedSubscription>();
+        if (reason is null)
+        {
+            try { localSubscriptions = ReportedSubscriptions(device!); }
+            catch (JsonException) { reason = "تعذر قراءة آخر تقرير للاشتراكات. انتظر تقريرًا جديدًا من الجهاز."; }
+        }
+        return new(installationId,
             await service.ListProfilesAsync(ct), await service.ListAssignmentsAsync(installationId, ct),
-            await service.ListReportsAsync(installationId, ct)));
+            await service.ListReportsAsync(installationId, ct))
+        {
+            LocalSubscriptionsReportedAt = device?.LocalSubscriptionsReportedAt,
+            ReportFreshnessMinutes = window, ImportDisabledReason = reason, LocalSubscriptions = localSubscriptions
+        };
+    }
 
     [HttpPost("installations/{installationId:guid}/assign")]
     public async Task<IActionResult> Assign([FromRoute] Guid installationId, CancellationToken ct)
@@ -209,13 +271,22 @@ public sealed class ProvidersAdminController(IRemoteProviderService service, App
 
 public sealed record ProviderEditor(Guid? ProfileId, string Type, RemoteProviderProfileMetadata? Metadata, bool HasError)
 {
+    public GeneratedProviderCode? GeneratedCode { get; init; }
     public IReadOnlyList<ProviderDevice> Devices { get; init; } = Array.Empty<ProviderDevice>();
 }
 public sealed record ProviderDevice(Guid Id, string DeviceModel);
 public sealed record ProviderIndex(IReadOnlyList<RemoteProviderProfileMetadata> Profiles, IReadOnlyList<ProviderDevice> Devices,
     IReadOnlyList<ReportedSubscription> Subscriptions, int OnlineWindowMinutes, bool HasInvalidReports);
 public sealed record ReportedSubscription(Guid InstallationId, string DeviceModel, Guid? LicenseId, string LicenseLabel,
-    DateTime ReportedAt, string Name, string Type, long? StartedAt, long? ExpiresAt, int MaxConnections, long LocalId, bool HasCredentials);
+    DateTime ReportedAt, string Name, string Type, long? StartedAt, long? ExpiresAt, int MaxConnections, long LocalId, bool HasCredentials, string State);
 public sealed record ProviderAccess(string BaseUrl, bool CanExport);
 public sealed record ProviderAssignments(Guid InstallationId, IReadOnlyList<RemoteProviderProfileMetadata> Profiles,
-    IReadOnlyList<RemoteProviderAssignment> Assignments, IReadOnlyList<ProviderAssignmentReport> Reports);
+    IReadOnlyList<RemoteProviderAssignment> Assignments, IReadOnlyList<ProviderAssignmentReport> Reports)
+{
+    public DateTime? LocalSubscriptionsReportedAt { get; init; }
+    public int ReportFreshnessMinutes { get; init; }
+    public ImportLocalSubscriptionsResult? ImportResult { get; init; }
+    public string? ImportError { get; init; }
+    public string? ImportDisabledReason { get; init; }
+    public IReadOnlyList<ReportedSubscription> LocalSubscriptions { get; init; } = Array.Empty<ReportedSubscription>();
+}

@@ -138,6 +138,7 @@ fun PlayerScreen(
     onNavigate: ((String) -> Unit)? = null,
     viewModel: PlayerViewModel = hiltViewModel()
 ) {
+    val tvPro = com.MegaStream.app.ui.theme.LocalAppUiStyle.current == com.MegaStream.app.ui.model.AppUiStyle.TV_PRO
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
     val sideOverlayWidth = if (screenWidth < 700.dp) {
@@ -212,6 +213,9 @@ fun PlayerScreen(
     val availableAudioTracks by viewModel.availableAudioTracks.collectAsStateWithLifecycle()
     val availableSubtitleTracks by viewModel.availableSubtitleTracks.collectAsStateWithLifecycle()
     val availableVideoQualities by viewModel.availableVideoQualities.collectAsStateWithLifecycle()
+    val wifiVideoQualityCap by viewModel.wifiVideoQualityCap.collectAsStateWithLifecycle()
+    val adaptiveVideoQuality by viewModel.adaptiveVideoQuality.collectAsStateWithLifecycle()
+    val ethernetVideoQualityCap by viewModel.ethernetVideoQualityCap.collectAsStateWithLifecycle()
     val aspectRatio by viewModel.aspectRatio.collectAsStateWithLifecycle()
     val showDiagnostics by viewModel.showDiagnostics.collectAsStateWithLifecycle()
     val playerDiagnostics by viewModel.playerDiagnostics.collectAsStateWithLifecycle()
@@ -510,10 +514,10 @@ fun PlayerScreen(
         )
     }
 
-    LaunchedEffect(showControls) {
+    LaunchedEffect(showControls, tvPro) {
         if (showControls) {
             delay(100)
-            if (contentType == "LIVE") {
+            if (contentType == "LIVE" && !tvPro) {
                 quickActionsFocusRequester.requestFocusSafely(tag = "PlayerScreen", target = "Player quick actions")
             } else {
                 playButtonFocusRequester.requestFocusSafely(tag = "PlayerScreen", target = "Player transport")
@@ -607,13 +611,13 @@ fun PlayerScreen(
                 canFocus = !anyOverlayVisible && !showControls
             }
             .focusable()
-            .pointerInput(contentType, anyOverlayVisible, showControls) {
+            .pointerInput(contentType, anyOverlayVisible, showControls, tvPro) {
                 detectTapGestures {
                     viewModel.notifyUserActivity()
                     when {
                         anyOverlayVisible -> return@detectTapGestures
                         showControls -> viewModel.toggleControls()
-                        contentType == "LIVE" && !isCatchUpPlayback -> viewModel.openChannelInfoOverlay()
+                        contentType == "LIVE" && !isCatchUpPlayback && !tvPro -> viewModel.openChannelInfoOverlay()
                         else -> viewModel.toggleControls()
                     }
                 }
@@ -635,6 +639,10 @@ fun PlayerScreen(
                     return@onPreviewKeyEvent false
                 }
                 viewModel.notifyUserActivity()
+                if (tvPro && showControls && event.nativeKeyEvent.keyCode in listOf(
+                        KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
+                        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT
+                    )) return@onPreviewKeyEvent false
                 if (nextEpisodeCountdownVisible) {
                     return@onPreviewKeyEvent false
                 }
@@ -761,7 +769,7 @@ fun PlayerScreen(
                             if (contentType == "LIVE" && !isCatchUpPlayback && viewModel.hasPendingNumericChannelInput()) {
                                 viewModel.commitNumericChannelInput()
                                    true
-                            } else if (contentType == "LIVE" && !isCatchUpPlayback) {
+                            } else if (contentType == "LIVE" && !isCatchUpPlayback && !tvPro) {
                                     if (showChannelInfoOverlay) viewModel.closeChannelInfoOverlay()
                                     else viewModel.openChannelInfoOverlay()
                                    true
@@ -776,7 +784,7 @@ fun PlayerScreen(
                             if (showChannelListOverlay || showCategoryListOverlay || showEpgOverlay || showChannelInfoOverlay || showDiagnostics) {
                                 viewModel.onLiveOverlayInteraction()
                             }
-                            if (showControls && (contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
+                            if (showControls && (tvPro || contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
                             if (showChannelListOverlay && contentType == "LIVE" && !isCatchUpPlayback) {
                                 // Second left press while channel list is open → open category list
                                 viewModel.openCategoryListOverlay()
@@ -795,7 +803,7 @@ fun PlayerScreen(
                             if (showChannelListOverlay || showEpgOverlay || showChannelInfoOverlay || showDiagnostics) {
                                 viewModel.onLiveOverlayInteraction()
                             }
-                            if (showControls && (contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
+                            if (showControls && (tvPro || contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
                             if (contentType == "LIVE" && !isCatchUpPlayback && !showChannelListOverlay && !showEpgOverlay && !showChannelInfoOverlay) {
                                 if (isRtl) viewModel.openChannelListOverlay() else viewModel.openEpgOverlay()
                                 true
@@ -812,7 +820,7 @@ fun PlayerScreen(
                             }
                             if (showChannelInfoOverlay && channelInfoSubPanelOpen) return@onKeyEvent false
                             if (showChannelListOverlay || showCategoryListOverlay || showEpgOverlay || showChannelInfoOverlay) return@onKeyEvent false
-                            if (showControls && (contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
+                            if (showControls && (tvPro || contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
 
                             if (contentType == "LIVE" && !isCatchUpPlayback) {
                                 viewModel.playNext()
@@ -829,7 +837,7 @@ fun PlayerScreen(
                             }
                             if (showChannelInfoOverlay && channelInfoSubPanelOpen) return@onKeyEvent false
                             if (showChannelListOverlay || showCategoryListOverlay || showEpgOverlay) return@onKeyEvent false
-                            if (showControls && (contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
+                            if (showControls && (tvPro || contentType != "LIVE" || isCatchUpPlayback)) return@onKeyEvent false
 
                             if (contentType == "LIVE" && !isCatchUpPlayback) {
                                 viewModel.playPrevious()
@@ -1094,7 +1102,7 @@ fun PlayerScreen(
             aspectRatioLabel = aspectRatio.modeName,
             subtitleTrackCount = availableSubtitleTracks.size,
             audioTrackCount = availableAudioTracks.size,
-            videoQualityCount = availableVideoQualities.size,
+            videoQualityCount = availableVideoQualities.size.coerceAtLeast(1),
             currentRecordingStatus = currentChannelRecording?.status,
             isMuted = isMuted,
             playbackSpeed = playbackSpeed,
@@ -1225,11 +1233,18 @@ fun PlayerScreen(
         
         // Track Selection Dialog
         if (!isInPictureInPictureMode) {
+            val connectivity = LocalContext.current.getSystemService(android.net.ConnectivityManager::class.java)
+            val usingEthernet = connectivity?.getNetworkCapabilities(connectivity.activeNetwork)
+                ?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) == true
             PlayerTrackSelectionDialog(
                 trackType = showTrackSelection,
                 audioTracks = availableAudioTracks,
                 subtitleTracks = availableSubtitleTracks,
                 videoTracks = availableVideoQualities,
+                videoMaxHeight = if (usingEthernet) ethernetVideoQualityCap else wifiVideoQualityCap,
+                onSelectVideoMaxHeight = { viewModel.setVideoQualityCap(it, usingEthernet) },
+                fixedVideoQuality = !adaptiveVideoQuality,
+                onFixedVideoQualityChange = viewModel::setFixedVideoQuality,
                 onDismiss = { showTrackSelection = null },
                 onSelectAudio = viewModel::selectAudioTrack,
                 onSelectVideo = viewModel::selectVideoQuality,
@@ -1445,7 +1460,7 @@ fun PlayerScreen(
                     onOpenSplitScreen = { showSplitDialog = true },
                     subtitleTrackCount = availableSubtitleTracks.size,
                     audioTrackCount = availableAudioTracks.size,
-                    videoQualityCount = availableVideoQualities.size,
+                    videoQualityCount = availableVideoQualities.size.coerceAtLeast(1),
                     channelVariantCount = currentChannel?.variants?.size ?: 0,
                     isMuted = isMuted,
                     onToggleMute = viewModel::toggleMute,

@@ -76,7 +76,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.material.icons.filled.PlayArrow
 import com.MegaStream.app.ui.design.requestFocusSafely
-import com.MegaStream.app.ui.screens.vod.StudioDetailLayout
+import com.MegaStream.app.ui.screens.vod.CatalogDetailLayout
 import com.MegaStream.app.ui.screens.vod.StudioCategoryButton
 import com.MegaStream.app.ui.components.shell.VodCategoryOption
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -170,18 +170,12 @@ private fun SeriesDetailContent(
         seasonFilter = season.seasonNumber
         onSeasonSelected(season)
     }
-    if (LocalAppUiStyle.current == AppUiStyle.STUDIO) {
+    if (LocalAppUiStyle.current == AppUiStyle.STUDIO || LocalAppUiStyle.current == AppUiStyle.TV_PRO) {
         val actionFocus = remember { FocusRequester() }
         LaunchedEffect(series.id, resumeEpisode?.id) {
             actionFocus.requestFocusSafely(tag = "StudioSeriesDetail", target = "Playback action")
         }
-        StudioDetailLayout(
-            title = series.name,
-            imageUrl = series.backdropUrl ?: series.posterUrl,
-            metadata = listOf(series.releaseDate.orEmpty(), series.genre.orEmpty(),
-                if (unwatchedEpisodeCount > 0) stringResource(R.string.series_unwatched_badge, unwatchedEpisodeCount) else ""),
-            onBack = onBack,
-            actions = {
+        val actions: @Composable () -> Unit = {
                 MediaActionRow {
                     if (resumeEpisode != null) TvButton(
                         onClick = { onResumeClick(resumeEpisode) },
@@ -204,19 +198,30 @@ private fun SeriesDetailContent(
                             tint = if (series.isFavorite) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface)
                     }
                 }
-            }
-        ) {
-            item(key = "studio_series_episodes") {
-                StudioEpisodePicker(series, browseQuery, onBrowseChange, onBrowseSeason, onEpisodeClick)
-            }
-            item(key = "studio_series_information") {
+        }
+        val information: @Composable () -> Unit = {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     ExternalRatingsStrip(ratings = externalRatings, isLoading = isLoadingExternalRatings)
                     Text(series.plot?.takeIf { it.isNotBlank() } ?: stringResource(R.string.series_plot_fallback),
                         style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     ContentMetadataStrip(values = listOf(series.releaseDate.orEmpty(), series.genre.orEmpty()))
                 }
+        }
+        if (LocalAppUiStyle.current == AppUiStyle.TV_PRO) {
+            TvProSeriesDetail(series, browseQuery, onBrowseChange, onBrowseSeason, onEpisodeClick,
+                onBack, actions, information)
+        } else CatalogDetailLayout(
+            title = series.name,
+            imageUrl = series.backdropUrl ?: series.posterUrl,
+            metadata = listOf(series.releaseDate.orEmpty(), series.genre.orEmpty(),
+                if (unwatchedEpisodeCount > 0) stringResource(R.string.series_unwatched_badge, unwatchedEpisodeCount) else ""),
+            onBack = onBack,
+            actions = actions
+        ) {
+            item(key = "studio_series_episodes") {
+                StudioEpisodePicker(series, browseQuery, onBrowseChange, onBrowseSeason, onEpisodeClick)
             }
+            item(key = "studio_series_information") { information() }
         }
         return
     }

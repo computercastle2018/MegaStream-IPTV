@@ -7,9 +7,10 @@ import {
 } from "./services/storage";
 import ProviderSetupScreen from "./screens/ProviderSetupScreen";
 import HomeScreen from "./screens/HomeScreen";
-import ContentScreen from "./screens/ContentScreen";
+import ContentScreen, { initialBrowseState, type BrowseState } from "./screens/ContentScreen";
 import EpisodesScreen from "./screens/EpisodesScreen";
 import PlayerScreen from "./screens/PlayerScreen";
+import { supportedTypes } from "./services/content";
 
 type Route = "setup" | "home" | "browse" | "episodes" | "player";
 
@@ -23,12 +24,48 @@ export default function App() {
   const [series, setSeries] = useState<ContentItem | null>(null);
   const [playable, setPlayable] = useState<Playable | null>(null);
   const [playerReturn, setPlayerReturn] = useState<Route>("browse");
+  const [browseViews, setBrowseViews] = useState<Record<string, BrowseState>>({});
 
   const activeProvider = providers.find((p) => p.id === activeId) ?? providers[0] ?? null;
+  useEffect(() => {
+    const sync = () => {
+      const next = loadProviders();
+      setProviders(next);
+      setActiveId(getActiveProviderId());
+      setRoute(current => current === "setup" && next.length > 0 ? "home" : current);
+    };
+    window.addEventListener("megastream-provider-sync", sync);
+    return () => window.removeEventListener("megastream-provider-sync", sync);
+  }, []);
 
   useEffect(() => {
     if ((route === "browse" || route === "home") && !activeProvider) setRoute("setup");
   }, [route, activeProvider]);
+
+  useEffect(() => {
+    if (!window.megastreamWebos || window.megastreamDesktop || !activeProvider) return;
+    const shortcut = (event: KeyboardEvent) => {
+      const editable = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+      const target = event.target instanceof Element ? event.target : null;
+      if (event.defaultPrevented || event.repeat || event.isComposing || target?.closest(editable) ||
+          document.activeElement?.closest(editable) || document.querySelector('dialog[open], [role="dialog"]')) return;
+      const code = event.keyCode;
+      if (![403, 404, 405, 406, 36].includes(code)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (code === 36) { setRoute("home"); return; }
+      const type = code === 403 ? "live" : code === 404 ? "movie" : code === 405 ? "series" : contentType;
+      if (!supportedTypes(activeProvider).includes(type)) return;
+      if (code === 406) {
+        const key = `${activeProvider.id}:${type}`;
+        setBrowseViews(previous => ({ ...previous, [key]: { ...(previous[key] ?? initialBrowseState), searchOpen: true, selectedId: null } }));
+      }
+      setContentType(type);
+      setRoute("browse");
+    };
+    window.addEventListener("keydown", shortcut, true);
+    return () => window.removeEventListener("keydown", shortcut, true);
+  }, [activeProvider, contentType]);
 
   const handleProvidersChanged = (next: Provider[]) => {
     setProviders(next);
@@ -39,6 +76,13 @@ export default function App() {
     persistActiveId(id);
     setActiveId(id);
   };
+  const manageProviders = () => {
+    if (!window.megastreamDesktop) { setRoute("setup"); return; }
+    window.megastreamDesktop.control.state().then(state => {
+      if (state.allowSubscriptionDetails) setRoute("setup");
+      else window.dispatchEvent(new Event("megastream-license-open"));
+    });
+  };
 
   const playItem = (item: ContentItem) => {
     if (item.kind === "series" && item.seriesId) {
@@ -48,10 +92,12 @@ export default function App() {
     }
     if (!item.streamUrl) return;
     setPlayable({
+      progressKey: item.kind === "movie" && activeProvider ? JSON.stringify([activeProvider.id, "movie", item.id]) : undefined,
       name: item.name,
       number: item.number,
       groupTitle: item.groupTitle,
       streamUrl: item.streamUrl,
+      fallbackStreamUrl: item.fallbackStreamUrl,
       streamFormat: item.streamFormat,
     });
     setPlayerReturn("browse");
@@ -59,7 +105,9 @@ export default function App() {
   };
 
   if (route === "player" && playable) {
-    return <PlayerScreen channel={playable} onBack={() => setRoute(playerReturn)} />;
+    return <PlayerScreen key={playable.progressKey ?? playable.streamUrl} channel={playable}
+      onSelectEpisode={episode => setPlayable({ ...episode, episodeQueue: playable.episodeQueue })}
+      onBack={() => setRoute(playerReturn)} onHome={() => setRoute("home")} />;
   }
 
   if (route === "episodes" && series && activeProvider) {
@@ -73,6 +121,7 @@ export default function App() {
           setRoute("player");
         }}
         onBack={() => setRoute("browse")}
+        onHome={() => setRoute("home")}
       />
     );
   }
@@ -80,6 +129,7 @@ export default function App() {
   if (route === "browse" && activeProvider) {
     return (
       <ContentScreen
+        key={`${activeProvider.id}:${contentType}`}
         provider={activeProvider}
         providers={providers}
         contentType={contentType}
@@ -87,6 +137,8 @@ export default function App() {
         onSelectProvider={selectActive}
         onSelect={playItem}
         onManageProviders={() => setRoute("home")}
+        viewState={browseViews[`${activeProvider.id}:${contentType}`] ?? initialBrowseState}
+        onViewStateChange={next => setBrowseViews(previous => ({ ...previous, [`${activeProvider.id}:${contentType}`]: next }))}
       />
     );
   }
@@ -99,8 +151,8 @@ export default function App() {
           setContentType(type);
           setRoute("browse");
         }}
-        onChangePlaylist={() => setRoute("setup")}
-        onSettings={() => setRoute("setup")}
+        onChangePlaylist={manageProviders}
+        onSettings={manageProviders}
       />
     );
   }

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-06T18:19:49+03:00",
+  "title": "Design System: MegaStream TV Pro",
+  "scope": {
+    "template": "TV Pro",
+    "webSelector": ":root[data-design=\"tvpro\"]",
+    "androidSelector": "AppUiStyle.TV_PRO",
+    "excludedTemplates": ["Classic", "Modern", "Studio"],
+    "authority": "Current working-tree source snapshot; not a deployed-build claim",
+    "sourcePaths": [
+      "PRODUCT.md",
+      "webos/src/components/TvPro.css",
+      "webos/src/index.css",
+      "app/src/main/java/com/streamvault/app/ui/theme/Theme.kt",
+      "app/src/main/java/com/streamvault/app/ui/design/AppTypography.kt",
+      "app/src/main/java/com/streamvault/app/ui/screens/vod/TvProCatalogLayouts.kt",
+      "app/src/main/java/com/streamvault/app/ui/screens/vod/TvProPosterCard.kt",
+      "app/src/main/java/com/streamvault/app/ui/screens/series/TvProSeriesDetail.kt",
+      "app/src/main/java/com/streamvault/app/ui/screens/player/overlay/PlayerControlsChrome.kt"
+    ],
+    "existingCaptures": [".impeccable/review/desktop.png", ".impeccable/review/mobile.png", ".impeccable/review/tv-android-movies.png"],
+    "verification": "Source inspection only. No runtime, device testing, screenshot generation, or visual approval in this pass. Final visual review is separate."
+  },
+  "extensions": {
+    "colorMeta": {
+      "canvas": {"role": "neutral", "displayName": "Canvas"},
+      "surface": {"role": "neutral", "displayName": "Rail Surface"},
+      "surface-raised": {"role": "neutral", "displayName": "Raised Row Surface"},
+      "focus": {"role": "primary", "displayName": "Cyan Focus", "webVariable": "--focus / --accent-bright", "androidRole": "primary", "tonalRamp": ["oklch(15% 0.08 200)", "oklch(26% 0.08 200)", "oklch(38% 0.08 200)", "oklch(49% 0.08 200)", "oklch(61% 0.08 200)", "oklch(72% 0.08 200)", "oklch(84% 0.08 200)", "oklch(95% 0.08 200)"], "rampStatus": "Synthesized panel illustration only; not implemented tokens or an exact canonical-color conversion"},
+      "action": {"role": "secondary", "displayName": "Coral Action", "webVariable": "--accent", "androidRole": "secondary", "tonalRamp": ["oklch(15% 0.12 15)", "oklch(26% 0.12 15)", "oklch(38% 0.12 15)", "oklch(49% 0.12 15)", "oklch(61% 0.12 15)", "oklch(72% 0.12 15)", "oklch(84% 0.12 15)", "oklch(95% 0.12 15)"], "rampStatus": "Synthesized panel illustration only; not implemented tokens or an exact canonical-color conversion"}
+    },
+    "typographyMeta": {
+      "web-heading": {"displayName": "Web Header", "purpose": "TV Pro app header; narrows to 18px at max-width 700px"},
+      "web-body": {"displayName": "Web Detail / Action", "purpose": "Detail paragraphs and action labels, not the inherited global base font"},
+      "web-poster-label": {"displayName": "Web Poster Caption", "purpose": "13px normally; 12px at max-width 700px"}
+    },
+    "nativeTypography": {
+      "source": "app/src/main/java/com/streamvault/app/ui/design/AppTypography.kt#createTypography",
+      "families": {"en": "Inter", "otherLocales": "FontFamily.SansSerif"},
+      "roles": {
+        "titleLarge": {"fontSize": "18sp", "lineHeight": "24sp", "fontWeight": 600},
+        "titleMedium": {"fontSize": "16sp", "lineHeight": "22sp", "fontWeight": 600},
+        "bodyMedium": {"fontSize": "14sp", "lineHeight": "18sp", "fontWeight": 400},
+        "labelLarge": {"fontSize": "13sp", "lineHeight": "16sp", "fontWeight": 500},
+        "labelMedium": {"fontSize": "12sp", "lineHeight": "14sp", "fontWeight": 500},
+        "labelSmall": {"fontSize": "11sp", "lineHeight": "13sp", "fontWeight": 500}
+      }
+    },
+    "shadows": [{"name": "web-tvpro-focus", "value": "none", "purpose": "TV Pro suppresses inherited focus shadow and transform"}],
+    "focus": {
+      "web": {"outline": "2px solid var(--focus)", "outlineOffset": "-2px", "seekOutlineOffset": "2px", "transform": "none"},
+      "android": {"borderWidth": "2dp", "focusedScale": 1, "categoryBorderRole": "onSurface", "posterEpisodeBorderRole": "primary"}
+    },
+    "motion": [{"name": "web-inherited-focus", "value": "transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease", "purpose": "Inherited .focusable transition; TV Pro focus removes transform and shadow effects"}],
+    "breakpoints": [
+      {"name": "web-wide", "value": "min-width: 1600px", "posterColumns": 6},
+      {"name": "web-medium", "value": "max-width: 1000px", "posterColumns": 3},
+      {"name": "web-narrow", "value": "max-width: 700px", "posterColumns": 2},
+      {"name": "android-catalog", "value": "availableWidth >= 800dp", "posterColumns": 5, "below": "GridCells.Adaptive(100.dp)"}
+    ],
+    "scrims": [
+      {"name": "web-player-top", "value": "#101318cc"},
+      {"name": "web-player-transport", "value": "#101318ed"},
+      {"name": "android-player-top", "value": "black alpha 0.8 to transparent"},
+      {"name": "android-player-bottom", "value": "transparent to black alpha 0.84"}
+    ],
+    "nativeShapes": {"unit": "dp", "categoryEpisode": 2, "poster": 4, "themeXSmall": 4, "themeSmallPill": 6, "themeMediumLargeXLarge": 8, "playerInnerPanel": 0}
+  },
+  "components": [
+    {
+      "name": "Web Play Action", "kind": "button", "refersTo": "web-play",
+      "description": "Isolated TV Pro style specimen; source .tvpro-play and shared focus rules. Not a runtime control.",
+      "html": "<button class=\"ds-play\" type=\"button\">Play</button>",
+      "css": ".ds-play{font-family:Cairo,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0;display:inline-flex;align-items:center;gap:10px;min-height:44px;border:0;border-radius:4px;padding:10px 20px;background:#ff5268;color:#101318;cursor:pointer;transition:background .12s ease,border-color .12s ease}.ds-play:hover{cursor:pointer}.ds-play:focus-visible{outline:2px solid #56cfd7;outline-offset:-2px;box-shadow:none;transform:none}"
+    },
+    {
+      "name": "Web Selected Category", "kind": "nav", "refersTo": "web-category-selected",
+      "description": "Web selection stays cyan text/border; keyboard focus restores normal text. Android selection uses coral fill instead.",
+      "html": "<button class=\"ds-category\" aria-pressed=\"true\" type=\"button\">Movies</button>",
+      "css": ".ds-category{font-family:Cairo,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:16px;letter-spacing:0;min-height:46px;padding:8px 10px;border:1px solid #56cfd7;border-radius:2px;background:#28313d;color:#56cfd7;transition:background .12s ease,border-color .12s ease}.ds-category:hover{cursor:pointer}.ds-category:focus-visible{outline:2px solid #56cfd7;outline-offset:-2px;background:#28313d;color:#f1f4f7;box-shadow:none;transform:none}"
+    },
+    {
+      "name": "Web Content Tab", "kind": "nav",
+      "description": "Active .type-tab is underlined cyan, not a filled pill.",
+      "html": "<button class=\"ds-tab\" aria-pressed=\"true\" type=\"button\">Series</button>",
+      "css": ".ds-tab{font-family:Cairo,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:15px;letter-spacing:0;min-height:40px;padding:8px 12px;border:0;border-bottom:2px solid #56cfd7;border-radius:0;background:none;color:#56cfd7;transition:background .12s ease,border-color .12s ease}.ds-tab:hover{cursor:pointer}.ds-tab:focus-visible{outline:2px solid #56cfd7;outline-offset:-2px;box-shadow:none;transform:none}"
+    },
+    {
+      "name": "Web Poster Caption", "kind": "card", "refersTo": "web-poster",
+      "description": "Caption-state excerpt only; intentionally omits artwork rather than inventing content assets or card dimensions.",
+      "html": "<button class=\"ds-poster\" type=\"button\"><span class=\"ds-caption\">MegaStream</span></button>",
+      "css": ".ds-poster{font-family:Cairo,'Segoe UI','Helvetica Neue',Arial,sans-serif;letter-spacing:0;padding:0;border:1px solid transparent;border-radius:4px;overflow:hidden;background:#1a2028;color:#f1f4f7;min-width:0;transition:background .12s ease,border-color .12s ease}.ds-caption{display:block;padding:9px 6px;font-size:13px;min-height:40px;margin:0;background:#28313d}.ds-poster:hover{cursor:pointer}.ds-poster:focus-visible{outline:2px solid #56cfd7;outline-offset:-2px;box-shadow:none;transform:none}.ds-poster:focus-visible .ds-caption{background:#56cfd7;color:#101318}"
+    },
+    {
+      "name": "Web Secondary Favorite Action", "kind": "button",
+      "description": "Raised-surface .tvpro-favorite action uses the shared TV Pro focus outline.",
+      "html": "<button class=\"ds-favorite\" type=\"button\">Favorite</button>",
+      "css": ".ds-favorite{font-family:Cairo,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:16px;letter-spacing:0;display:inline-flex;align-items:center;gap:10px;min-height:44px;border:0;border-radius:4px;padding:10px 20px;background:#28313d;color:#f1f4f7;cursor:pointer;transition:background .12s ease,border-color .12s ease}.ds-favorite:hover{cursor:pointer}.ds-favorite:focus-visible{outline:2px solid #56cfd7;outline-offset:-2px;box-shadow:none;transform:none}"
+    }
+  ],
+  "narrative": {
+    "northStar": "MegaStream TV Pro",
+    "overview": "This document applies **only** when TV Pro is selected: web root `data-design=\"tvpro\"` or Android `AppUiStyle.TV_PRO`. Classic, Modern, and Studio retain their own styling and behavior. This is an additive template, not a global redesign.\n\nThe approved IBPlayer Pro reference informs arrangement only: three-pane live browsing, category-led poster catalogs, season-first episode rows, and compact controls over full-bleed playback. Identity remains MegaStream, using existing content artwork and branding; do not copy the reference application's trademarks, logos, or bundled assets.",
+    "keyCharacteristics": ["Content-first density with quiet dark surfaces.", "Cyan focus and coral actions, with explicit platform differences.", "Arabic RTL and remote navigation are first-class constraints."],
+    "rules": [{"name": "The Template Boundary Rule", "body": "These tokens are normative for TV Pro only; never replace another template's palette or map Android role names blindly onto web variables.", "section": "colors"}],
+    "dos": ["Do scope every TV Pro visual rule to the selected optional template.", "Do preserve MegaStream identity, real content artwork, Arabic RTL, Back navigation, and remote focus.", "Do retain platform-specific selection, sizing, and seek colors documented from source."],
+    "donts": ["Don't restyle Classic, Modern, or Studio using this document.", "Don't copy another application's trademarks, logos, or bundled artwork.", "Don't claim device, playback, screenshot, or deployment verification from source inspection alone."]
+  }
+}

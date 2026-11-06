@@ -17,6 +17,7 @@ import com.MegaStream.data.local.entity.SeriesBrowseEntity
 import com.MegaStream.data.local.entity.ProviderEntity
 import com.MegaStream.data.preferences.PreferencesRepository
 import com.MegaStream.data.remote.dto.XtreamSeason
+import com.MegaStream.data.remote.dto.XtreamEpisode
 import com.MegaStream.data.remote.dto.XtreamSeriesInfoResponse
 import com.MegaStream.data.remote.stalker.StalkerCategoryRecord
 import com.MegaStream.data.remote.stalker.StalkerEpisodeRecord
@@ -30,6 +31,7 @@ import com.MegaStream.data.remote.dto.XtreamCategory
 import com.MegaStream.data.remote.dto.XtreamSeriesItem
 import com.MegaStream.data.remote.stalker.StalkerApiService
 import com.MegaStream.data.remote.xtream.XtreamParsingException
+import com.MegaStream.data.remote.xtream.XtreamRequestException
 import com.MegaStream.data.remote.xtream.XtreamApiService
 import com.MegaStream.data.remote.xtream.XtreamStreamUrlResolver
 import com.MegaStream.data.security.CredentialCrypto
@@ -134,13 +136,60 @@ class SeriesRepositoryImplTest {
                 status = ProviderStatus.ACTIVE
             )
         )
-        whenever(episodeDao.getBySeriesSync(99L)).thenReturn(emptyList())
+        whenever(episodeDao.getBySeriesSync(99L)).thenReturn(listOf(EpisodeBrowseEntity(
+            id = 1L, episodeId = 7001L, title = "Cached episode", episodeNumber = 1, seasonNumber = 1,
+            streamUrl = "internal://episode/7001", seriesId = 99L, providerId = 7L
+        )))
 
         val result = createRepository().getSeriesDetails(7L, 99L)
 
         assertThat(result.getOrNull()?.name).isEqualTo("Cached Series")
         verify(xtreamApiService, never()).getSeriesInfo(any(), any())
         verify(xtreamContentIndexDao, never()).markDetailHydrated(any(), any(), any(), any(), anyOrNull(), any())
+    }
+
+    @Test
+    fun `getSeriesDetails refetches fresh metadata when cached episodes are empty`() = runTest {
+        whenever(preferencesRepository.xtreamBase64TextCompatibility).thenReturn(flowOf(false))
+        whenever(seriesDao.getById(99L)).thenReturn(SeriesEntity(
+            id = 99L, seriesId = 301L, name = "Cached Series", providerId = 7L,
+            cacheState = "DETAIL_HYDRATED", detailHydratedAt = System.currentTimeMillis()
+        ))
+        whenever(providerDao.getById(7L)).thenReturn(ProviderEntity(
+            id = 7L, name = "Xtream", type = ProviderType.XTREAM_CODES,
+            serverUrl = "http://example.com", username = "user", password = "pass", status = ProviderStatus.ACTIVE
+        ))
+        whenever(episodeDao.getBySeriesSync(99L)).thenReturn(emptyList())
+        whenever(xtreamApiService.getSeriesCategories(any(), any())).thenReturn(emptyList())
+        whenever(xtreamApiService.getSeriesInfo(any(), any())).thenReturn(XtreamSeriesInfoResponse(
+            info = XtreamSeriesItem(name = "Cached Series"),
+            episodes = mapOf("1" to listOf(XtreamEpisode(id = "7001", episodeNum = 1, title = "Recovered episode", season = 1)))
+        ))
+
+        val result = createRepository().getSeriesDetails(7L, 99L)
+
+        assertThat(result.getOrNull()?.seasons?.flatMap { it.episodes }?.map { it.title })
+            .containsExactly("Recovered episode")
+        verify(xtreamApiService).getSeriesInfo(any(), any())
+    }
+
+    @Test
+    fun `getSeriesDetails reports provider rejection instead of successful empty episodes`() = runTest {
+        whenever(preferencesRepository.xtreamBase64TextCompatibility).thenReturn(flowOf(false))
+        whenever(seriesDao.getById(99L)).thenReturn(SeriesEntity(
+            id = 99L, seriesId = 301L, name = "Series", providerId = 7L
+        ))
+        whenever(providerDao.getById(7L)).thenReturn(ProviderEntity(
+            id = 7L, name = "Xtream", type = ProviderType.XTREAM_CODES,
+            serverUrl = "http://example.com", username = "user", password = "pass", status = ProviderStatus.ACTIVE
+        ))
+        whenever(episodeDao.getBySeriesSync(99L)).thenReturn(emptyList())
+        whenever(xtreamApiService.getSeriesInfo(any(), any())).thenAnswer { throw XtreamRequestException(469, "HTTP 469") }
+
+        val result = createRepository().getSeriesDetails(7L, 99L)
+
+        assertThat(result).isInstanceOf(Result.Error::class.java)
+        assertThat(result.errorMessageOrNull()).contains("469")
     }
 
     @Test
@@ -348,7 +397,7 @@ class SeriesRepositoryImplTest {
     }
 
     @Test
-    fun `getSeriesDetails returns local series when xtream details fail`() = runTest {
+    fun `getSeriesDetails keeps cached episodes when xtream details fail`() = runTest {
         whenever(preferencesRepository.xtreamBase64TextCompatibility).thenReturn(flowOf(false))
         val seriesEntity = SeriesEntity(
             id = 15L,
@@ -370,7 +419,10 @@ class SeriesRepositoryImplTest {
                 status = ProviderStatus.ACTIVE
             )
         )
-        whenever(episodeDao.getBySeriesSync(15L)).thenReturn(emptyList())
+        whenever(episodeDao.getBySeriesSync(15L)).thenReturn(listOf(EpisodeBrowseEntity(
+            id = 1L, episodeId = 7001L, title = "Cached episode", episodeNumber = 1, seasonNumber = 1,
+            streamUrl = "internal://episode/7001", seriesId = 15L, providerId = 7L
+        )))
         whenever(xtreamApiService.getSeriesInfo(any(), any())).thenThrow(RuntimeException("bad response"))
 
         val repository = createRepository()
@@ -382,6 +434,7 @@ class SeriesRepositoryImplTest {
         assertThat(series.id).isEqualTo(15L)
         assertThat(series.name).isEqualTo("Stored Series")
         assertThat(series.posterUrl).isEqualTo("https://img.example.test/poster.jpg")
+        assertThat(series.seasons.flatMap { it.episodes }.map { it.title }).containsExactly("Cached episode")
     }
 
     @Test

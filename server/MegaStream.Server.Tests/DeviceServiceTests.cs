@@ -8,7 +8,44 @@ namespace MegaStream.Server.Tests;
 
 public class DeviceServiceTests
 {
+    [Fact]
+    public async Task Legacy_registration_cannot_create_duplicates_or_replace_existing_credentials()
+    {
+        await using var store = await TestDatabase.CreateAsync();
+        using var signer = Signer();
+        var devices = new DeviceService(store.Db, signer, store.Hasher);
+        var request = new RegisterRequest(Guid.NewGuid().ToString("D"), "android", "1.0", "Test TV", "14");
+        var first = await devices.RegisterAsync(request);
+        var admin = new AdminService(store.Db, store.Hasher);
+        var license = await License(admin);
+        await admin.AssignInstallationLicenseAsync(first.InstallationId, license.License.Id);
+        var error = await Assert.ThrowsAsync<DomainException>(() => devices.RegisterAsync(request));
+        Assert.Equal(409, error.StatusCode);
+        Assert.Equal("already_registered", error.Code);
+        var device = await store.Db.Installations.SingleAsync();
+        Assert.Equal(first.InstallationId, device.Id);
+        Assert.Equal(license.License.Id, device.LicenseId);
+        Assert.True(store.Hasher.Matches("device", first.BearerToken, device.TokenHash));
+    }
+
     private static Task<RegisterResponse> Register(DeviceService service) => service.RegisterAsync(new RegisterRequest(Guid.NewGuid().ToString("D"), "android", "1.0", "Test TV", "14"));
+    [Fact]
+    public async Task Concurrent_legacy_registration_creates_only_one_device()
+    {
+        await using var store = await TestDatabase.CreateAsync();
+        using var signer = Signer();
+        var request = new RegisterRequest(Guid.NewGuid().ToString("D"), "android", "1.0", "Test TV", "14");
+        using var start = new Barrier(2);
+        var attempts = Enumerable.Range(0, 2).Select(_ => Task.Run(async () =>
+        {
+            await using var db = store.NewContext();
+            if (!start.SignalAndWait(TimeSpan.FromSeconds(10))) throw new TimeoutException("Registration contenders did not start.");
+            try { await new DeviceService(db, signer, store.Hasher).RegisterAsync(request); return 200; }
+            catch (DomainException error) { return error.StatusCode; }
+        })).ToArray();
+        Assert.Equal(new[] { 200, 409 }, (await Task.WhenAll(attempts)).Order().ToArray());
+        Assert.Single(await store.Db.Installations.ToListAsync());
+    }
     private static Task<CreatedLicense> License(AdminService admin, int capacity = 1) => admin.CreateLicenseAsync("Test license", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(10), capacity);
     private static LeaseSigner Signer() => new(LeaseSignerTests.Configuration(), new TestEnvironment());
 

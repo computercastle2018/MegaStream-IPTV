@@ -32,14 +32,17 @@ export interface ContentItem {
   groupTitle: string;
   /** Present for directly-playable items (live + movie); absent for series cards. */
   streamUrl?: string;
+  fallbackStreamUrl?: string;
   streamFormat: StreamFormat;
   /** Present for series cards — used to fetch episodes. */
   seriesId?: string;
   /** Unix seconds the item was added at the provider (when available). */
   addedAt?: number;
+  rating?: number;
 }
 
 export interface Episode {
+  imageUrl?: string;
   id: string;
   title: string;
   season: number;
@@ -52,10 +55,17 @@ export interface Episode {
 
 /** The minimal shape the player needs. */
 export interface Playable {
+  /** Existing series sources offered by the TV Pro episode tray. */
+  episodeQueue?: Playable[];
+  season?: number;
+  episode?: number;
+  /** Stable provider/content identity for desktop on-demand progress, never a stream URL. */
+  progressKey?: string;
   name: string;
   number?: number;
   groupTitle: string;
   streamUrl: string;
+  fallbackStreamUrl?: string;
   streamFormat: StreamFormat;
 }
 

@@ -97,6 +97,7 @@ class BackupManagerImpl @Inject constructor(
                 put("playerSubtitleTextColor", preferencesRepository.playerSubtitleTextColor.first().toString())
                 put("playerSubtitleBackgroundColor", preferencesRepository.playerSubtitleBackgroundColor.first().toString())
                 put("playerWifiMaxVideoHeight", (preferencesRepository.playerWifiMaxVideoHeight.first() ?: 0).toString())
+                put("playerAdaptiveVideoQuality", preferencesRepository.playerAdaptiveVideoQuality.first().toString())
                 put("playerEthernetMaxVideoHeight", (preferencesRepository.playerEthernetMaxVideoHeight.first() ?: 0).toString())
                 put("guideDensity", preferencesRepository.guideDensity.first() ?: "")
                 put("guideChannelMode", preferencesRepository.guideChannelMode.first() ?: "")
@@ -546,6 +547,7 @@ class BackupManagerImpl @Inject constructor(
         prefs["playerSubtitleTextColor"]?.toIntOrNull()?.let { preferencesRepository.setPlayerSubtitleTextColor(it) }
         prefs["playerSubtitleBackgroundColor"]?.toIntOrNull()?.let { preferencesRepository.setPlayerSubtitleBackgroundColor(it) }
         preferencesRepository.setPlayerWifiMaxVideoHeight(prefs["playerWifiMaxVideoHeight"]?.toIntOrNull()?.takeIf { it > 0 })
+        preferencesRepository.setPlayerAdaptiveVideoQuality(prefs["playerAdaptiveVideoQuality"]?.toBooleanStrictOrNull() ?: true)
         preferencesRepository.setPlayerEthernetMaxVideoHeight(prefs["playerEthernetMaxVideoHeight"]?.toIntOrNull()?.takeIf { it > 0 })
         prefs["guideDensity"]?.takeIf { it.isNotBlank() }?.let { preferencesRepository.setGuideDensity(it) }
         prefs["guideChannelMode"]?.takeIf { it.isNotBlank() }?.let { preferencesRepository.setGuideChannelMode(it) }

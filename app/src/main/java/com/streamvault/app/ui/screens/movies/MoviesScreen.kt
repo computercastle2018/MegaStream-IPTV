@@ -93,7 +93,8 @@ import com.MegaStream.app.ui.screens.vod.vodActiveFilterSortDetail
 import kotlinx.coroutines.delay
 import com.MegaStream.app.ui.model.AppUiStyle
 import com.MegaStream.app.ui.components.shell.StudioCatalogHero
-import com.MegaStream.app.ui.screens.vod.StudioCatalogLayout
+import com.MegaStream.app.ui.screens.vod.CatalogStyleLayout
+import com.MegaStream.app.ui.screens.vod.CatalogMovieCard
 import com.MegaStream.app.ui.screens.vod.StudioSectionHeading
 import com.MegaStream.app.ui.screens.vod.StudioContentAccess
 import com.MegaStream.app.ui.screens.vod.studioContentAccess
@@ -123,7 +124,8 @@ fun MoviesScreen(
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
-    LaunchedEffect(studio, viewModel) { viewModel.enterStudioCatalog(studio) }
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
+    LaunchedEffect(studio, tvPro, viewModel) { viewModel.enterStudioCatalog(studio || tvPro) }
     val snackbarHostState = remember { SnackbarHostState() }
     val syncLabel = stringResource(R.string.movies_sync_catalog)
     val syncProgress = stringResource(R.string.vod_catalog_sync_in_progress)
@@ -417,7 +419,8 @@ private fun MoviesVodContent(
     }
     var showCategoryPicker by remember { mutableStateOf(false) }
     val favoriteMovies = uiState.moviesByCategory[uiState.favoriteCategoryName].orEmpty()
-    val freshMovies = if (studio) uiState.newestAddedItems else uiState.libraryLensRows[MovieLibraryLens.FRESH].orEmpty()
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
+    val freshMovies = if (studio || tvPro) uiState.newestAddedItems else uiState.libraryLensRows[MovieLibraryLens.FRESH].orEmpty()
     val topRatedMovies = uiState.libraryLensRows[MovieLibraryLens.TOP_RATED].orEmpty()
     val continueWatching = uiState.continueWatching
     val heroMovie = freshMovies.firstOrNull() ?: topRatedMovies.firstOrNull() ?: favoriteMovies.firstOrNull()
@@ -519,7 +522,7 @@ private fun MoviesVodContent(
     }
 
 
-    if (studio) {
+    if (studio || tvPro) {
         val categoriesById = remember(uiState.providerCategories, uiState.categories) {
             (uiState.providerCategories + uiState.categories).associateBy { kotlin.math.abs(it.id) }
         }
@@ -547,7 +550,7 @@ private fun MoviesVodContent(
             else if (overview) catEntries.flatMap { it.value }.distinctBy { it.id }
             else uiState.selectedCategoryItems).filter { access(it) != StudioContentAccess.HIDDEN }
         val latestItems = freshMovies.filter { access(it) == StudioContentAccess.VISIBLE }
-        val featured = if (overview && searchQuery.isBlank()) latestItems.firstOrNull()
+        val featured = if (!tvPro && overview && searchQuery.isBlank()) latestItems.firstOrNull()
             ?: catalogItems.firstOrNull { access(it) == StudioContentAccess.VISIBLE } else null
         val overviewLabel = stringResource(R.string.studio_catalog_discover)
         val allLabel = stringResource(R.string.library_full_browse_title_movies)
@@ -559,8 +562,8 @@ private fun MoviesVodContent(
             onSelectedFilterTypeChange(LibraryFilterType.RECENTLY_UPDATED)
             onSelectedSortByChange(LibrarySortBy.UPDATED)
         }
-        val railOptions = listOf(
-            VodCategoryOption(overviewLabel, 0, { onSelectCategory(null) }),
+        val railOptions = listOfNotNull(
+            if (tvPro) null else VodCategoryOption(overviewLabel, 0, { onSelectCategory(null) }),
             VodCategoryOption(allLabel, uiState.libraryCount, onSelectFullLibraryBrowse),
             VodCategoryOption(freshLabel, 0, openLatest),
             VodCategoryOption(continueLabel, 0, onOpenContinueWatching),
@@ -607,9 +610,9 @@ private fun MoviesVodContent(
                 }
             }, onDismiss = { optionsVisible = false }
         )
-        StudioCatalogLayout(
+        CatalogStyleLayout(
             categories = railOptions,
-            selectedCategory = if (overview) overviewLabel else when (uiState.selectedCategory) {
+            selectedCategory = if (overview) (if (tvPro) allLabel else overviewLabel) else when (uiState.selectedCategory) {
                 uiState.fullLibraryCategoryName -> when (selectedFilterType) {
                     LibraryFilterType.RECENTLY_UPDATED -> freshLabel
                     LibraryFilterType.IN_PROGRESS -> continueLabel
@@ -662,7 +665,7 @@ private fun MoviesVodContent(
                     }
                 }
             }
-            if (overview && searchQuery.isBlank() && latestItems.isNotEmpty() && !uiState.isReorderMode) {
+            if (!tvPro && overview && searchQuery.isBlank() && latestItems.isNotEmpty() && !uiState.isReorderMode) {
                 item(key = "studio_latest", span = { GridItemSpan(maxLineSpan) }) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         StudioSectionHeading(freshLabel, allLabel, openLatest)
@@ -678,7 +681,7 @@ private fun MoviesVodContent(
             }
             gridItems(catalogItems, key = { it.id }) { movie ->
                 val locked = access(movie) == StudioContentAccess.LOCKED
-                MovieCard(
+                CatalogMovieCard(
                     movie = movie, isLocked = locked,
                     isReorderMode = uiState.isReorderMode, isDragging = dragging?.id == movie.id,
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f).then(

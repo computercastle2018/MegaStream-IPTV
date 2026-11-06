@@ -1,0 +1,4 @@
+<resources>
+    <string name="hide_sidebar">Hide sidebar</string>
+    <string name="show_sidebar">Show sidebar</string>
+</resources>

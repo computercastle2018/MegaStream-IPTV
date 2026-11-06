@@ -3,9 +3,14 @@ import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import type { ContentItem, Episode, Playable, Provider } from "../types";
 import { getEpisodes } from "../services/xtreamClient";
 import { onBack } from "../remote/keys";
-import { BackButton, FocusButton, SearchInput } from "../components/Focusable";
+import { BackButton, FocusButton, HomeButton, SearchInput } from "../components/Focusable";
 import { useLang } from "../i18n/LanguageContext";
 import { selectEpisodes, type EpisodeOrder } from "../services/episodes";
+import { useAppearance } from "../components/Appearance";
+import TvProInfo from "../components/TvProInfo";
+import { Play } from "lucide-react";
+import ContentImage from "../components/ContentImage";
+import { loadPlaybackProgress } from "../services/playbackProgress";
 import "./EpisodesScreen.css";
 
 const episodeLabels = {
@@ -18,10 +23,13 @@ interface Props {
   series: ContentItem;
   onPlay: (episode: Playable) => void;
   onBack: () => void;
+  onHome: () => void;
 }
 
-export default function EpisodesScreen({ provider, series, onPlay, onBack: goBack }: Props) {
+export default function EpisodesScreen({ provider, series, onPlay, onBack: goBack, onHome }: Props) {
   const { t, lang } = useLang();
+  const { design } = useAppearance();
+  const tvpro = design === "tvpro";
   const labels = episodeLabels[lang];
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +39,10 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
   const [order, setOrder] = useState<EpisodeOrder>("newest");
   const [searchOpen, setSearchOpen] = useState(false);
 
-  useEffect(() => onBack(goBack), [goBack]);
+  useEffect(() => onBack(() => {
+    if (tvpro && searchOpen) { setSearchOpen(false); setQuery(""); }
+    else goBack();
+  }), [goBack, tvpro, searchOpen]);
 
   useEffect(() => {
     if (provider.type !== "xtream" || !series.seriesId) {
@@ -71,6 +82,9 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
     [episodes, season, query, order]);
 
   const toPlayable = (ep: Episode): Playable => ({
+    season: ep.season,
+    episode: ep.episode,
+    progressKey: JSON.stringify([provider.id, "series", series.seriesId, ep.id]),
     name: `${series.name} · S${ep.season}E${ep.episode}${ep.title ? ` — ${ep.title}` : ""}`,
     groupTitle: series.name,
     streamUrl: ep.streamUrl,
@@ -78,9 +92,10 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
   });
 
   return (
-    <div className="screen episodes-screen">
+    <div className={`screen episodes-screen ${tvpro ? "tvpro-episodes" : ""}`}>
       <header className="app-header">
         <BackButton onEnter={goBack} autoFocus />
+        <HomeButton onEnter={onHome} />
         <h1 className="series-title">{series.name}</h1>
         <span className="subtitle">{t("episodes.series")}</span>
       </header>
@@ -126,13 +141,17 @@ export default function EpisodesScreen({ provider, series, onPlay, onBack: goBac
                   onSelect={() => setSeason(s)}
                 />
               ))}
+              {tvpro && <TvProInfo item={series} />}
             </nav>
             <div className="content-grid live">
               {visible.length === 0 ? (
                 <div className="center-msg">{episodes.length === 0 ? t("episodes.none") : labels.empty}</div>
               ) : (
                 visible.map((ep) => (
-                  <EpisodeCard key={ep.id} episode={ep} onPlay={() => onPlay(toPlayable(ep))} />
+                  <EpisodeCard key={ep.id} episode={ep} tvpro={tvpro} imageUrl={series.imageUrl}
+                    progressKey={toPlayable(ep).progressKey} onPlay={() => onPlay(tvpro
+                    ? { ...toPlayable(ep), episodeQueue: selectEpisodes(episodes, null, "", "oldest").map(toPlayable) }
+                    : toPlayable(ep))} />
                 ))
               )}
             </div>
@@ -154,7 +173,8 @@ function SeasonItem({
   active: boolean;
   onSelect: () => void;
 }) {
-  const { ref, focused } = useFocusable({ onEnterPress: onSelect });
+  const { design } = useAppearance();
+  const { ref, focused, focusSelf } = useFocusable({ onEnterPress: onSelect });
   useEffect(() => {
     if (focused) ref.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [focused, ref]);
@@ -163,6 +183,7 @@ function SeasonItem({
       ref={ref}
       className={`category-item ${active ? "active" : ""} ${focused ? "focused" : ""}`}
       onClick={onSelect}
+      onFocus={design === "tvpro" ? () => focusSelf() : undefined}
       role="button"
       tabIndex={0}
       aria-pressed={active}
@@ -176,21 +197,34 @@ function SeasonItem({
 function EpisodeCard({
   episode,
   onPlay,
+  tvpro,
+  imageUrl,
+  progressKey,
 }: {
   episode: Episode;
   onPlay: () => void;
+  tvpro: boolean;
+  imageUrl?: string;
+  progressKey?: string;
 }) {
-  const { ref, focused } = useFocusable({ onEnterPress: onPlay });
+  const progress = tvpro && window.megastreamDesktop && progressKey ? loadPlaybackProgress(progressKey) : null;
+  const { ref, focused, focusSelf } = useFocusable({ onEnterPress: onPlay });
   useEffect(() => {
     if (focused) ref.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [focused, ref]);
   return (
     <div ref={ref} className={`channel-card focusable ${focused ? "focused" : ""}`} onClick={onPlay}
+      onFocus={tvpro ? () => focusSelf() : undefined}
       role="button" tabIndex={0}>
-      <span className="num" dir="ltr">S{episode.season} · E{episode.episode}</span>
+      {tvpro ? <div className="tvpro-episode-thumb">
+        <ContentImage src={episode.imageUrl ?? imageUrl} name={episode.title} />
+        <span className="num" dir="ltr">{episode.episode}</span><Play size={28} aria-hidden="true" />
+        {progress && <progress value={progress.position} max={progress.duration} aria-label={episode.title} />}
+      </div> : <span className="num" dir="ltr">S{episode.season} · E{episode.episode}</span>}
       <span className="name" title={episode.title}>
         {episode.title}
       </span>
+      {tvpro && <Play size={20} aria-hidden="true" />}
     </div>
   );
 }

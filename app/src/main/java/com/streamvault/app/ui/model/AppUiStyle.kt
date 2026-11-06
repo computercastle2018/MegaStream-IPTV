@@ -19,6 +19,11 @@ enum class AppUiStyle(
         storageValue = "studio",
         labelResId = com.MegaStream.app.R.string.settings_app_ui_style_studio,
         descriptionResId = com.MegaStream.app.R.string.settings_app_ui_style_studio_desc
+    ),
+    TV_PRO(
+        storageValue = "tvpro",
+        labelResId = com.MegaStream.app.R.string.settings_app_ui_style_tvpro,
+        descriptionResId = com.MegaStream.app.R.string.settings_app_ui_style_tvpro_desc
     );
 
     companion object {

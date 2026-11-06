@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -114,12 +116,14 @@ fun AppScreenScaffold(
 ) {
     val spacing = LocalAppSpacing.current
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
+    var railVisible by rememberSaveable { mutableStateOf(true) }
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
-                if (studio) SolidColor(MaterialTheme.colorScheme.background) else Brush.linearGradient(
+                if (studio || tvPro) SolidColor(MaterialTheme.colorScheme.background) else Brush.linearGradient(
                     colors = listOf(
                         AppColors.Canvas,
                         AppColors.CanvasElevated,
@@ -132,14 +136,17 @@ fun AppScreenScaffold(
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val compact = maxWidth < 600.dp
                 Row(Modifier.fillMaxSize()) {
-                    StudioDestinationRail(
+                    Column {
+                        RailVisibilityButton(railVisible) { railVisible = !railVisible }
+                    if (railVisible) StudioDestinationRail(
                         currentRoute = currentRoute,
                         onNavigate = onNavigate,
                         compact = compact,
                         initialFocusRoute = initialTopNavigationFocusRoute,
                         modifier = Modifier.fillMaxHeight().width(if (compact) 64.dp else 136.dp)
                     )
-                    Column(Modifier.weight(1f).fillMaxHeight().padding(12.dp)) {
+                    }
+                    Column(Modifier.weight(1f).fillMaxHeight().padding(12.dp).focusGroup()) {
                         if (showScreenHeader || topBarActions != null) {
                             Row(Modifier.fillMaxWidth().padding(bottom = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -157,15 +164,18 @@ fun AppScreenScaffold(
                     }
                 }
             }
-        } else if (navigationChrome == AppNavigationChrome.Rail) {
+        } else if (navigationChrome == AppNavigationChrome.Rail && !tvPro) {
             Row(modifier = Modifier.fillMaxSize()) {
-                DestinationRail(
+                Column {
+                    RailVisibilityButton(railVisible) { railVisible = !railVisible }
+                if (railVisible) DestinationRail(
                     currentRoute = currentRoute,
                     onNavigate = onNavigate,
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(spacing.railWidth)
                 )
+                }
 
                 Column(
                     modifier = Modifier
@@ -176,6 +186,7 @@ fun AppScreenScaffold(
                             top = spacing.safeTop,
                             bottom = spacing.safeBottom
                         )
+                        .focusGroup()
                 ) {
                     if (showScreenHeader) {
                         AppScreenHeader(
@@ -239,11 +250,20 @@ fun AppScreenScaffold(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(contentPadding)
+                        .focusGroup()
                 ) {
                     content()
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RailVisibilityButton(visible: Boolean, onClick: () -> Unit) {
+    TvIconButton(onClick = onClick, modifier = Modifier.padding(8.dp).size(48.dp)) {
+        Icon(Icons.Default.Menu,
+            contentDescription = stringResource(if (visible) R.string.hide_sidebar else R.string.show_sidebar))
     }
 }
 
@@ -259,10 +279,9 @@ private fun StudioDestinationRail(
     val items = remember { buildDestinationItems() }
     val requesters = remember { items.associate { it.route to FocusRequester() } }
     LaunchedEffect(Unit) {
-        val focusRoute = initialFocusRoute ?: findActiveDestinationItem(items, currentRoute)?.route
-        if (focusRoute != null) {
+        if (initialFocusRoute != null) {
             withFrameNanos {}
-            requesters[focusRoute]?.requestFocus()
+            requesters[initialFocusRoute]?.requestFocus()
         }
     }
     Column(
@@ -270,9 +289,10 @@ private fun StudioDestinationRail(
             .padding(horizontal = 8.dp, vertical = 12.dp)
             .focusProperties {
                 onEnter = {
-                    requesters[findActiveDestinationItem(items, currentRoute)?.route] ?: FocusRequester.Default
+                    requesters[findActiveDestinationItem(items, currentRoute)?.route]?.requestFocus()
                 }
-            },
+            }
+            .focusGroup(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(if (compact) "MS" else stringResource(R.string.app_name),
@@ -374,7 +394,7 @@ private fun TopNavigationBar(
     modifier: Modifier = Modifier,
     initialTopNavigationFocusRoute: String? = null
 ) {
-    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO || LocalAppUiStyle.current == AppUiStyle.TV_PRO
     val items = remember { buildDestinationItems() }
     val scrollState = rememberScrollState()
 
@@ -391,9 +411,9 @@ private fun TopNavigationBar(
         modifier = modifier.focusProperties {
             onEnter = {
                 val activeItem = findActiveDestinationItem(items, currentRoute)
-                focusRequesters[activeItem?.route] ?: FocusRequester.Default
+                focusRequesters[activeItem?.route]?.requestFocus()
             }
-        },
+        }.focusGroup(),
         shape = RoundedCornerShape(if (studio) 6.dp else 18.dp),
         colors = SurfaceDefaults.colors(containerColor = if (studio) MaterialTheme.colorScheme.surface else AppColors.Surface.copy(alpha = 0.9f))
     ) {
@@ -548,7 +568,7 @@ private fun TopNavigationButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO || LocalAppUiStyle.current == AppUiStyle.TV_PRO
     val accent = if (studio) MaterialTheme.colorScheme.primary else AppColors.Brand
     var isFocused by remember { mutableStateOf(false) }
     val sounds = rememberTvInteractionSounds()
@@ -910,9 +930,10 @@ private fun DestinationRail(
             .focusProperties {
                 onEnter = {
                     val activeItem = findActiveDestinationItem(items, currentRoute)
-                    focusRequesters[activeItem?.route] ?: FocusRequester.Default
+                    focusRequesters[activeItem?.route]?.requestFocus()
                 }
             }
+            .focusGroup()
     ) {
         Column(
             modifier = Modifier

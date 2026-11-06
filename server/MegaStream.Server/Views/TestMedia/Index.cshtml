@@ -1,0 +1,13 @@
+@{ ViewData["Title"] = "اختبار الفيديو"; }
+<section class="panel" aria-labelledby="test-media-heading">
+    <h2 id="test-media-heading">فيديو تجريبي آمن</h2>
+    <p>مقطع اصطناعي عام مدته 10 ثوانٍ: أشرطة ألوان بدقة 720p وصوت اختبار هادئ بتردد 1 كيلوهرتز. ليس قناة بث أو اشتراك IPTV.</p>
+    <video controls playsinline preload="metadata" width="1280" height="720"
+           style="display:block;width:100%;max-width:1280px;height:auto;aspect-ratio:16/9"
+           aria-label="فيديو اختبار الألوان والصوت لمدة عشر ثوانٍ">
+        <source src="/api/v1/test-media/video.mp4" type="video/mp4" />
+        المتصفح لا يدعم تشغيل الفيديو. <a href="/api/v1/test-media/video.mp4">فتح ملف الاختبار</a>
+    </video>
+    <p><a href="/api/v1/test-media/playlist.m3u">قائمة M3U للاختبار</a> · <a href="/api/v1/test-media/video.mp4">ملف MP4 التجريبي</a></p>
+    <p>الروابط عامة لهذا المقطع الاصطناعي فقط؛ لا تُنشئ اشتراكًا ولا تُسند محتوى إلى أي جهاز.</p>
+</section>

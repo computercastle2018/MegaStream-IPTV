@@ -24,7 +24,7 @@ public sealed class V1Service(AppDbContext db, DeviceService devices, LeaseSigne
             Id = request.InstallationId,
             TokenHash = hasher.Hash("device", request.Credential),
             CredentialBinding = SecretHasher.CredentialBinding(request.Credential),
-            Platform = "android", AppVersion = request.AppVersionName,
+            Platform = request.Platform ?? "android", AppVersion = request.AppVersionName,
             Manufacturer = request.Manufacturer, DeviceModel = request.Model,
             OsVersion = request.AndroidRelease, Locale = request.Locale,
             CreatedAt = now, LastSeenAt = now
@@ -293,8 +293,19 @@ public sealed class V1Service(AppDbContext db, DeviceService devices, LeaseSigne
             throw Invalid("invalid_credential", "Credential must be a canonical base64url encoding of 32 bytes.");
         ValidateVersion(request.AppVersionCode, request.AppVersionName);
         ValidateBuild(request.PackageName, request.Channel);
+        var platform = request.Platform ?? "android";
+        var platformMatches = request.PackageName switch
+        {
+            "uk.megastation.megastream.desktop" => platform is "macos" or "windows",
+            "uk.megastation.megastream" => platform == "webos",
+            _ => platform == "android"
+        };
+        if (!platformMatches)
+            throw Invalid("invalid_metadata", "Platform does not match the registered build.");
         Text(request.Manufacturer, 64); Text(request.Model, 64); Text(request.AndroidRelease, 32); Text(request.Locale, 16);
-        if (request.AndroidApi < 27 || request.Abi is not ("arm64_v8a" or "armeabi_v7a" or "x86_64" or "x86" or "other"))
+        if ((platform == "android" ? request.AndroidApi < 27 : request.AndroidApi != 0) ||
+            (platform == "webos" && request.Abi != "other") ||
+            request.Abi is not ("arm64_v8a" or "armeabi_v7a" or "x86_64" or "x86" or "other"))
             throw Invalid("invalid_metadata", "Android API level or ABI is invalid.");
     }
 
@@ -337,13 +348,15 @@ public sealed class V1Service(AppDbContext db, DeviceService devices, LeaseSigne
     }
 
     private Task ObserveBuild(Guid installationId, V1InstallationMetadata metadata, CancellationToken ct) =>
-        updates.ObserveAsync(installationId, new UpdateCheckRequest(metadata.AppVersionCode, metadata.PackageName,
+        metadata.PackageName is not ("com.megastream.app" or "com.megastream.app.beta") ? Task.CompletedTask : updates.ObserveAsync(installationId, new UpdateCheckRequest(metadata.AppVersionCode, metadata.PackageName,
             metadata.Channel, metadata.AndroidApi, metadata.ManagedDevice ? "managed" : "prompt", metadata.Abi), ct);
 
     private static void ValidateBuild(string packageName, string channel)
     {
         if (!((packageName == "com.megastream.app" && channel == "stable") ||
-            (packageName == "com.megastream.app.beta" && channel == "beta")))
+            (packageName == "com.megastream.app.beta" && channel == "beta") ||
+            (packageName == "uk.megastation.megastream.desktop" && channel == "stable") ||
+            (packageName == "uk.megastation.megastream" && channel == "stable")))
             throw Invalid("invalid_build", "Package name and channel must identify a supported build.");
     }
 

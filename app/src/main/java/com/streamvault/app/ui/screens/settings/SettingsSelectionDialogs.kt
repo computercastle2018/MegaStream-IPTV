@@ -35,7 +35,7 @@ internal fun QualityCapSelectionDialog(
 ) {
     val context = LocalContext.current
     val options = remember(context) {
-        listOf<Int?>(null, 2160, 1080, 720, 480)
+        listOf<Int?>(null) + com.MegaStream.domain.model.PLAYBACK_VIDEO_HEIGHTS
     }
     PremiumSelectionDialog(
         title = title,

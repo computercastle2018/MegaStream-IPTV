@@ -75,6 +75,13 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
         perform(buildRequest("/api/v1/providers/assignments?afterRevision=$afterRevision", credential, null), ProviderAssignmentsResponse.serializer())
     }
 
+    fun redeemProvider(credential: String, code: String): ControlPlaneResult<Unit> = safely {
+        val normalized = code.trim()
+        require(normalized.length in 1..64 && normalized.none { it.isISOControl() })
+        postUnit("/api/v1/providers/redeem", credential,
+            JsonObject(mapOf("code" to JsonPrimitive(normalized))).toString())
+    }
+
     fun reportProviderAssignmentStatus(credential: String, assignmentId: String, request: ProviderAssignmentStatusRequest): ControlPlaneResult<Unit> = safely {
         requireUuid(assignmentId)
         postUnit("/api/v1/providers/assignments/$assignmentId/status", credential, encode(request, ProviderAssignmentStatusRequest.serializer()))
@@ -90,6 +97,10 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
 
     fun reportDeviceMac(credential: String, request: DeviceMacReport): ControlPlaneResult<Unit> = safely {
         postUnit("/api/v1/devices/experience", credential, encode(request, DeviceMacReport.serializer()))
+    }
+
+    fun setAppearance(credential: String, request: DeviceAppearanceRequest): ControlPlaneResult<Unit> = safely {
+        postUnit("/api/v1/devices/appearance", credential, encode(request, DeviceAppearanceRequest.serializer()))
     }
 
     private fun <T> encode(value: T, serializer: KSerializer<T>): String {
@@ -189,7 +200,7 @@ class ControlPlaneClient internal constructor(private val executor: CallExecutor
         val UUID_PATTERN = Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
         val STATUS_PATH = Regex("/api/v1/(?:updates/commands|providers/assignments)/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/status")
         val POST_PATHS = setOf("/api/v1/installations/register", "/api/v1/licenses/activate", "/api/v1/activation-codes/request",
-            "/api/v1/activation-codes/status", "/api/v1/devices/heartbeat", "/api/v1/diagnostics/batch", "/api/v1/devices/subscriptions", "/api/v1/devices/experience")
+            "/api/v1/activation-codes/status", "/api/v1/devices/heartbeat", "/api/v1/diagnostics/batch", "/api/v1/devices/subscriptions", "/api/v1/devices/experience", "/api/v1/providers/redeem", "/api/v1/devices/appearance")
         val json = Json { ignoreUnknownKeys = false; isLenient = false; coerceInputValues = false; encodeDefaults = true }
         fun allowedEndpoint(path: String, method: String): Boolean =
             (method == "GET" && path in setOf("/api/v1/providers/assignments", "/api/v1/devices/experience")) ||

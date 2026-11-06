@@ -2,6 +2,7 @@ package com.MegaStream.app.ui.screens.vod
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -44,7 +45,7 @@ internal fun StudioCatalogLayout(
         val categoryWidth = if (maxWidth < 1000.dp) 176.dp else 196.dp
         Column(Modifier.fillMaxSize()) {
             if (compact) {
-                LazyRow(contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyRow(modifier = Modifier.focusGroup(), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     itemsIndexed(categories, key = { index, option -> "$index:${option.name}" }) { _, option ->
                         StudioCategoryButton(option, option.name == selectedCategory, Modifier.width(156.dp))
                     }
@@ -54,7 +55,7 @@ internal fun StudioCatalogLayout(
                 if (!compact) {
                     LazyColumn(
                         Modifier.width(categoryWidth).fillMaxHeight()
-                            .background(MaterialTheme.colorScheme.surface),
+                            .background(MaterialTheme.colorScheme.surface).focusGroup(),
                         contentPadding = PaddingValues(12.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -66,7 +67,7 @@ internal fun StudioCatalogLayout(
                 LazyVerticalGrid(
                     state = gridState,
                     columns = GridCells.Adaptive(112.dp),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = Modifier.weight(1f).fillMaxHeight().focusGroup(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_quality_fixed">تثبيت الجودة وإيقاف التخفيض التلقائي</string>
+    <string name="player_quality_ceiling">الدقة المفضلة</string>
+    <string name="player_quality_available">الجودات المتاحة من المصدر</string>
+    <string name="player_quality_auto_bandwidth">تلقائي حسب سرعة الاتصال</string>
+</resources>

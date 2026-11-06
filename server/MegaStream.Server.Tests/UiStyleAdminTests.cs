@@ -24,6 +24,9 @@ public sealed class UiStyleAdminTests
     [InlineData(null, "modern", "modern")]
     [InlineData("classic", "studio", "classic")]
     [InlineData("studio", null, "studio")]
+    [InlineData(null, "tvpro", "tvpro")]
+    [InlineData("tvpro", "modern", "tvpro")]
+    [InlineData("classic", "tvpro", "classic")]
     public async Task V2_style_is_device_then_license_then_local_while_v1_shape_stays_exact(string? deviceStyle, string? licenseStyle, string? expected)
     {
         using var app = new TestApplication();
@@ -73,12 +76,14 @@ public sealed class UiStyleAdminTests
         await HttpSecurityTests.LoginAdmin(app, client);
         using var bearer = Client(app);
         bearer.DefaultRequestHeaders.Authorization = new("Bearer", device.BearerToken);
-        foreach (var (target, style, expected) in new[] { ("License", "modern", "modern"), ("Device", "studio", "studio"),
+        foreach (var (target, style, expected) in new[] { ("License", "tvpro", "tvpro"), ("Device", "tvpro", "tvpro"),
+            ("Device", "", "tvpro"), ("License", "modern", "modern"), ("Device", "studio", "studio"),
             ("Device", "classic", "classic"), ("Device", "", "modern"), ("License", "", (string?)null) })
         {
             var id = target == "Device" ? device.InstallationId : licenseId;
             var html = await client.GetStringAsync($"/Admin/{target}Details?id={id}");
             Assert.Contains("name=\"UiStyle\"", html);
+            Assert.Matches("<option[^>]*value=\"tvpro\"[^>]*>TV Pro</option>", html);
             using var result = await client.PostAsync($"/Admin/Set{target}UiStyle", new FormUrlEncodedContent(new Dictionary<string, string>
             { ["Id"] = id.ToString(), ["UiStyle"] = style, ["__RequestVerificationToken"] = Token(html) }));
             Assert.Equal(HttpStatusCode.Redirect, result.StatusCode);
@@ -100,6 +105,8 @@ public sealed class UiStyleAdminTests
     [Theory]
     [InlineData("Device", "invalid")]
     [InlineData("License", "invalid")]
+    [InlineData("Device", "unknown")]
+    [InlineData("License", "unknown")]
     [InlineData("Device", "csrf")]
     [InlineData("License", "csrf")]
     [InlineData("Device", "anonymous")]
@@ -120,7 +127,7 @@ public sealed class UiStyleAdminTests
         }
         var id = target == "Device" ? device.InstallationId : licenseId;
         var form = new Dictionary<string, string> { ["Id"] = scenario == "missing" ? Guid.NewGuid().ToString() : id.ToString(),
-            ["UiStyle"] = scenario == "invalid" ? "MODERN" : "studio" };
+            ["UiStyle"] = scenario == "invalid" ? "MODERN" : scenario == "unknown" ? "tvpro-extra" : "studio" };
         if (scenario != "anonymous")
         {
             await HttpSecurityTests.LoginAdmin(app, client);

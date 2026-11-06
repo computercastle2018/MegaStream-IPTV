@@ -26,7 +26,10 @@ public sealed class DeviceExperienceController(AppDbContext db) : ControllerBase
         if (device is null) throw Disabled();
         var now = DateTime.UtcNow;
         var notifications = await db.AdminNotifications.AsNoTracking()
-            .Where(x => (x.TargetInstallationId == null || x.TargetInstallationId == id) &&
+            .Where(x => x.ArchivedAt == null &&
+                ((x.TargetInstallationId == null && x.TargetLicenseId == null) ||
+                 (x.TargetInstallationId == id && x.TargetLicenseId == null) ||
+                 (x.TargetInstallationId == null && x.TargetLicenseId != null && x.TargetLicenseId == device.LicenseId)) &&
                 x.CreatedAt <= now && (x.ExpiresAt == null || x.ExpiresAt > now))
             .OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).Take(50).ToListAsync(ct);
         var response = new DeviceExperienceResponse(device.AllowSubscriptionDetails, notifications.Select(x =>

@@ -695,7 +695,7 @@ class PlayerViewModel @Inject constructor(
                 if (consecutiveLowBandwidthSeconds >= LOW_BANDWIDTH_DURATION_SECONDS && !noticeShown) {
                     noticeShown = true
                     showPlayerNotice(
-                        message = "Network speed is low \u2014 stream quality reduced",
+                        message = "Network speed is low",
                         recoveryType = PlayerRecoveryType.NETWORK,
                         durationMs = 10_000L
                     )
@@ -896,6 +896,12 @@ class PlayerViewModel @Inject constructor(
     val availableVideoQualities: StateFlow<List<com.MegaStream.player.PlayerTrack>> by lazy(LazyThreadSafetyMode.NONE) {
         activeEngineState(emptyList()) { it.availableVideoTracks }
     }
+    val wifiVideoQualityCap = preferencesRepository.playerWifiMaxVideoHeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1080)
+    val ethernetVideoQualityCap = preferencesRepository.playerEthernetMaxVideoHeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1080)
+    val adaptiveVideoQuality = preferencesRepository.playerAdaptiveVideoQuality
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
     val isMuted: StateFlow<Boolean> = activeEngineState(false) { it.isMuted }
     val mediaTitle: StateFlow<String?> = activeEngineState<String?>(null) { it.mediaTitle }
     val playbackSpeed: StateFlow<Float> = activeEngineState(1f) { it.playbackSpeed }
@@ -1056,6 +1062,7 @@ class PlayerViewModel @Inject constructor(
             wifiMaxHeight = preferencesRepository.playerWifiMaxVideoHeight.first(),
             ethernetMaxHeight = preferencesRepository.playerEthernetMaxVideoHeight.first()
         )
+        playerEngine.setAdaptiveVideoQualityEnabled(preferencesRepository.playerAdaptiveVideoQuality.first())
         playerEngine.setSurfaceMode(preferencesRepository.playerSurfaceMode.first())
         playerEngine.setAudioVideoOffsetMs(_audioVideoOffsetUiState.value.effectiveOffsetMs)
     }

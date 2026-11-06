@@ -181,7 +181,10 @@ internal fun DeviceNotificationsDialog(
                                         isSelected = selected?.id == notice.id,
                                         date = formatNoticeDate(notice.createdAt, locale),
                                         enabled = canInteract,
-                                        onClick = { selectedId = notice.id },
+                                        onClick = {
+                                            selectedId = notice.id
+                                            if (wide) detailFocus.requestFocusSafely(tag = "Notifications", target = "Selected message")
+                                        },
                                         modifier = (if (index == listState.firstVisibleItemIndex)
                                             Modifier.focusRequester(listFocus) else Modifier).focusProperties {
                                                 if (wide) end = detailFocus

@@ -71,7 +71,28 @@ fun PlayerViewModel.selectSubtitleTrack(trackId: String?) {
 }
 
 fun PlayerViewModel.selectVideoQuality(trackId: String) {
+    val adaptive = trackId == com.MegaStream.player.PLAYER_TRACK_AUTO_ID
+    playerEngine.setAdaptiveVideoQualityEnabled(adaptive)
     playerEngine.selectVideoTrack(trackId)
+    viewModelScope.launch { preferencesRepository.setPlayerAdaptiveVideoQuality(adaptive) }
+}
+
+fun PlayerViewModel.setFixedVideoQuality(fixed: Boolean) {
+    playerEngine.setAdaptiveVideoQualityEnabled(!fixed)
+    viewModelScope.launch { preferencesRepository.setPlayerAdaptiveVideoQuality(!fixed) }
+}
+
+fun PlayerViewModel.setVideoQualityCap(maxHeight: Int?, ethernet: Boolean) {
+    require(maxHeight == null || maxHeight in com.MegaStream.domain.model.PLAYBACK_VIDEO_HEIGHTS)
+    viewModelScope.launch {
+        if (ethernet) preferencesRepository.setPlayerEthernetMaxVideoHeight(maxHeight)
+        else preferencesRepository.setPlayerWifiMaxVideoHeight(maxHeight)
+        playerEngine.selectVideoTrack(com.MegaStream.player.PLAYER_TRACK_AUTO_ID)
+        playerEngine.setNetworkQualityPreferences(
+            preferencesRepository.playerWifiMaxVideoHeight.first(),
+            preferencesRepository.playerEthernetMaxVideoHeight.first()
+        )
+    }
 }
 
 fun PlayerViewModel.selectLiveVariant(rawChannelId: Long) {

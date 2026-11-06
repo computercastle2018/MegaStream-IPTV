@@ -300,6 +300,9 @@ public sealed class DeviceExperienceTests
 
     [Theory]
     [InlineData("/Admin/SendNotification")]
+    [InlineData("/Admin/ArchiveNotification")]
+    [InlineData("/Admin/RestoreNotification")]
+    [InlineData("/Admin/ArchiveNotificationsBefore")]
     [InlineData("/Admin/SetSubscriptionDetailsPolicy")]
     public async Task Admin_experience_changes_require_csrf_even_with_admin_cookie(string path)
     {
@@ -357,12 +360,29 @@ public sealed class DeviceExperienceTests
     [InlineData("oversize_message")]
     [InlineData("empty_after_sanitization")]
     [InlineData("expired")]
+    [InlineData("license")]
+    [InlineData("missing_license")]
+    [InlineData("empty_license")]
+    [InlineData("two_targets")]
+    [InlineData("wrong_audience")]
+    [InlineData("invalid_audience")]
+    [InlineData("device_without_target")]
+    [InlineData("license_without_target")]
     public async Task Admin_notification_validates_target_content_and_expiration_before_saving(string scenario)
     {
         using var app = new TestApplication();
         using var client = Client(app);
         var device = await Register(app);
         await Login(app, client);
+        Guid licenseId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var license = new License { KeyHash = Secrets.RandomToken(), Label = "Customer license" };
+            db.Licenses.Add(license);
+            await db.SaveChangesAsync();
+            licenseId = license.Id;
+        }
         if (scenario == "revoked")
         {
             using var scope = app.Services.CreateScope();
@@ -375,20 +395,164 @@ public sealed class DeviceExperienceTests
             ["Message"] = scenario switch { "oversize_message" => new string('x', 2001), "empty_after_sanitization" => "\u0001", _ => "Service update password=do-not-deliver" },
             ["TargetInstallationId"] = scenario switch { "global" => "", "missing" => Guid.NewGuid().ToString(), "malformed" => "not-a-guid", _ => device.InstallationId.ToString() }
         };
+        if (scenario is "license" or "missing_license" or "empty_license" or "two_targets")
+        {
+            form["TargetLicenseId"] = (scenario == "missing_license" ? Guid.NewGuid() : scenario == "empty_license" ? Guid.Empty : licenseId).ToString();
+            if (scenario != "two_targets") form["TargetInstallationId"] = "";
+            if (scenario != "two_targets") form["Audience"] = "CUSTOMER_LICENSE";
+        }
+        if (scenario is "device_without_target" or "license_without_target")
+        {
+            form["TargetInstallationId"] = "";
+            form["Audience"] = scenario == "device_without_target" ? "DEVICE" : "CUSTOMER_LICENSE";
+        }
+        if (scenario == "wrong_audience") form["Audience"] = "ALL";
+        if (scenario == "invalid_audience") form["Audience"] = "IDENTITY_USER";
         if (scenario == "expired") form["ExpiresAt"] = "2000-01-01T12:00";
         if (scenario == "device") form["ExpiresAt"] = "2099-01-01T12:00";
         var before = DateTime.UtcNow;
         using var response = await client.PostAsync("/Admin/SendNotification", new FormUrlEncodedContent(form));
-        var valid = scenario is "global" or "device";
+        var valid = scenario is "global" or "device" or "license";
         Assert.Equal(valid ? HttpStatusCode.Redirect : HttpStatusCode.BadRequest, response.StatusCode);
         using var verify = app.Services.CreateScope();
         var notifications = await verify.ServiceProvider.GetRequiredService<AppDbContext>().AdminNotifications.ToListAsync();
         if (!valid) { Assert.Empty(notifications); return; }
         var saved = Assert.Single(notifications);
-        Assert.Equal(scenario == "global" ? (Guid?)null : device.InstallationId, saved.TargetInstallationId);
+        Assert.Equal(scenario == "device" ? device.InstallationId : (Guid?)null, saved.TargetInstallationId);
+        Assert.Equal(scenario == "license" ? licenseId : (Guid?)null, saved.TargetLicenseId);
         Assert.DoesNotContain("do-not-deliver", saved.Message);
-        if (scenario == "global") Assert.InRange(saved.ExpiresAt!.Value, before.AddDays(30), DateTime.UtcNow.AddDays(30));
+        if (scenario != "device") Assert.InRange(saved.ExpiresAt!.Value, before.AddDays(30), DateTime.UtcNow.AddDays(30));
         else Assert.Equal(new DateTime(2099, 1, 1, 12, 0, 0), saved.ExpiresAt);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public async Task Notifications_isolate_licenses_devices_and_unlicensed_viewers_without_changing_notice_shape(int version)
+    {
+        using var app = new TestApplication();
+        var first = await Register(app);
+        var sibling = await Register(app);
+        var other = await Register(app);
+        var unlicensed = await Register(app);
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var license = new License { KeyHash = Secrets.RandomToken(), Label = "First" };
+            var otherLicense = new License { KeyHash = Secrets.RandomToken(), Label = "Other" };
+            db.Licenses.AddRange(license, otherLicense);
+            await db.SaveChangesAsync();
+            await db.Installations.Where(x => x.Id == first.InstallationId || x.Id == sibling.InstallationId)
+                .ExecuteUpdateAsync(set => set.SetProperty(x => x.LicenseId, license.Id));
+            await db.Installations.Where(x => x.Id == other.InstallationId)
+                .ExecuteUpdateAsync(set => set.SetProperty(x => x.LicenseId, otherLicense.Id));
+            db.AdminNotifications.AddRange(
+                new() { Title = "Global", Message = "All" },
+                new() { Title = "Device", Message = "Only first", TargetInstallationId = first.InstallationId },
+                new() { Title = "License", Message = "First customer", TargetLicenseId = license.Id },
+                new() { Title = "Other license", Message = "Other customer", TargetLicenseId = otherLicense.Id },
+                new() { Title = "Archived", Message = "Hidden", TargetLicenseId = license.Id, ArchivedAt = DateTime.UtcNow });
+            await db.SaveChangesAsync();
+        }
+        var viewers = new[] { first, sibling, other, unlicensed };
+        string[][] expected = [["Device", "Global", "License"], ["Global", "License"], ["Global", "Other license"], ["Global"]];
+        for (var i = 0; i < viewers.Length; i++)
+        {
+            using var client = Client(app);
+            client.DefaultRequestHeaders.Authorization = new("Bearer", viewers[i].BearerToken);
+            var json = await client.GetFromJsonAsync<JsonElement>(Path + "?version=" + version + "&installationId=" + first.InstallationId);
+            var notices = json.GetProperty("notifications").EnumerateArray().ToArray();
+            Assert.Equal(expected[i], notices.Select(x => x.GetProperty("title").GetString()).Order().ToArray());
+            foreach (var notice in notices)
+                Assert.Equal(new[] { "createdAt", "id", "message", "title" }, notice.EnumerateObject().Select(x => x.Name).Order().ToArray());
+        }
+    }
+
+    [Fact]
+    public async Task Notification_database_rejects_two_targets_even_outside_admin_form()
+    {
+        using var app = new TestApplication();
+        var device = await Register(app);
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var license = new License { KeyHash = Secrets.RandomToken(), Label = "Customer" };
+        db.Licenses.Add(license);
+        await db.SaveChangesAsync();
+        db.AdminNotifications.Add(new() { Title = "Invalid", Message = "Two targets",
+            TargetInstallationId = device.InstallationId, TargetLicenseId = license.Id });
+        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Archive_before_explicit_utc_cutoff_is_strict_reversible_and_spans_all_audiences()
+    {
+        using var app = new TestApplication();
+        using var client = Client(app);
+        var device = await Register(app);
+        await Login(app, client);
+        var cutoff = new DateTime(2026, 10, 29, 21, 0, 0, DateTimeKind.Utc);
+        var priorArchive = cutoff.AddDays(-2);
+        Guid globalId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var license = new License { KeyHash = Secrets.RandomToken(), Label = "Customer" };
+            db.Licenses.Add(license);
+            await db.SaveChangesAsync();
+            var global = new AdminNotification { Title = "Old global", Message = "All", CreatedAt = cutoff.AddSeconds(-1) };
+            globalId = global.Id;
+            db.AdminNotifications.AddRange(global,
+                new() { Title = "Old device", Message = "Device", TargetInstallationId = device.InstallationId, CreatedAt = cutoff.AddSeconds(-1) },
+                new() { Title = "Old license", Message = "License", TargetLicenseId = license.Id, CreatedAt = cutoff.AddSeconds(-1) },
+                new() { Title = "At cutoff", Message = "Keep", CreatedAt = cutoff },
+                new() { Title = "New", Message = "Keep", CreatedAt = cutoff.AddSeconds(1) },
+                new() { Title = "Previously archived", Message = "Keep timestamp", CreatedAt = cutoff.AddDays(-3), ArchivedAt = priorArchive });
+            await db.SaveChangesAsync();
+        }
+        async Task<HttpResponseMessage> Post(string action, Dictionary<string, string> fields)
+        {
+            fields["__RequestVerificationToken"] = Token(await client.GetStringAsync("/Admin/Notifications"));
+            return await client.PostAsync("/Admin/" + action, new FormUrlEncodedContent(fields));
+        }
+        foreach (var invalid in new[] { "2026-10-29T21:00:00", "2026-10-30T00:00:00+03:00", "garbage", "2099-01-01T00:00:00Z" })
+            using (var rejected = await Post("ArchiveNotificationsBefore", new() { ["CutoffUtc"] = invalid, ["Confirm"] = "true" }))
+                Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        using (var unconfirmed = await Post("ArchiveNotificationsBefore", new() { ["CutoffUtc"] = "2026-10-29T21:00:00Z" }))
+            Assert.Equal(HttpStatusCode.BadRequest, unconfirmed.StatusCode);
+        using (var scope = app.Services.CreateScope())
+            Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<AppDbContext>().AdminNotifications.CountAsync(x => x.ArchivedAt != null));
+        using (var archived = await Post("ArchiveNotificationsBefore", new() { ["CutoffUtc"] = "2026-10-29T21:00:00Z", ["Confirm"] = "true" }))
+            Assert.Equal(HttpStatusCode.Redirect, archived.StatusCode);
+        using (var scope = app.Services.CreateScope())
+        {
+            var rows = await scope.ServiceProvider.GetRequiredService<AppDbContext>().AdminNotifications.ToListAsync();
+            Assert.Equal(6, rows.Count);
+            Assert.Equal(4, rows.Count(x => x.ArchivedAt != null));
+            Assert.All(rows.Where(x => x.CreatedAt >= cutoff), x => Assert.Null(x.ArchivedAt));
+            Assert.Equal(priorArchive, rows.Single(x => x.Title == "Previously archived").ArchivedAt);
+        }
+        using var bearer = Client(app);
+        bearer.DefaultRequestHeaders.Authorization = new("Bearer", device.BearerToken);
+        async Task<string[]> Delivered() => (await bearer.GetFromJsonAsync<JsonElement>(Path)).GetProperty("notifications")
+            .EnumerateArray().Select(x => x.GetProperty("title").GetString()!).Order().ToArray();
+        Assert.Equal(new[] { "At cutoff", "New" }, await Delivered());
+        using (var restored = await Post("RestoreNotification", new() { ["id"] = globalId.ToString() }))
+            Assert.Equal(HttpStatusCode.Redirect, restored.StatusCode);
+        Assert.Contains("Old global", await Delivered());
+        using (var archived = await Post("ArchiveNotification", new() { ["id"] = globalId.ToString() }))
+            Assert.Equal(HttpStatusCode.Redirect, archived.StatusCode);
+        Assert.DoesNotContain("Old global", await Delivered());
+        foreach (var audience in new[] { "ALL", "DEVICE", "CUSTOMER_LICENSE" })
+        {
+            var html = await client.GetStringAsync("/Admin/Notifications?state=archived&audience=" + audience);
+            Assert.Contains(audience == "ALL" ? "Old global" : audience == "DEVICE" ? "Old device" : "Old license", html);
+            Assert.DoesNotContain(audience == "DEVICE" ? "Old license" : "Old device", html);
+            Assert.Contains("RestoreNotification", html);
+        }
+        var activeHtml = await client.GetStringAsync("/Admin/Notifications");
+        Assert.Contains("At cutoff", activeHtml);
+        Assert.DoesNotContain("Old global", activeHtml);
     }
 
     [Fact]

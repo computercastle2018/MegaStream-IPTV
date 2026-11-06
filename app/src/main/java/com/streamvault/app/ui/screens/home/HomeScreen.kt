@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.border
@@ -27,6 +28,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -51,7 +54,6 @@ import com.MegaStream.app.ui.components.CategoryRow
 import com.MegaStream.app.ui.components.ChannelCard
 import com.MegaStream.app.ui.components.LiveSourceSwitcher
 import com.MegaStream.app.ui.components.shell.ContentMetadataStrip
-import com.MegaStream.app.ui.components.shell.LiveChannelRowSurface
 import com.MegaStream.app.ui.components.shell.StatusPill
 import com.MegaStream.app.ui.components.TvEmptyState
 import com.MegaStream.app.ui.components.dialogs.CategoryOptionsDialog
@@ -88,6 +90,8 @@ import com.MegaStream.app.R
 import com.MegaStream.app.ui.components.shell.mediaCardShape
 import com.MegaStream.app.ui.model.LiveTvChannelMode
 import com.MegaStream.app.ui.model.AppUiStyle
+import com.MegaStream.app.ui.model.CategoryGenre
+import com.MegaStream.app.ui.model.matchesGenre
 import com.MegaStream.app.ui.screens.multiview.MultiViewViewModel
 import com.MegaStream.app.ui.screens.multiview.MultiViewPlannerDialog
 import com.MegaStream.app.navigation.Routes
@@ -150,6 +154,9 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isStudio = LocalAppUiStyle.current == AppUiStyle.STUDIO
+    val isTvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
+    val towardCategoriesKey = if (LocalLayoutDirection.current == LayoutDirection.Rtl)
+        android.view.KeyEvent.KEYCODE_DPAD_RIGHT else android.view.KeyEvent.KEYCODE_DPAD_LEFT
     val providerNameById = remember(uiState.allProviders) {
         uiState.allProviders.associateBy({ it.id }, { it.name })
     }
@@ -158,11 +165,13 @@ fun HomeScreen(
     }
     val shouldShowLiveSourceSwitcher = uiState.showLiveSourceSwitcher && uiState.liveSourceOptions.isNotEmpty()
     val isReorderMode = uiState.isChannelReorderMode
-    val isProMode = uiState.liveTvChannelMode == LiveTvChannelMode.PRO
-    val isDenseMode = uiState.liveTvChannelMode != LiveTvChannelMode.COMFORTABLE
+    val isProMode = isTvPro || uiState.liveTvChannelMode == LiveTvChannelMode.PRO
+    val isDenseMode = isTvPro || uiState.liveTvChannelMode != LiveTvChannelMode.COMFORTABLE
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val isTelevisionDevice = rememberIsTelevisionDevice()
-    val sidebarWidth = if (isStudio && screenWidth >= 840.dp) {
+    val sidebarWidth = if (isTvPro) {
+        148.dp
+    } else if (isStudio && screenWidth >= 840.dp) {
         176.dp
     } else if (screenWidth < 900.dp) {
         (screenWidth * 0.36f).coerceIn(188.dp, 220.dp)
@@ -184,12 +193,12 @@ fun HomeScreen(
     } else {
         340.dp
     }
-    val channelRowHeight = when (uiState.liveTvChannelMode) {
+    val channelRowHeight = if (isTvPro) 44.dp else when (uiState.liveTvChannelMode) {
         LiveTvChannelMode.COMFORTABLE -> 92.dp
         LiveTvChannelMode.COMPACT -> 54.dp
         LiveTvChannelMode.PRO -> 52.dp
     }
-    val channelListSpacing = when (uiState.liveTvChannelMode) {
+    val channelListSpacing = if (isTvPro) 2.dp else when (uiState.liveTvChannelMode) {
         LiveTvChannelMode.COMFORTABLE -> 8.dp
         LiveTvChannelMode.COMPACT -> 2.dp
         LiveTvChannelMode.PRO -> 2.dp
@@ -388,12 +397,13 @@ fun HomeScreen(
                 val channelSearchFocusRequester = remember { FocusRequester() }
                 val categoryFocusRequesters = remember { mutableMapOf<Long, FocusRequester>() }
                 val channelFocusRequesters = remember { mutableMapOf<Long, FocusRequester>() }
-                val visibleCategories = remember(uiState.categories, uiState.categorySearchQuery) {
+                val visibleCategories = remember(uiState.categories, uiState.categorySearchQuery, uiState.categoryGenre) {
                     uiState.categories
                         .asSequence()
                         .filter {
-                            uiState.categorySearchQuery.isEmpty() ||
-                                it.name.contains(uiState.categorySearchQuery, ignoreCase = true)
+                            it.matchesGenre(uiState.categoryGenre) &&
+                                (uiState.categorySearchQuery.isEmpty() ||
+                                    it.name.contains(uiState.categorySearchQuery, ignoreCase = true))
                         }
                         .toList()
                 }
@@ -483,6 +493,7 @@ fun HomeScreen(
                 }
 
                 val displayedCategory = uiState.selectedCategory?.takeIf { !isCategoryLocked(it) }
+                val awaitingGenreCategory = uiState.categoryGenre != null && uiState.selectedCategory == null && visibleCategories.isNotEmpty()
                 val hasBlockedCategorySearch =
                     uiState.categorySearchQuery.isNotBlank() &&
                         visibleCategories.isNotEmpty() &&
@@ -635,7 +646,8 @@ fun HomeScreen(
                         modifier = Modifier
                             .width(sidebarWidth)
                             .fillMaxHeight()
-                            .background(SurfaceElevated.copy(alpha = 0.88f), RoundedCornerShape(if (isStudio) 0.dp else 20.dp))
+                            .background(if (isTvPro) MaterialTheme.colorScheme.surface else SurfaceElevated.copy(alpha = 0.88f),
+                                RoundedCornerShape(if (isStudio || isTvPro) 0.dp else 20.dp))
                             .padding(top = 10.dp)
                             .focusGroup()
                     ) {
@@ -668,6 +680,23 @@ fun HomeScreen(
                                     )
                                 }
                             }
+                            val availableGenres = remember(uiState.categories) {
+                                uiState.categories.filter { !it.isVirtual && it.id != ChannelRepository.ALL_CHANNELS_ID }
+                                    .map { CategoryGenre.fromName(it.name) }.toSet()
+                            }
+                            SelectionChipRow(
+                                title = stringResource(R.string.category_genre_title),
+                                chips = listOf(SelectionChip("all", stringResource(R.string.category_genre_all))) +
+                                    CategoryGenre.entries.filter { it in availableGenres }.map {
+                                        SelectionChip(it.name, stringResource(it.labelResId))
+                                    },
+                                selectedKey = uiState.categoryGenre?.name ?: "all",
+                                onChipSelected = { key ->
+                                    viewModel.setCategoryGenre(CategoryGenre.entries.firstOrNull { it.name == key })
+                                },
+                                contentPadding = PaddingValues(horizontal = 0.dp),
+                                modifier = Modifier.padding(bottom = 10.dp)
+                            )
                             SearchInput(
                                 value = uiState.categorySearchQuery,
                                 onValueChange = {
@@ -687,7 +716,11 @@ fun HomeScreen(
                             }
                             if (shouldShowQuickFiltersControl) {
                                 val activeSavedFilter = uiState.activeCategoryFilter
+                                val activeGenre = uiState.categoryGenre
                                 val filterSubtitle = when {
+                                    uiState.categorySearchQuery.isBlank() && activeGenre != null -> {
+                                        stringResource(activeGenre.labelResId)
+                                    }
                                     uiState.categorySearchQuery.isBlank() -> {
                                         stringResource(R.string.home_quick_filters_showing_all)
                                     }
@@ -875,9 +908,6 @@ fun HomeScreen(
                                     preferredRestoreTarget = FocusRestoreTarget.CATEGORY.name
                                     viewModel.showCategoryOptions(category)
                                 },
-                                onJumpToSearch = {
-                                    runCatching { categorySearchFocusRequester.requestFocus() }.isSuccess
-                                },
                                 onJumpToContent = {
                                     if (isLocked) {
                                         pendingCategoryContentJumpCategoryId = null
@@ -921,7 +951,7 @@ fun HomeScreen(
                     }
                     Column(
                         modifier = Modifier
-                            .weight(if (isStudio && isProMode) 0.9f else if (isProMode) 1.08f else 1f)
+                            .weight(if (isTvPro) 0.8f else if (isStudio && isProMode) 0.9f else if (isProMode) 1.08f else 1f)
                             .fillMaxHeight()
                     ) {
                         Column(
@@ -939,7 +969,7 @@ fun HomeScreen(
                                     text = displayedCategory?.name ?: if (hasBlockedCategorySearch) {
                                         stringResource(R.string.home_locked_short)
                                     } else {
-                                        stringResource(R.string.home_all_channels)
+                                        stringResource(uiState.categoryGenre?.labelResId ?: R.string.home_all_channels)
                                     },
                                     style = if (isDenseMode) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                                     color = OnBackground,
@@ -1065,15 +1095,17 @@ fun HomeScreen(
                                         )
                                     } else {
                                         Text(
-                                            text = stringResource(R.string.home_no_channels_found),
+                                            text = stringResource(if (awaitingGenreCategory) R.string.home_select_genre_group else R.string.home_no_channels_found),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = OnBackground
                                         )
-                                        Text(
-                                            text = stringResource(R.string.home_no_channels_found_subtitle),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = OnSurfaceDim
-                                        )
+                                        if (!awaitingGenreCategory) {
+                                            Text(
+                                                text = stringResource(R.string.home_no_channels_found_subtitle),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = OnSurfaceDim
+                                            )
+                                        }
                                         val selectedCategory = uiState.selectedCategory
                                         if (selectedCategory?.isVirtual == true && selectedCategory.id == VirtualCategoryIds.FAVORITES) {
                                             Text(
@@ -1186,15 +1218,17 @@ fun HomeScreen(
                                 ),
                                 verticalArrangement = Arrangement.spacedBy(channelListSpacing)
                             ) {
-                                items(
+                                itemsIndexed(
                                     items = uiState.filteredChannels,
-                                    key = { it.id }
-                                ) { channel ->
+                                    key = { _, channel -> channel.id }
+                                ) { index, channel ->
                                     val isLocked = isChannelLocked(channel)
                                     val isDraggingThis = draggingChannel == channel
                                     val channelFocusRequester = channelFocusRequesters.getOrPut(channel.id) { FocusRequester() }
 
-                                    LiveChannelRowSurface(
+                                    CatalogLiveChannelRow(
+                                        tvPro = isTvPro,
+                                        rowNumber = index + 1,
                                         channel = channel,
                                         sourceBadgeLabel = uiState.currentCombinedProfileMembers
                                             .firstOrNull { it.providerId == channel.providerId }
@@ -1273,6 +1307,11 @@ fun HomeScreen(
                                                         }
                                                         else -> false
                                                     }
+                                                } else if (isTvPro && !isReorderMode &&
+                                                    event.nativeKeyEvent.action == android.view.KeyEvent.ACTION_DOWN &&
+                                                    event.nativeKeyEvent.keyCode == towardCategoriesKey) {
+                                                    requestCategoryFocus(lastFocusedCategoryId)
+                                                        || requestCategoryFocus(uiState.selectedCategory?.id)
                                                 } else false
                                             }
                                     )
@@ -1289,7 +1328,7 @@ fun HomeScreen(
                             isLoading = uiState.isPreviewLoading,
                             errorMessage = uiState.previewErrorMessage,
                             modifier = Modifier
-                                .weight(0.92f)
+                                .weight(if (isTvPro) 1.3f else 0.92f)
                                 .fillMaxHeight()
                         )
                     }

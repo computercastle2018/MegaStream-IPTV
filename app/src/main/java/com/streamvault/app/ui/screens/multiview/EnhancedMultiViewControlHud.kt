@@ -50,7 +50,7 @@ internal fun EnhancedMultiViewControlHud(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
-            .background(Color(0xFF0B1220).copy(alpha = 0.94f), RoundedCornerShape(24.dp))
+            .background(Color(0xFF160A0E).copy(alpha = 0.94f), RoundedCornerShape(24.dp))
             .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
             .padding(horizontal = 22.dp, vertical = 18.dp)
     ) {
@@ -153,7 +153,7 @@ internal fun EnhancedMultiViewControlHud(
                 TvButton(
                     onClick = onClearPinnedAudio,
                     colors = ButtonDefaults.colors(
-                        containerColor = Color(0xFF203A5C),
+                        containerColor = Color(0xFF2A1A1F),
                         contentColor = Color.White,
                         focusedContainerColor = Color.White,
                         focusedContentColor = Color.Black
@@ -166,7 +166,7 @@ internal fun EnhancedMultiViewControlHud(
                     onClick = onPinAudioToFocusedSlot,
                     enabled = focused != null && !focused.isEmpty && focused.performanceBlockedReason == null,
                     colors = ButtonDefaults.colors(
-                        containerColor = Color(0xFF203A5C),
+                        containerColor = Color(0xFF2A1A1F),
                         contentColor = Color.White,
                         focusedContainerColor = Color.White,
                         focusedContentColor = Color.Black
@@ -210,7 +210,7 @@ internal fun EnhancedMultiViewControlHud(
                         TvButton(
                             onClick = { onSavePreset(preset.index) },
                             colors = ButtonDefaults.colors(
-                                containerColor = Color(0xFF172033),
+                                containerColor = Color(0xFF1D1115),
                                 contentColor = Color.White,
                                 focusedContainerColor = Color.White,
                                 focusedContentColor = Color.Black

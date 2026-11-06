@@ -37,6 +37,7 @@ class PlayerTrackController(
     private var preferredWifiMaxVideoHeight: Int? = DEFAULT_PLAYBACK_MAX_VIDEO_HEIGHT
     private var preferredEthernetMaxVideoHeight: Int? = DEFAULT_PLAYBACK_MAX_VIDEO_HEIGHT
     private var qualityPolicy = PlaybackVideoQualityPolicy()
+    private var adaptiveQualityEnabled = true
 
     fun resetSelections() {
         _availableAudioTracks.value = emptyList()
@@ -86,16 +87,35 @@ class PlayerTrackController(
         return true
     }
 
+    fun setAdaptiveQualityEnabled(enabled: Boolean) {
+        adaptiveQualityEnabled = enabled
+        if (enabled) selectedVideoTrackId = PLAYER_TRACK_AUTO_ID
+    }
+
     fun applyVideoQualityParameters(player: ExoPlayer, constrainResolution: Boolean) {
-        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon().apply {
-            resolvedMaxVideoHeightForCurrentNetwork(constrainResolution)?.let {
+        val maxHeight = resolvedMaxVideoHeightForCurrentNetwork(constrainResolution)
+        val group = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_VIDEO }
+            .let { groups -> groups.firstOrNull { it.isSelected } ?: groups.firstOrNull() }
+        val manual = selectedVideoTrackId.takeUnless { it == PLAYER_TRACK_AUTO_ID }
+            ?.let { findOverride(player.currentTracks, C.TRACK_TYPE_VIDEO, it) }
+            ?.takeIf { qualityPolicy.permitsManualTrack(it.mediaTrackGroup.getFormat(it.trackIndices.first()).height) }
+        if (manual == null) selectedVideoTrackId = PLAYER_TRACK_AUTO_ID
+        val override = manual ?: group?.let {
+            val heights = (0 until it.length).map { index ->
+                if (it.isTrackSupported(index, false)) it.mediaTrackGroup.getFormat(index).height else Int.MIN_VALUE
+            }
+            qualityTrackIndices(heights, maxHeight, qualityPolicy.adminMaxVideoHeight, adaptiveQualityEnabled)
+                .takeIf { indices -> indices.isNotEmpty() }
+                ?.let { indices -> TrackSelectionOverride(it.mediaTrackGroup, indices) }
+        }
+        val parameters = player.trackSelectionParameters.buildUpon().apply {
+            maxHeight?.let {
                 setMaxVideoSize(Int.MAX_VALUE, it)
             } ?: clearVideoSizeConstraints()
-            if (qualityPolicy.adminMaxVideoHeight != null) {
-                clearOverridesOfType(C.TRACK_TYPE_VIDEO)
-                selectedVideoTrackId = PLAYER_TRACK_AUTO_ID
-            }
+            clearOverridesOfType(C.TRACK_TYPE_VIDEO)
+            if (override != null) setOverrideForType(override)
         }.build()
+        if (parameters != player.trackSelectionParameters) player.trackSelectionParameters = parameters
         (player.trackSelector as? DefaultTrackSelector)?.let { selector ->
             selector.parameters = selector.parameters.buildUpon()
                 .setExceedVideoConstraintsIfNecessary(qualityPolicy.adminMaxVideoHeight == null)
@@ -304,4 +324,14 @@ internal fun normalizeSelectedVideoTrackId(
     selectedTrackId in availableTrackIds -> selectedTrackId
     availableTrackIds.size == 1 -> availableTrackIds.first()
     else -> PLAYER_TRACK_AUTO_ID
+}
+
+internal fun qualityTrackIndices(heights: List<Int>, maxHeight: Int?, adminMaxHeight: Int?, adaptive: Boolean): List<Int> {
+    val permitted = heights.indices.filter { index -> heights[index] != Int.MIN_VALUE &&
+        (adminMaxHeight == null || heights[index] in 1..adminMaxHeight) }
+    val belowCap = permitted.filter { maxHeight == null || heights[it] in 1..maxHeight }
+    val candidates = belowCap.ifEmpty {
+        permitted.minByOrNull { heights[it].takeIf { height -> height > 0 } ?: Int.MAX_VALUE }?.let(::listOf).orEmpty()
+    }
+    return if (adaptive) candidates else candidates.maxByOrNull { heights[it] }?.let(::listOf).orEmpty()
 }

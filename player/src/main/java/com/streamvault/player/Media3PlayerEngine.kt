@@ -611,6 +611,12 @@ class Media3PlayerEngine @Inject constructor(
             constrainResolutionForMultiView || activeDecoderPolicy == ActiveDecoderPolicy.COMPATIBILITY) }
     }
 
+    override fun setAdaptiveVideoQualityEnabled(enabled: Boolean) {
+        trackController.setAdaptiveQualityEnabled(enabled)
+        exoPlayer?.let { trackController.applyVideoQualityParameters(it,
+            constrainResolutionForMultiView || activeDecoderPolicy == ActiveDecoderPolicy.COMPATIBILITY) }
+    }
+
     override fun setAdminMaxVideoHeight(maxHeight: Int?) {
         if (trackController.setAdminMaxVideoHeight(maxHeight)) exoPlayer?.let { player ->
             trackController.applyVideoQualityParameters(player,
@@ -989,8 +995,8 @@ class Media3PlayerEngine @Inject constructor(
         // (An over-high seed — e.g. 8 Mbps on WiFi — forced a heavy 1080p first
         // segment and caused a long buffering pause before playback began.)
         val bandwidthMeter = DefaultBandwidthMeter.Builder(context)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_WIFI, 3_000_000L)
-            .setInitialBitrateEstimate(C.NETWORK_TYPE_ETHERNET, 6_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_WIFI, 2_000_000L)
+            .setInitialBitrateEstimate(C.NETWORK_TYPE_ETHERNET, 2_000_000L)
             .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_NSA, 4_500_000L)
             .setInitialBitrateEstimate(C.NETWORK_TYPE_5G_SA, 5_000_000L)
             .setInitialBitrateEstimate(C.NETWORK_TYPE_4G, 2_500_000L)
@@ -1304,7 +1310,9 @@ class Media3PlayerEngine @Inject constructor(
             }
 
             override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
-                trackController.onTracksChanged(tracks)
+                exoPlayer?.let { trackController.applyVideoQualityParameters(it,
+                    constrainResolutionForMultiView || activeDecoderPolicy == ActiveDecoderPolicy.COMPATIBILITY) }
+                    ?: trackController.onTracksChanged(tracks)
                 // Detect the silent failure: the stream contains audio groups but no track
                 // is decodable on this device (e.g. EAC3/AC3 without passthrough or a
                 // software decoder). ExoPlayer simply skips the audio renderer without

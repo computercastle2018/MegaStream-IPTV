@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const pkg = require("./package.json");
+const desktop = process.env.MEGASTREAM_DESKTOP === "1";
 
 // base: "./" is REQUIRED. webOS loads the packaged app from a file:// origin,
 // so all asset URLs in index.html must be relative, not absolute ("/assets/...").
@@ -11,11 +12,12 @@ const pkg = require("./package.json");
 // Targeting es2019 avoids syntax the on-device engine cannot parse.
 export default defineConfig({
   plugins: [react()],
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  define: { __APP_VERSION__: JSON.stringify(desktop ? require("../desktop/package.json").version : pkg.version) },
   base: "./",
   build: {
     target: "es2019",
-    outDir: "dist",
+    outDir: desktop ? "../desktop/ui" : "dist",
+    emptyOutDir: true,
     assetsInlineLimit: 0,
   },
 });

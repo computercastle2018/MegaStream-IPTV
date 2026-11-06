@@ -13,6 +13,50 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ControlPlaneClientTest {
+    @Test fun appearanceUsesAuthenticatedPostWithExplicitExpectedAndAccepts204OrConflict() {
+        var status = 204
+        val client = ControlPlaneClient(CallExecutor {
+            assertEquals("/api/v1/devices/appearance", it.url.encodedPath)
+            assertEquals("POST", it.method)
+            assertEquals("Bearer $CREDENTIAL", it.header("Authorization"))
+            assertEquals("""{"uiStyle":"modern","expectedUiStyle":null}""", body(it))
+            response(it, "", status, null)
+        })
+        assertTrue(client.setAppearance(CREDENTIAL, DeviceAppearanceRequest("modern", null)) is ControlPlaneResult.Success)
+        status = 409
+        val conflict = client.setAppearance(CREDENTIAL, DeviceAppearanceRequest("modern", null)) as ControlPlaneResult.Failure
+        assertEquals(409, conflict.error.status)
+        val noNetwork = ControlPlaneClient(CallExecutor { throw AssertionError("Must not send") })
+        assertFailure("invalid_request", noNetwork.setAppearance("bad", DeviceAppearanceRequest("studio", "classic")))
+    }
+
+    @Test fun redeemProviderUsesInstallationCredentialCodeBodyAndEmpty204() {
+        val client = ControlPlaneClient(CallExecutor {
+            assertEquals("/api/v1/providers/redeem", it.url.encodedPath)
+            assertEquals("POST", it.method)
+            assertEquals("Bearer $CREDENTIAL", it.header("Authorization"))
+            assertEquals("""{"code":"subscription-123"}""", body(it))
+            response(it, "", 204, null)
+        })
+        assertTrue(client.redeemProvider(CREDENTIAL, "  subscription-123  ") is ControlPlaneResult.Success)
+        val noNetwork = ControlPlaneClient(CallExecutor { throw AssertionError("Must not send invalid input") })
+        for (code in listOf("", "  ", "x".repeat(65), "abc\u0000def")) {
+            assertFailure("invalid_request", noNetwork.redeemProvider(CREDENTIAL, code))
+        }
+        assertFailure("invalid_request", noNetwork.redeemProvider("bad", "subscription-123"))
+    }
+
+    @Test fun redeemProviderNeverReturnsRawCodeOrServerErrors() {
+        val secret = "subscription-private"
+        val denied = ControlPlaneClient(CallExecutor { response(it, "rejected $secret", 403, "text/plain") })
+            .redeemProvider(CREDENTIAL, secret) as ControlPlaneResult.Failure
+        assertEquals(403, denied.error.status)
+        assertFalse(denied.toString().contains(secret))
+        assertFailure("network_error", ControlPlaneClient(CallExecutor { throw IOException(secret) })
+            .redeemProvider(CREDENTIAL, secret))
+        val boundary = ControlPlaneClient(CallExecutor { response(it, "", 204, null) })
+        assertTrue(boundary.redeemProvider(CREDENTIAL, "x".repeat(64)) is ControlPlaneResult.Success)
+    }
     @Test fun experienceUsesAuthenticatedSeparateEndpointAndRejectsMalformedNotices() {
         val payload = """{"allowSubscriptionDetails":false,"notifications":[{"id":"$ID","title":"Notice","message":"Hello","createdAt":"$TIME"}],"macAddress":null}"""
         val client = ControlPlaneClient(CallExecutor {

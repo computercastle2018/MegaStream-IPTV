@@ -1,6 +1,7 @@
 package com.MegaStream.app.ui.screens.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,6 +14,20 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.PlayArrow
+import com.MegaStream.app.ui.notifications.DeviceNotificationsAction
+import com.MegaStream.app.ui.time.createTimeFormat
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.height
@@ -30,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -132,7 +148,7 @@ fun DashboardScreen(
             title = stringResource(R.string.nav_home),
             subtitle = provider?.name,
             navigationChrome = AppNavigationChrome.TopBar,
-            initialTopNavigationFocusRoute = Routes.LIVE_TV,
+            initialTopNavigationFocusRoute = if (isStudio) null else Routes.LIVE_TV,
             compactHeader = true,
             showScreenHeader = false
         ) {
@@ -174,14 +190,37 @@ fun DashboardScreen(
                             )
                             else -> DashboardFeature(title = provider.name)
                         }
-                        StudioDashboardHero(
-                            feature = feature,
-                            onFeatureAction = {
-                                if (movie != null) onMovieClick(movie)
-                                else if (series != null) onSeriesClick(series)
-                            },
-                            onNavigate = onNavigate
+                        StudioDashboardTopBar(
+                            expirationDate = uiState.providerHealth.expirationDate,
+                            onOpenSettings = { onNavigate(Routes.SETTINGS) }
                         )
+                        Spacer(Modifier.height(10.dp))
+                        StudioDashboardPanelsRow(
+                            feature = feature,
+                            heroChannels = uiState.heroChannels,
+                            liveChannelCount = uiState.stats.liveChannelCount,
+                            recentMovies = uiState.recentMovies,
+                            recentSeries = uiState.recentSeries,
+                            movieCount = uiState.stats.movieLibraryCount,
+                            seriesCount = uiState.stats.seriesLibraryCount,
+                            onWatchLive = { onNavigate(Routes.LIVE_TV) },
+                            onOpenMovies = { onNavigate(Routes.MOVIES) },
+                            onOpenSeries = { onNavigate(Routes.SERIES) }
+                        )
+                    }
+                    item(key = "dashboard_feature_tiles") {
+                        DashboardFeatureTilesRow(
+                            heroChannels = uiState.heroChannels,
+                            favoriteChannelTotal = uiState.favoriteChannelTotal,
+                            continueWatching = uiState.continueWatching,
+                            currentCombinedProfileId = uiState.currentCombinedProfileId,
+                            onNavigate = onNavigate,
+                            onFavoriteChannelClick = onFavoriteChannelClick,
+                            onPlaybackHistoryClick = onPlaybackHistoryClick
+                        )
+                    }
+                    item(key = "dashboard_quick_actions") {
+                        DashboardQuickActionsRow(onNavigate = onNavigate)
                     }
                 }
                 if (uiState.isLoading && orderedSections.isEmpty()) {
@@ -293,81 +332,330 @@ fun DashboardScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StudioDashboardTopBar(
+    expirationDate: Long?,
+    onOpenSettings: () -> Unit
+) {
+    val (timeLabel, dateLabel) = rememberDashboardClock()
+    val daysRemaining = remember(expirationDate) {
+        expirationDate?.let {
+            ((it - System.currentTimeMillis() + 86_400_000L - 1) / 86_400_000L).toInt().coerceAtLeast(0)
+        }
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .background(AppColors.Surface, RoundedCornerShape(20.dp))
+                .padding(horizontal = 14.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                Icons.Default.Star,
+                contentDescription = null,
+                tint = AppColors.Warning,
+                modifier = Modifier.size(15.dp)
+            )
+            Text(
+                text = stringResource(R.string.dashboard_daily_tip),
+                style = MaterialTheme.typography.labelMedium,
+                color = TextTertiary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Row(
+            modifier = Modifier
+                .background(AppColors.SurfaceElevated, RoundedCornerShape(20.dp))
+                .border(1.dp, Primary.copy(alpha = 0.45f), RoundedCornerShape(20.dp))
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .background(Primary, RoundedCornerShape(6.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(15.dp)
+                )
+            }
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleSmall,
+                color = OnBackground
+            )
+            Text(
+                text = dateLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = TextTertiary,
+                maxLines = 1
+            )
+            Text(
+                text = timeLabel,
+                style = MaterialTheme.typography.titleSmall,
+                color = OnBackground
+            )
+        }
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (daysRemaining != null) {
+                Row(
+                    modifier = Modifier
+                        .background(AppColors.Surface, RoundedCornerShape(20.dp))
+                        .padding(horizontal = 14.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(7.dp)
+                            .background(AppColors.Success, RoundedCornerShape(50))
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.dashboard_status_active_days,
+                            pluralStringResource(R.plurals.dashboard_days_remaining, daysRemaining, daysRemaining)
+                        ),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = OnBackground,
+                        maxLines = 1
+                    )
+                }
+            }
+            DeviceNotificationsAction()
+            TvIconButton(onClick = onOpenSettings) {
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.nav_settings)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun rememberDashboardClock(): Pair<String, String> {
+    val appTimeFormat = LocalAppTimeFormat.current
+    var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(30_000L)
+            nowMs = System.currentTimeMillis()
+        }
+    }
+    val timeFormat = remember(appTimeFormat) { appTimeFormat.createTimeFormat() }
+    val dateFormat = remember {
+        java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG, java.util.Locale.getDefault())
+    }
+    val timeLabel = remember(nowMs, timeFormat) { timeFormat.format(Date(nowMs)) }
+    val dateLabel = remember(nowMs, dateFormat) { dateFormat.format(Date(nowMs)) }
+    return timeLabel to dateLabel
+}
+
+@Composable
+internal fun StudioDashboardPanelsRow(
+    feature: DashboardFeature,
+    heroChannels: List<Channel>,
+    liveChannelCount: Int,
+    recentMovies: List<Movie>,
+    recentSeries: List<Series>,
+    movieCount: Int,
+    seriesCount: Int,
+    onWatchLive: () -> Unit,
+    onOpenMovies: () -> Unit,
+    onOpenSeries: () -> Unit
+) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val bandHeight = when {
+        screenHeight >= 720.dp -> 260.dp
+        screenHeight >= 600.dp -> 240.dp
+        else -> 220.dp
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp)
+            .height(bandHeight)
+            .focusGroup(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StudioDashboardHero(
+            feature = feature,
+            heroChannels = heroChannels,
+            liveChannelCount = liveChannelCount,
+            onWatchLive = onWatchLive,
+            modifier = Modifier.weight(1.2f)
+        )
+        StudioVodFanPanel(
+            title = stringResource(R.string.nav_movies),
+            count = movieCount,
+            countLabel = pluralStringResource(R.plurals.dashboard_movie_count_label, movieCount),
+            posters = recentMovies.mapNotNull { it.posterUrl?.takeIf(String::isNotBlank) }.take(3),
+            icon = painterResource(R.drawable.ic_movie_24),
+            fallbackColors = listOf(Primary.copy(alpha = 0.45f), AppColors.SurfaceElevated),
+            onOpen = onOpenMovies,
+            modifier = Modifier.weight(1f)
+        )
+        StudioVodFanPanel(
+            title = stringResource(R.string.nav_series),
+            count = seriesCount,
+            countLabel = pluralStringResource(R.plurals.dashboard_series_count_label, seriesCount),
+            posters = recentSeries.mapNotNull { it.posterUrl?.takeIf(String::isNotBlank) }.take(3),
+            icon = painterResource(R.drawable.ic_series_24),
+            fallbackColors = listOf(AppColors.Warning.copy(alpha = 0.30f), AppColors.SurfaceElevated),
+            onOpen = onOpenSeries,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
 @Composable
 private fun StudioDashboardHero(
     feature: DashboardFeature,
-    onFeatureAction: () -> Unit,
-    onNavigate: (String) -> Unit
+    heroChannels: List<Channel>,
+    liveChannelCount: Int,
+    onWatchLive: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val compact = maxWidth < 700.dp
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = if (compact) 180.dp else 200.dp)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            feature.artworkUrl?.takeIf { it.isNotBlank() }?.let { artwork ->
-                AsyncImage(
-                    model = rememberCrossfadeImageModel(artwork),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize()
-                )
-            }
-            Box(
-                modifier = Modifier.matchParentSize().background(
-                    Brush.verticalGradient(
-                        listOf(Color.Transparent, AppColors.HeroTop, MaterialTheme.colorScheme.background)
-                    )
-                )
+    val focusRequester = remember { FocusRequester() }
+    val isTelevisionDevice = rememberIsTelevisionDevice()
+    LaunchedEffect(isTelevisionDevice) {
+        if (isTelevisionDevice) {
+            withFrameNanos {}
+            focusRequester.requestFocus()
+        }
+    }
+    val heroShape = RoundedCornerShape(8.dp)
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .clip(heroShape)
+    ) {
+        TvClickableSurface(
+            onClick = onWatchLive,
+            modifier = Modifier.fillMaxSize().focusRequester(focusRequester),
+            shape = ClickableSurfaceDefaults.shape(heroShape),
+            scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+            colors = ClickableSurfaceDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = OnBackground,
+                focusedContentColor = OnBackground
+            ),
+            border = ClickableSurfaceDefaults.border(
+                focusedBorder = Border(BorderStroke(3.dp, FocusBorder), shape = heroShape)
             )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = if (compact) 20.dp else 32.dp)
-                    .padding(top = if (compact) 24.dp else 40.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = feature.title,
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 640.dp)
-                )
-                if (feature.summary.isNotBlank()) {
-                    Text(
-                        text = feature.summary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.widthIn(max = 620.dp)
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                feature.artworkUrl?.takeIf { it.isNotBlank() }?.let { artwork ->
+                    AsyncImage(
+                        model = rememberCrossfadeImageModel(artwork),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.72f),
+                                        Color.Transparent,
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.55f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.88f)
+                                    )
+                                )
+                            )
                     )
                 }
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (feature.actionLabel.isNotBlank()) {
-                        TvButton(onClick = onFeatureAction) {
-                            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(feature.actionLabel)
+                    Row(
+                        modifier = Modifier
+                            .background(Primary.copy(alpha = 0.20f), RoundedCornerShape(50))
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(AppColors.Live, RoundedCornerShape(50))
+                        )
+                        Text(
+                            text = stringResource(R.string.card_live_badge),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = OnBackground
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.nav_live_tv),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = OnBackground,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.dashboard_channels_format, liveChannelCount),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextTertiary
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.dashboard_watch_now), color = OnBackground)
+                            Spacer(Modifier.width(6.dp))
+                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = OnBackground, modifier = Modifier.size(16.dp))
                         }
                     }
-                    TvButton(onClick = { onNavigate(Routes.LIVE_TV) }) {
-                        Icon(Icons.Default.Menu, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.nav_live_tv))
-                    }
-                    TvButton(onClick = { onNavigate(Routes.SEARCH) }) {
-                        Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.search_title))
+                    val tileSize = 40.dp
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        repeat(2) { row ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                repeat(4) { column ->
+                                    val channel = heroChannels.getOrNull(row * 4 + column)
+                                    if (channel != null) {
+                                        ChannelLogoBadge(
+                                            channelName = channel.name,
+                                            logoUrl = channel.logoUrl,
+                                            modifier = Modifier.size(tileSize),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(tileSize)
+                                                .background(AppColors.SurfaceElevated, RoundedCornerShape(10.dp))
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -469,6 +757,347 @@ private fun DashboardHero(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun StudioVodFanPanel(
+    title: String,
+    count: Int,
+    countLabel: String,
+    posters: List<String>,
+    icon: Painter,
+    fallbackColors: List<Color>,
+    onOpen: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    TvClickableSurface(
+        onClick = onOpen,
+        modifier = modifier.fillMaxHeight(),
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+        colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(BorderStroke(3.dp, FocusBorder), shape = RoundedCornerShape(8.dp)))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = OnBackground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(painter = icon, contentDescription = null, tint = Primary, modifier = Modifier.size(20.dp))
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                StudioPosterCard(
+                    posterUrl = posters.getOrNull(2),
+                    fallbackColors = fallbackColors,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = 34.dp)
+                        .zIndex(1f)
+                        .graphicsLayer { rotationZ = 12f }
+                )
+                StudioPosterCard(
+                    posterUrl = posters.getOrNull(0),
+                    fallbackColors = fallbackColors,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .zIndex(2f)
+                )
+                StudioPosterCard(
+                    posterUrl = posters.getOrNull(1),
+                    fallbackColors = fallbackColors,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = (-34).dp)
+                        .zIndex(1f)
+                        .graphicsLayer { rotationZ = -12f }
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = count.toString(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = OnBackground
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = countLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextTertiary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StudioPosterCard(
+    posterUrl: String?,
+    fallbackColors: List<Color>,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .width(86.dp)
+            .height(128.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Brush.linearGradient(fallbackColors))
+    ) {
+        posterUrl?.takeIf { it.isNotBlank() }?.let { poster ->
+            AsyncImage(
+                model = rememberCrossfadeImageModel(poster),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
+private fun DashboardFeatureTilesRow(
+    heroChannels: List<Channel>,
+    favoriteChannelTotal: Int,
+    continueWatching: List<PlaybackHistory>,
+    currentCombinedProfileId: Long?,
+    onNavigate: (String) -> Unit,
+    onFavoriteChannelClick: (Channel, Long?) -> Unit,
+    onPlaybackHistoryClick: (PlaybackHistory) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 12.dp)
+            .focusGroup(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        val logoChannel = heroChannels.firstOrNull()
+        StudioFeatureTile(
+            title = stringResource(R.string.dashboard_tile_guide),
+            subtitle = stringResource(R.string.dashboard_tile_guide_subtitle),
+            onClick = { onNavigate(Routes.EPG) },
+            modifier = Modifier.weight(1f)
+        ) {
+            if (logoChannel != null) {
+                ChannelLogoBadge(
+                    channelName = logoChannel.name,
+                    logoUrl = logoChannel.logoUrl,
+                    modifier = Modifier.size(34.dp),
+                    shape = RoundedCornerShape(8.dp)
+                )
+            } else {
+                Icon(
+                    painterResource(R.drawable.ic_live_tv_24),
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+        StudioFeatureTile(
+            title = stringResource(R.string.dashboard_tile_matches),
+            subtitle = stringResource(R.string.dashboard_tile_matches_subtitle),
+            onClick = { onNavigate(Routes.EPG) },
+            modifier = Modifier.weight(1f)
+        )
+        StudioFeatureTile(
+            title = stringResource(R.string.dashboard_tile_favorites),
+            subtitle = stringResource(R.string.dashboard_stat_favorites, favoriteChannelTotal),
+            onClick = {
+                onNavigate(
+                    com.MegaStream.domain.model.VirtualCategoryIds.let { Routes.liveTv(it.FAVORITES) }
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+        StudioFeatureTile(
+            title = stringResource(R.string.dashboard_tile_continue),
+            subtitle = continueWatching.firstOrNull()?.title
+                ?: stringResource(R.string.dashboard_tile_continue_empty),
+            onClick = {
+                val first = continueWatching.firstOrNull()
+                if (first != null) onPlaybackHistoryClick(first) else onNavigate(Routes.MOVIES)
+            },
+            modifier = Modifier.weight(1f)
+        )
+        StudioFeatureTile(
+            title = stringResource(R.string.dashboard_tile_kids),
+            subtitle = stringResource(R.string.dashboard_tile_kids_subtitle),
+            onClick = { onNavigate(Routes.LIVE_TV) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun StudioFeatureTile(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    leading: (@Composable () -> Unit)? = null
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = AppColors.SurfaceEmphasis
+        ),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(BorderStroke(3.dp, FocusBorder), shape = RoundedCornerShape(8.dp))
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(112.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            leading?.invoke()
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = OnBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelMedium,
+                color = TextTertiary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun DashboardQuickActionsRow(onNavigate: (String) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp)
+            .focusGroup(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StudioQuickActionTile(
+            icon = painterResource(R.drawable.ic_search_24),
+            title = stringResource(R.string.dashboard_quick_search),
+            subtitle = stringResource(R.string.dashboard_quick_search_subtitle),
+            onClick = { onNavigate(Routes.SEARCH) },
+            modifier = Modifier.weight(1f)
+        )
+        StudioQuickActionTile(
+            icon = painterResource(R.drawable.ic_live_tv_24),
+            title = stringResource(R.string.dashboard_quick_guide),
+            subtitle = stringResource(R.string.dashboard_quick_guide_subtitle),
+            onClick = { onNavigate(Routes.EPG) },
+            modifier = Modifier.weight(1f)
+        )
+        StudioQuickActionTile(
+            icon = painterResource(R.drawable.ic_live_tv_24),
+            title = stringResource(R.string.dashboard_quick_most_watched),
+            subtitle = stringResource(R.string.dashboard_quick_your_history),
+            onClick = { onNavigate(Routes.liveTv(com.MegaStream.domain.model.VirtualCategoryIds.RECENT)) },
+            modifier = Modifier.weight(1f)
+        )
+        StudioQuickActionTile(
+            icon = painterResource(R.drawable.ic_movie_24),
+            title = stringResource(R.string.dashboard_quick_top_movies),
+            subtitle = stringResource(R.string.dashboard_quick_top_rated),
+            onClick = { onNavigate(Routes.MOVIES) },
+            modifier = Modifier.weight(1f)
+        )
+        StudioQuickActionTile(
+            icon = painterResource(R.drawable.ic_series_24),
+            title = stringResource(R.string.dashboard_quick_top_series),
+            subtitle = stringResource(R.string.dashboard_quick_top_rated),
+            onClick = { onNavigate(Routes.SERIES) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun StudioQuickActionTile(
+    icon: Painter,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = AppColors.Surface,
+            focusedContainerColor = AppColors.SurfaceEmphasis
+        ),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(BorderStroke(3.dp, FocusBorder), shape = RoundedCornerShape(8.dp))
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                tint = Primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = OnBackground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = TextTertiary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
     }
 }
 

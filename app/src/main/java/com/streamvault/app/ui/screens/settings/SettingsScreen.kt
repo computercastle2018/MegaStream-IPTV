@@ -3,6 +3,7 @@ package com.MegaStream.app.ui.screens.settings
 import com.MegaStream.app.navigation.Routes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -268,7 +269,7 @@ private fun StudioSettingsSections(
         R.string.settings_templates, R.string.settings_license, R.string.settings_about)
     val state = rememberLazyListState(initialFirstVisibleItemIndex = selectedCategory)
     LaunchedEffect(selectedCategory) { state.scrollToItem(selectedCategory) }
-    LazyRow(state = state, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    LazyRow(modifier = Modifier.focusGroup(), state = state, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         itemsIndexed(labels) { index, label ->
             TvClickableSurface(
                 onClick = { onCategorySelected(index) },

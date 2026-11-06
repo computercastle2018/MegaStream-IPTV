@@ -15,9 +15,11 @@ class PlaybackVideoQualityPolicyTest {
     }
 
     @Test
-    fun adminOverride_winsOverLocalSettingsAndBlocksOversizedOrUnknownManualTracks() {
+    fun adminCeiling_allowsLowerLocalQualityAndBlocksOversizedOrUnknownManualTracks() {
         val policy = PlaybackVideoQualityPolicy(1080)
-        for (local in listOf(null, 480, 2160)) assertEquals(1080, policy.maxVideoHeight(local, false))
+        for ((local, expected) in listOf(null to 1080, 480 to 480, 2160 to 1080)) {
+            assertEquals(expected, policy.maxVideoHeight(local, false))
+        }
         for (height in listOf(480, 720, 1080)) assertTrue(policy.permitsManualTrack(height))
         for (height in listOf(-1, 0, 1440, 2160)) assertFalse(policy.permitsManualTrack(height))
         assertNull(policy.copy(adminMaxVideoHeight = null).maxVideoHeight(null, false))

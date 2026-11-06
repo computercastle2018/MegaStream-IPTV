@@ -5,6 +5,7 @@ using MegaStream.Server.RemoteProviders.Core;
 using MegaStream.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace MegaStream.Server.RemoteProviders.Http;
 
@@ -15,6 +16,14 @@ namespace MegaStream.Server.RemoteProviders.Http;
 [RequestSizeLimit(8192)]
 public sealed class DeviceProvidersController(IRemoteProviderService service) : ControllerBase
 {
+    [HttpPost("/api/v1/providers/redeem")]
+    [EnableRateLimiting("provider-redemption")]
+    public async Task<IActionResult> Redeem([FromBody] ProviderRedemptionBody body, CancellationToken ct)
+    {
+        await service.RedeemAsync(InstallationId(), body.Code, ct);
+        return NoContent();
+    }
+
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery, Range(0, long.MaxValue)] long afterRevision = 0, CancellationToken ct = default) =>
         Ok(ProviderWireResponse.From(await service.GetDeviceAsync(InstallationId(), afterRevision, ct)));
@@ -37,6 +46,12 @@ public sealed class DeviceProvidersController(IRemoteProviderService service) : 
             throw new DomainException(401, "unauthorized", "Device authentication required.");
         return id;
     }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class ProviderRedemptionBody
+{
+    [Required, MaxLength(64)] public string Code { get; set; } = "";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

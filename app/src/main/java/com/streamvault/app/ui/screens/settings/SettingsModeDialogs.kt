@@ -45,25 +45,23 @@ internal fun AppUiStyleDialog(
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
     PremiumDialog(
         title = stringResource(R.string.settings_app_ui_style),
-        subtitle = if (managed) stringResource(R.string.settings_template_managed)
-            else if (studio) null else stringResource(R.string.settings_app_ui_style_subtitle),
+        subtitle = stringResource(R.string.settings_template_sync),
         onDismissRequest = onDismiss,
         widthFraction = 0.52f,
         content = {
             if (studio) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     AppUiStyle.entries.forEach { style ->
-                        AppUiStyleOption(style, style == effectiveStyle, !managed,
+                        AppUiStyleOption(style, style == effectiveStyle, true,
                             modifier = Modifier.weight(1f),
-                            onClick = { if (!managed) onStyleSelected(style) })
+                            onClick = { onStyleSelected(style) })
                     }
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     AppUiStyle.entries.forEach { style ->
                         TvClickableSurface(
-                            onClick = { if (!managed) onStyleSelected(style) },
-                            enabled = !managed,
+                            onClick = { onStyleSelected(style) },
                             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                             colors = ClickableSurfaceDefaults.colors(
                                 containerColor = if (style == effectiveStyle) Primary.copy(alpha = 0.18f) else SurfaceElevated,
@@ -77,9 +75,10 @@ internal fun AppUiStyleDialog(
                             ) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     val palette = when (style) {
-                                        AppUiStyle.CLASSIC -> listOf(Color(0xFF07111B), Color(0xFF69A8FF), Color(0xFF4FD39A))
-                                        AppUiStyle.MODERN -> listOf(Color(0xFF111822), Color(0xFF64D2FF), Color(0xFFFFCF6E))
-                                        AppUiStyle.STUDIO -> listOf(Color(0xFF191F1E), Color(0xFF69DCB1), Color(0xFFECCB7B))
+                                        AppUiStyle.CLASSIC -> listOf(Color(0xFF100608), Color(0xFFE01B32), Color(0xFF4FD39A))
+                                        AppUiStyle.MODERN -> listOf(Color(0xFF1D1115), Color(0xFFE01B32), Color(0xFFFFCF6E))
+                                        AppUiStyle.STUDIO -> listOf(Color(0xFF1D1115), Color(0xFFFF4053), Color(0xFFECCB7B))
+                                        AppUiStyle.TV_PRO -> listOf(Color(0xFF101318), Color(0xFF56CFD7), Color(0xFFFF5268))
                                     }
                                     palette.forEach { color ->
                                         androidx.compose.foundation.layout.Box(Modifier.size(18.dp).background(color, RoundedCornerShape(4.dp)))

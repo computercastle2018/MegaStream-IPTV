@@ -1,6 +1,7 @@
 import type { ContentItem, ContentType, Provider, StreamFormat } from "../types";
 import { parseM3u, type M3uEntry } from "./m3uParser";
 import { getLiveStreams, getMovies, getSeries } from "./xtreamClient";
+import { resolveImageUrl } from "./images";
 
 /**
  * In-memory cache of fetched content keyed by `${providerId}:${type}`.
@@ -96,7 +97,7 @@ async function loadM3uItems(
       kind: type,
       name: entry.name,
       number: type === "live" ? entry.tvgChno ?? index + 1 : undefined,
-      imageUrl: entry.tvgLogo,
+      imageUrl: resolveImageUrl(entry.tvgLogo, url),
       groupTitle: entry.groupTitle,
       streamUrl: entry.url,
       streamFormat: detectFormat(entry.url),

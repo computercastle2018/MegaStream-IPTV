@@ -45,7 +45,7 @@ internal sealed class RemoteProviderDatabase : IAsyncDisposable
     public AppDbContext NewContext() => new(new DbContextOptionsBuilder<AppDbContext>()
         .UseSqlite(ConnectionString).Options);
 
-    public async Task<Guid> AddInstallationAsync()
+    public async Task<Guid> AddInstallationAsync(bool licensed = true)
     {
         await using var db = NewContext();
         var installation = new Installation
@@ -57,6 +57,15 @@ internal sealed class RemoteProviderDatabase : IAsyncDisposable
             Status = InstallationStatus.Active
         };
         db.Installations.Add(installation);
+        if (licensed)
+        {
+            installation.License = new License
+            {
+                KeyHash = Guid.NewGuid().ToString("N"), ValidFrom = DateTime.UtcNow.AddDays(-1),
+                ValidUntil = DateTime.UtcNow.AddYears(1), MaxInstallations = 1
+            };
+            db.Licenses.Add(installation.License);
+        }
         await db.SaveChangesAsync();
         return installation.Id;
     }

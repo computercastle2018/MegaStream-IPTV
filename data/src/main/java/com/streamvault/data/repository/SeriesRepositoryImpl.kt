@@ -336,7 +336,10 @@ class SeriesRepositoryImpl @Inject constructor(
         }
 
         if (provider.type == ProviderType.XTREAM_CODES && seriesEntity.hasFreshXtreamDetails()) {
-            return Result.success(buildSeriesWithPersistedEpisodes(seriesEntity))
+            val cachedSeries = buildSeriesWithPersistedEpisodes(seriesEntity)
+            if (cachedSeries.seasons.any { it.episodes.isNotEmpty() }) {
+                return Result.success(cachedSeries)
+            }
         }
 
         val remoteResult = try {
@@ -355,7 +358,9 @@ class SeriesRepositoryImpl @Inject constructor(
                     remoteId = seriesEntity.providerSeriesId?.takeIf { it.isNotBlank() } ?: seriesEntity.seriesId.toString(),
                     errorState = "DETAIL_FAILED_RETRYABLE"
                 )
-                return Result.success(buildSeriesWithPersistedEpisodes(seriesEntity))
+                val localSeries = buildSeriesWithPersistedEpisodes(seriesEntity)
+                return if (localSeries.seasons.any { it.episodes.isNotEmpty() }) Result.success(localSeries)
+                else Result.error("Failed to load series details", e)
             }
             return Result.error(e.message ?: "Failed to access provider credentials", e)
         }
@@ -497,7 +502,8 @@ class SeriesRepositoryImpl @Inject constructor(
                     )
                 }
                 val localSeries = buildSeriesWithPersistedEpisodes(seriesEntity)
-                Result.success(localSeries)
+                if (localSeries.seasons.any { it.episodes.isNotEmpty() }) Result.success(localSeries)
+                else Result.error(remoteResult.message, remoteResult.exception)
             }
             is Result.Loading -> Result.error("Unexpected loading state")
         }

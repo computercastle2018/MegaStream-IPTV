@@ -82,7 +82,8 @@ import com.MegaStream.app.ui.components.shell.VodClassicContentHeader
 import com.MegaStream.app.ui.components.shell.VodClassicSplitLayout
 import com.MegaStream.app.ui.components.shell.VodHeroStrip
 import com.MegaStream.app.ui.components.shell.StudioCatalogHero
-import com.MegaStream.app.ui.screens.vod.StudioCatalogLayout
+import com.MegaStream.app.ui.screens.vod.CatalogStyleLayout
+import com.MegaStream.app.ui.screens.vod.CatalogSeriesCard
 import com.MegaStream.app.ui.screens.vod.StudioSectionHeading
 import com.MegaStream.app.ui.screens.vod.StudioContentAccess
 import com.MegaStream.app.ui.screens.vod.studioContentAccess
@@ -121,7 +122,8 @@ fun SeriesScreen(
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val studio = LocalAppUiStyle.current == AppUiStyle.STUDIO
-    LaunchedEffect(studio, viewModel) { viewModel.enterStudioCatalog(studio) }
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
+    LaunchedEffect(studio, tvPro, viewModel) { viewModel.enterStudioCatalog(studio || tvPro) }
     val snackbarHostState = remember { SnackbarHostState() }
     val syncLabel = stringResource(R.string.series_sync_catalog)
     val syncProgress = stringResource(R.string.vod_catalog_sync_in_progress)
@@ -411,7 +413,8 @@ private fun SeriesVodContent(
     }
     var showCategoryPicker by remember { mutableStateOf(false) }
     val favoriteSeries = uiState.seriesByCategory[uiState.favoriteCategoryName].orEmpty()
-    val freshSeries = if (studio) uiState.newestAddedItems else uiState.libraryLensRows[SeriesLibraryLens.FRESH].orEmpty()
+    val tvPro = LocalAppUiStyle.current == AppUiStyle.TV_PRO
+    val freshSeries = if (studio || tvPro) uiState.newestAddedItems else uiState.libraryLensRows[SeriesLibraryLens.FRESH].orEmpty()
     val topRatedSeries = uiState.libraryLensRows[SeriesLibraryLens.TOP_RATED].orEmpty()
     val continueWatching = uiState.continueWatching
     val heroSeries = freshSeries.firstOrNull() ?: topRatedSeries.firstOrNull() ?: favoriteSeries.firstOrNull()
@@ -513,7 +516,7 @@ private fun SeriesVodContent(
     }
 
 
-    if (studio) {
+    if (studio || tvPro) {
         val categoriesById = remember(uiState.providerCategories, uiState.categories) {
             (uiState.providerCategories + uiState.categories).associateBy { kotlin.math.abs(it.id) }
         }
@@ -541,7 +544,7 @@ private fun SeriesVodContent(
             else if (overview) catEntries.flatMap { it.value }.distinctBy { it.id }
             else uiState.selectedCategoryItems).filter { access(it) != StudioContentAccess.HIDDEN }
         val latestItems = freshSeries.filter { access(it) == StudioContentAccess.VISIBLE }
-        val featured = if (overview && searchQuery.isBlank()) latestItems.firstOrNull()
+        val featured = if (!tvPro && overview && searchQuery.isBlank()) latestItems.firstOrNull()
             ?: catalogItems.firstOrNull { access(it) == StudioContentAccess.VISIBLE } else null
         val overviewLabel = stringResource(R.string.studio_catalog_discover)
         val allLabel = stringResource(R.string.library_full_browse_title_series)
@@ -553,8 +556,8 @@ private fun SeriesVodContent(
             onSelectedFilterTypeChange(LibraryFilterType.RECENTLY_UPDATED)
             onSelectedSortByChange(LibrarySortBy.UPDATED)
         }
-        val railOptions = listOf(
-            VodCategoryOption(overviewLabel, 0, { onSelectCategory(null) }),
+        val railOptions = listOfNotNull(
+            if (tvPro) null else VodCategoryOption(overviewLabel, 0, { onSelectCategory(null) }),
             VodCategoryOption(allLabel, uiState.libraryCount, onSelectFullLibraryBrowse),
             VodCategoryOption(freshLabel, 0, openLatest),
             VodCategoryOption(continueLabel, 0, onOpenContinueWatching),
@@ -601,9 +604,9 @@ private fun SeriesVodContent(
                 }
             }, onDismiss = { optionsVisible = false }
         )
-        StudioCatalogLayout(
+        CatalogStyleLayout(
             categories = railOptions,
-            selectedCategory = if (overview) overviewLabel else when (uiState.selectedCategory) {
+            selectedCategory = if (overview) (if (tvPro) allLabel else overviewLabel) else when (uiState.selectedCategory) {
                 uiState.fullLibraryCategoryName -> when (selectedFilterType) {
                     LibraryFilterType.RECENTLY_UPDATED -> freshLabel
                     LibraryFilterType.IN_PROGRESS -> continueLabel
@@ -656,7 +659,7 @@ private fun SeriesVodContent(
                     }
                 }
             }
-            if (overview && searchQuery.isBlank() && latestItems.isNotEmpty() && !uiState.isReorderMode) {
+            if (!tvPro && overview && searchQuery.isBlank() && latestItems.isNotEmpty() && !uiState.isReorderMode) {
                 item(key = "studio_latest", span = { GridItemSpan(maxLineSpan) }) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         StudioSectionHeading(freshLabel, allLabel, openLatest)
@@ -672,7 +675,7 @@ private fun SeriesVodContent(
             }
             gridItems(catalogItems, key = { it.id }) { series ->
                 val locked = access(series) == StudioContentAccess.LOCKED
-                SeriesCard(
+                CatalogSeriesCard(
                     series = series, isLocked = locked,
                     isReorderMode = uiState.isReorderMode, isDragging = dragging?.id == series.id,
                     modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f).then(

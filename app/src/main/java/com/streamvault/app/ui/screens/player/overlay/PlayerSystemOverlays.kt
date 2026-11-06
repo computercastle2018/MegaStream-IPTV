@@ -103,7 +103,7 @@ fun PlayerNoticeBanner(
 
     val (containerColor, focusedContainerColor) = when {
         notice.isRetryNotice || notice.recoveryType == PlayerRecoveryType.NETWORK || notice.recoveryType == PlayerRecoveryType.CATCH_UP ->
-            Color(0xCC17314E) to Color(0xFF214C78)
+            Color(0xCC33161C) to Color(0xFF3F1A22)
         notice.recoveryType == PlayerRecoveryType.SOURCE ||
             notice.recoveryType == PlayerRecoveryType.BUFFER_TIMEOUT ||
             notice.recoveryType == PlayerRecoveryType.DECODER ->
@@ -201,6 +201,10 @@ fun PlayerTrackSelectionDialog(
     audioTracks: List<PlayerTrack>,
     subtitleTracks: List<PlayerTrack>,
     videoTracks: List<PlayerTrack>,
+    videoMaxHeight: Int?,
+    onSelectVideoMaxHeight: (Int?) -> Unit,
+    fixedVideoQuality: Boolean,
+    onFixedVideoQualityChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
     onSelectAudio: (String) -> Unit,
     onSelectVideo: (String) -> Unit,
@@ -266,7 +270,43 @@ fun PlayerTrackSelectionDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(modifier = Modifier.heightIn(max = 480.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (trackType == TrackType.VIDEO) {
+                        item {
+                            TvClickableSurface(onClick = { onFixedVideoQualityChange(!fixedVideoQuality) },
+                                colors = ClickableSurfaceDefaults.colors(
+                                    containerColor = Color.White.copy(alpha = 0.06f),
+                                    focusedContainerColor = Primary.copy(alpha = 0.3f)
+                                ),
+                                modifier = Modifier.fillMaxWidth()) {
+                                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(stringResource(R.string.player_quality_fixed), color = OnBackground, modifier = Modifier.weight(1f))
+                                    androidx.compose.material3.Switch(checked = fixedVideoQuality, onCheckedChange = null,
+                                        colors = androidx.compose.material3.SwitchDefaults.colors(
+                                            checkedTrackColor = Primary,
+                                            checkedThumbColor = Color.White
+                                        ))
+                                }
+                            }
+                        }
+                        item {
+                            Text(stringResource(R.string.player_quality_ceiling), color = OnBackground,
+                                style = MaterialTheme.typography.labelLarge)
+                        }
+                        items(listOf<Int?>(null) + com.MegaStream.domain.model.PLAYBACK_VIDEO_HEIGHTS) { height ->
+                            TrackSelectionItem(
+                                name = height?.let { if (it == 2160) "2160p (4K)" else "${it}p" }
+                                    ?: stringResource(R.string.player_quality_auto_bandwidth),
+                                isSelected = height == videoMaxHeight,
+                                onClick = { onSelectVideoMaxHeight(height); onDismiss() },
+                                modifier = if (height == null) Modifier.focusRequester(firstItemFocusRequester) else Modifier
+                            )
+                        }
+                        if (tracks.isNotEmpty()) item {
+                            Text(stringResource(R.string.player_quality_available), color = OnBackground,
+                                style = MaterialTheme.typography.labelLarge)
+                        }
+                    }
                     if (trackType == TrackType.TEXT) {
                         item {
                             TrackSelectionItem(
@@ -293,7 +333,7 @@ fun PlayerTrackSelectionDialog(
                                 }
                                 onDismiss()
                             },
-                            modifier = if (trackType != TrackType.TEXT && track == tracks.firstOrNull()) {
+                            modifier = if (trackType == TrackType.AUDIO && track == tracks.firstOrNull()) {
                                 Modifier.focusRequester(firstItemFocusRequester)
                             } else {
                                 Modifier

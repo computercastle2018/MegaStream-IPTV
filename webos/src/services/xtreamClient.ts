@@ -8,6 +8,7 @@
 //   {server}/live|movie|series/{user}/{pass}/{id}.{ext}         -> playback
 import type { ContentItem, Episode, XtreamProvider } from "../types";
 import { episodeTimestamp } from "./episodes";
+import { resolveImageUrl } from "./images";
 
 interface XtreamAuthResponse {
   user_info?: { auth?: number; status?: string; message?: string; exp_date?: string | number | null };
@@ -35,6 +36,7 @@ interface LiveStreamDto {
 }
 
 interface VodStreamDto {
+  rating?: string | number;
   stream_id?: string | number;
   name?: string;
   num?: string | number;
@@ -46,6 +48,7 @@ interface VodStreamDto {
 }
 
 interface SeriesDto {
+  rating?: string | number;
   series_id?: string | number;
   name?: string;
   cover?: string;
@@ -66,7 +69,7 @@ interface EpisodeDto {
   container_extension?: string;
   added?: string | number;
   release_date?: string;
-  info?: { releasedate?: string; release_date?: string; air_date?: string };
+  info?: { releasedate?: string; release_date?: string; air_date?: string; movie_image?: string };
 }
 
 function trimServer(serverUrl: string): string {
@@ -169,9 +172,10 @@ export async function getLiveStreams(p: XtreamProvider, signal?: AbortSignal): P
       kind: "live" as const,
       name: String(d.name),
       number: normalizeNum(d.num),
-      imageUrl: d.stream_icon || undefined,
+      imageUrl: resolveImageUrl(d.stream_icon, trimServer(p.serverUrl) + "/"),
       groupTitle: resolveCategory(cats, d.category_id, d.category_name),
       streamUrl: `${trimServer(p.serverUrl)}/live/${seg(p.username)}/${seg(p.password)}/${seg(String(d.stream_id))}.m3u8`,
+      fallbackStreamUrl: `${trimServer(p.serverUrl)}/live/${seg(p.username)}/${seg(p.password)}/${seg(String(d.stream_id))}.ts`,
       streamFormat: "hls" as const,
       addedAt: normalizeNum(d.added),
     }));
@@ -191,11 +195,12 @@ export async function getMovies(p: XtreamProvider, signal?: AbortSignal): Promis
         id: `${p.id}:movie:${d.stream_id}`,
         kind: "movie" as const,
         name: String(d.name),
-        imageUrl: d.stream_icon || undefined,
+        imageUrl: resolveImageUrl(d.stream_icon, trimServer(p.serverUrl) + "/"),
         groupTitle: resolveCategory(cats, d.category_id, d.category_name),
         streamUrl: `${trimServer(p.serverUrl)}/movie/${seg(p.username)}/${seg(p.password)}/${seg(String(d.stream_id))}.${ext}`,
         streamFormat: "auto" as const,
         addedAt: normalizeNum(d.added),
+        rating: normalizeNum(d.rating),
       };
     });
 }
@@ -212,11 +217,12 @@ export async function getSeries(p: XtreamProvider, signal?: AbortSignal): Promis
       id: `${p.id}:series:${d.series_id}`,
       kind: "series" as const,
       name: String(d.name),
-      imageUrl: d.cover || undefined,
+      imageUrl: resolveImageUrl(d.cover, trimServer(p.serverUrl) + "/"),
       groupTitle: resolveCategory(cats, d.category_id, d.category_name),
       streamFormat: "auto" as const,
       seriesId: String(d.series_id),
       addedAt: normalizeNum(d.last_modified),
+      rating: normalizeNum(d.rating),
     }));
 }
 
@@ -239,6 +245,7 @@ export async function getEpisodes(
       const number = normalizeNum(ep.episode_num) ?? 0;
       episodes.push({
         id: String(ep.id),
+        imageUrl: resolveImageUrl(ep.info?.movie_image, trimServer(p.serverUrl) + "/"),
         title: ep.title || `Episode ${number}`,
         season,
         episode: number,

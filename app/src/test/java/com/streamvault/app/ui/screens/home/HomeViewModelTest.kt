@@ -2,6 +2,7 @@ package com.MegaStream.app.ui.screens.home
 
 import android.app.Application
 import com.MegaStream.app.playback.gate.FakePlaybackGate
+import com.MegaStream.app.ui.model.CategoryGenre
 import androidx.lifecycle.ViewModel
 import com.MegaStream.app.player.LivePreviewHandoffManager
 import com.MegaStream.app.plugins.MegaStreamPluginManager
@@ -30,6 +31,7 @@ import com.MegaStream.player.PlayerEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.*
 import org.junit.After
@@ -186,9 +188,10 @@ class HomeViewModelTest {
     @Test
     fun `selectCategory sets selected category and triggers loading`() = runTest {
         val category = Category(id = 1L, name = "Sports", parentId = null)
+        val channels = MutableStateFlow<List<Channel>>(emptyList())
         
         // Mock the repositories needed for loading channels
-        whenever(channelRepository.getChannelsByCategoryPage(any(), any(), any())).thenReturn(flowOf(emptyList()))
+        whenever(channelRepository.getChannelsByCategoryPage(any(), any(), any())).thenReturn(channels)
         val provider = Provider(id = 1L, name = "Provider", type = com.MegaStream.domain.model.ProviderType.M3U, serverUrl = "http://test")
         whenever(providerRepository.getActiveProvider()).thenReturn(flowOf(provider))
         viewModel = createViewModel()
@@ -200,6 +203,20 @@ class HomeViewModelTest {
         val state = viewModel.uiState.value
         assertThat(state.selectedCategory).isEqualTo(category)
         assertThat(state.isLoading).isFalse()
+        viewModel.setCategoryGenre(CategoryGenre.NEWS)
+        assertThat(viewModel.uiState.value.selectedCategory).isNull()
+        assertThat(viewModel.uiState.value.filteredChannels).isEmpty()
+        channels.value = listOf(Channel(9, name = "Late sports channel", providerId = 1, categoryId = category.id))
+        advanceUntilIdle()
+        assertThat(viewModel.uiState.value.filteredChannels).isEmpty()
+        viewModel.selectCategory(category)
+        advanceUntilIdle()
+        assertThat(viewModel.uiState.value.categoryGenre).isNull()
+        assertThat(viewModel.uiState.value.selectedCategory).isEqualTo(category)
+        viewModel.setCategoryGenre(CategoryGenre.SPORTS)
+        assertThat(viewModel.uiState.value.selectedCategory).isEqualTo(category)
+        viewModel.setCategoryGenre(null)
+        assertThat(viewModel.uiState.value.selectedCategory).isEqualTo(category)
     }
 
     @Test

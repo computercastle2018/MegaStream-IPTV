@@ -29,18 +29,22 @@ public class LeaseSignerTests
         ValidFrom = clock.Now.UtcDateTime.AddDays(-1), ValidUntil = clock.Now.UtcDateTime.AddDays(30), MaxInstallations = 2
     };
 
-    [Fact]
-    public void Public_jwk_verifies_p1363_signature_and_rejects_modified_payload()
+    [Theory]
+    [InlineData("android", "megastream-android")]
+    [InlineData("macos", "megastream-desktop")]
+    [InlineData("windows", "megastream-desktop")]
+    [InlineData("webos", "megastream-webos")]
+    public void Public_jwk_verifies_p1363_signature_and_rejects_modified_payload(string platform, string audience)
     {
         var clock = new TestClock();
         using var signer = new LeaseSigner(Configuration(), new TestEnvironment(), clock);
-        var installation = new Installation { CredentialBinding = "public-test-credential-binding" };
+        var installation = new Installation { Platform = platform, CredentialBinding = "public-test-credential-binding" };
         var license = ValidLicense(clock);
         license.Revision = 7;
         var lease = signer.Sign(installation, license);
         var payload = Payload(lease);
         Assert.Equal("https://megastrem.megastation.uk", payload.GetProperty("iss").GetString());
-        Assert.Equal("megastream-android", payload.GetProperty("aud").GetString());
+        Assert.Equal(audience, payload.GetProperty("aud").GetString());
         Assert.Equal(installation.Id, payload.GetProperty("sub").GetGuid());
         Assert.Equal(license.Id, payload.GetProperty("lid").GetGuid());
         Assert.Equal(7, payload.GetProperty("lrv").GetInt32());

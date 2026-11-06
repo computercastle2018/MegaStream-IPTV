@@ -134,6 +134,7 @@ class PreferencesRepository @Inject constructor(
         val PLAYER_NOTICE_TIMEOUT_SECONDS = intPreferencesKey("player_notice_timeout_seconds")
         val PLAYER_DIAGNOSTICS_TIMEOUT_SECONDS = intPreferencesKey("player_diagnostics_timeout_seconds")
         val PLAYER_WIFI_MAX_VIDEO_HEIGHT = intPreferencesKey("player_wifi_max_video_height")
+        val PLAYER_ADAPTIVE_VIDEO_QUALITY = booleanPreferencesKey("player_adaptive_video_quality")
         val PLAYER_ETHERNET_MAX_VIDEO_HEIGHT = intPreferencesKey("player_ethernet_max_video_height")
         val PLAYER_TIMESHIFT_ENABLED = booleanPreferencesKey("player_timeshift_enabled")
         val PLAYER_TIMESHIFT_DEPTH_MINUTES = intPreferencesKey("player_timeshift_depth_minutes")
@@ -350,6 +351,10 @@ class PreferencesRepository @Inject constructor(
         storedPlaybackMaxVideoHeight(preferences[PreferencesKeys.PLAYER_WIFI_MAX_VIDEO_HEIGHT])
     }
 
+    val playerAdaptiveVideoQuality: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.PLAYER_ADAPTIVE_VIDEO_QUALITY] ?: true
+    }
+
     val playerEthernetMaxVideoHeight: Flow<Int?> = context.dataStore.data.map { preferences ->
         storedPlaybackMaxVideoHeight(preferences[PreferencesKeys.PLAYER_ETHERNET_MAX_VIDEO_HEIGHT])
     }
@@ -446,6 +451,7 @@ class PreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.APP_UI_STYLE] = when (style.lowercase()) {
                 "modern" -> "modern"
                 "studio" -> "studio"
+                "tvpro" -> "tvpro"
                 else -> "classic"
             }
         }
@@ -887,6 +893,10 @@ class PreferencesRepository @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.PLAYER_WIFI_MAX_VIDEO_HEIGHT] = encodePlaybackMaxVideoHeight(maxHeight)
         }
+    }
+
+    suspend fun setPlayerAdaptiveVideoQuality(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.PLAYER_ADAPTIVE_VIDEO_QUALITY] = enabled }
     }
 
     suspend fun setPlayerEthernetMaxVideoHeight(maxHeight: Int?) {

@@ -13,12 +13,16 @@ public sealed class DeviceService(AppDbContext db, LeaseSigner signer, SecretHas
         if (request is null || !Guid.TryParseExact(request.Fingerprint, "D", out var fingerprintId) || fingerprintId == Guid.Empty)
             throw new DomainException(400, "invalid_fingerprint", "A random app-install UUID is required; hardware identifiers are not accepted.");
         var fingerprint = fingerprintId.ToString("D");
+        var fingerprintHash = Secrets.Hash(fingerprint);
+        if (await db.Installations.AnyAsync(x => x.FingerprintHash == fingerprintHash || x.Id == fingerprintId, ct))
+            throw new DomainException(409, "already_registered", "Use the existing installation credential; registration cannot replace it.");
         var token = Secrets.RandomToken();
         var device = new Installation
         {
+            Id = fingerprintId,
             TokenHash = hasher.Hash("device", token),
             CredentialBinding = SecretHasher.CredentialBinding(token),
-            FingerprintHash = Secrets.Hash(fingerprint),
+            FingerprintHash = fingerprintHash,
             Platform = Required(request.Platform, 32),
             AppVersion = Required(request.AppVersion, 64),
             DeviceModel = Required(request.DeviceModel, 128),
@@ -26,7 +30,15 @@ public sealed class DeviceService(AppDbContext db, LeaseSigner signer, SecretHas
             Manufacturer = Sanitizer.Clean(request.Manufacturer, 128),
             Locale = Sanitizer.Clean(request.Locale, 32)
         };
-        db.Installations.Add(device); await db.SaveChangesAsync(ct);
+        db.Installations.Add(device);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            db.Entry(device).State = EntityState.Detached;
+            if (await db.Installations.AnyAsync(x => x.Id == fingerprintId, ct))
+                throw new DomainException(409, "already_registered", "Use the existing installation credential; registration cannot replace it.");
+            throw;
+        }
         return new(device.Id, token);
     }
     public async Task<LeaseResponse> ActivateAsync(Guid installationId, string licenseKey, CancellationToken ct = default)

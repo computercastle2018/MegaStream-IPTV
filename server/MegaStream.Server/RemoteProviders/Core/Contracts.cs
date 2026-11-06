@@ -68,6 +68,8 @@ public sealed class ReportRemoteProvider
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class RemoteProviderProfileMetadata
 {
+    public string? SourceStatus { get; set; }
+    public bool? SourceEnabled { get; set; }
     public Guid Id { get; set; }
     public string DisplayName { get; set; } = "";
     public string Type { get; set; } = "";
@@ -98,8 +100,17 @@ public sealed class RemoteProviderDeviceResult
     public long Revision { get; set; }
     public IReadOnlyList<RemoteProviderDeviceItem> Items { get; set; } = Array.Empty<RemoteProviderDeviceItem>();
 }
+public sealed class GeneratedProviderCode
+{
+    public required string Code { get; init; }
+    public DateTime ExpiresAt { get; init; }
+}
+public sealed record ImportLocalSubscriptionsResult(int Created, int Updated, int AlreadySaved, int Unavailable, DateTime ReportedAt);
 public interface IRemoteProviderService
 {
+    Task<ImportLocalSubscriptionsResult> ImportLocalSubscriptionsAsync(Guid installationId, DateTime reportedSince, CancellationToken ct = default);
+    Task<GeneratedProviderCode> CreateRedemptionCodeAsync(Guid profileId, CancellationToken ct = default);
+    Task RedeemAsync(Guid installationId, string code, CancellationToken ct = default);
     Task<RemoteProviderProfileMetadata> CreateProfileAsync(ReplaceRemoteProviderProfile request, CancellationToken ct = default,
         Guid? installationId = null, string policy = "auto_enabled");
     Task<RemoteProviderProfileMetadata> UpdateProfileAsync(Guid profileId, ReplaceRemoteProviderProfile request, CancellationToken ct = default);
