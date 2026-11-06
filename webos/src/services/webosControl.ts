@@ -3,7 +3,7 @@ import { localSubscriptionReport } from "./subscriptionReport.mjs";
 
 const origin = "https://megastrem.megastation.uk";
 const packageName = "uk.megastation.megastream";
-const versionCode = 11;
+const versionCode = 64;
 const identityKey = "MegaStream.webos.identity.v1";
 type Identity = { installationId: string; credential: string };
 type Fetcher = typeof fetch;

@@ -3,6 +3,7 @@ const os = require('node:os');
 const { verifyLease } = require('./lease.cjs');
 const origin = 'https://megastrem.megastation.uk';
 const packageName = 'uk.megastation.megastream.desktop';
+const versionCode = 64;
 
 class ControlPlane {
   constructor(store, version, notify, fetcher = fetch) {
@@ -32,7 +33,7 @@ class ControlPlane {
     }
     this.state.installationId = this.identity.installationId;
     await this.request('installations/register', {
-      ...this.identity, platform: process.platform === 'darwin' ? 'macos' : 'windows', appVersionCode: 56,
+      ...this.identity, platform: process.platform === 'darwin' ? 'macos' : 'windows', appVersionCode: versionCode,
       packageName, channel: 'stable', appVersionName: this.version, manufacturer: process.platform === 'darwin' ? 'Apple' : 'PC',
       model: 'MegaStream Desktop', androidApi: 0, androidRelease: os.release().slice(0, 32),
       abi: process.arch === 'arm64' ? 'arm64_v8a' : 'x86_64', locale: Intl.DateTimeFormat().resolvedOptions().locale.slice(0, 16), managedDevice: false
@@ -109,7 +110,7 @@ class ControlPlane {
     try {
       if (!this.registered) { await this.register(); this.registered = true; }
       const result = await this.request('devices/heartbeat', {
-        appSessionId: this.sessionId, sequence: this.sequence++, mode: 'foreground', appVersionCode: 56,
+        appSessionId: this.sessionId, sequence: this.sequence++, mode: 'foreground', appVersionCode: versionCode,
         packageName, channel: 'stable', appVersionName: this.version, managedDevice: false
       });
       this.state = { ...this.state, state: result.decision.state, online: true, error: null, providersChanged: false,

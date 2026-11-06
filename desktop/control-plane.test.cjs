@@ -35,6 +35,8 @@ test('upgrade retains identity and local accounts, synchronizes remote changes a
     if (offline) throw new Error('Offline');
     const route = new URL(url).pathname.split('/api/v1/')[1];
     calls.push(route);
+    if (route === 'installations/register' || route === 'devices/heartbeat')
+      assert.equal(JSON.parse(options.body).appVersionCode, 64);
     let result = {};
     if (route === 'installations/register') lease = signed(JSON.parse(options.body));
     if (route === 'devices/heartbeat') result = { decision: { state: allowed ? 'allowed' : 'revoked' }, ...(allowed ? { lease: lease.lease } : {}) };
