@@ -243,6 +243,24 @@ const { spawnSync } = require('node:child_process');
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('dialog', { name: 'Video quality', exact: true }).count(), 0);
     await page.waitForFunction(() => document.querySelector('video')?.videoHeight === 720);
+    await page.getByRole('button', { name: 'Home', exact: true }).click();
+    await page.locator('.appearance-open').click();
+    await page.locator('input[name="design"][value="tvpro"]').check();
+    await page.keyboard.press('Escape');
+    await page.locator('.tvpro-home-section').nth(2).click();
+    await page.getByText('Series fixture', { exact: true }).click();
+    await page.getByText('Episode 2', { exact: true }).waitFor();
+    await page.screenshot({ path: path.join(__dirname, '../.impeccable/review/web-episodes.png') });
+    await page.locator('.home-btn').click();
+    await page.locator('.tvpro-home-section').nth(1).click();
+    await page.getByText('Quality fixture', { exact: true }).click();
+    await page.locator('.tvpro-movie-detail .tvpro-play').click();
+    if (await page.getByRole('dialog', { name: 'Continue watching' }).isVisible()) await page.locator('.resume-primary').click();
+    await page.waitForFunction(() => document.querySelector('video')?.videoHeight === 720);
+    qualityDialog = await openQuality();
+    await page.screenshot({ path: path.join(__dirname, '../.impeccable/review/web-selected-quality.png') });
+    assert.equal(await qualityDialog.getByRole('button', { name: '720p', exact: true }).evaluate(el => getComputedStyle(el).color), 'rgb(16, 19, 24)');
+    await page.keyboard.press('Escape');
     console.log('PASS: playback resume regressions, decoded 360p/720p quality changes, fixed mode persistence, and remote dialog Back. Screenshots:', directory);
   } finally {
     if (application) {
